@@ -13,12 +13,6 @@ type Product = {
   badge?: string;
   image: string;
   stock: number;
-
-  weightKg: number;
-  widthCm: number;
-  heightCm: number;
-  lengthCm: number;
-
   description: string;
   features: string[];
 };
@@ -27,23 +21,10 @@ type CartItem = Product & {
   quantity: number;
 };
 
-type CustomerData = {
-  name: string;
-  phone: string;
-  email: string;
-  province: string;
-  city: string;
-  postalCode: string;
-  address: string;
-  notes: string;
-};
+const WHATSAPP = "543512285839";
+const ALIAS = "genaroperaltaz";
 
-const PAYMENT_ALIAS = "genaroperaltaz";
-
-const WHATSAPP_NUMBER = "543512285839";
-const WHATSAPP_DISPLAY = "351 228-5839";
-
-const products: Product[] = [
+const PRODUCTS: Product[] = [
   {
     id: 1,
     brand: "ATTACK SHARK",
@@ -55,22 +36,13 @@ const products: Product[] = [
     badge: "BEST SELLER",
     image: "/attack-shark-x3.webp",
     stock: 8,
-
-    weightKg: 0.3,
-    widthCm: 15,
-    heightCm: 8,
-    lengthCm: 20,
-
     description:
-      "Mouse gamer inalámbrico ultraliviano con sensor PixArt PAW3395 y conectividad triple, pensado para gaming competitivo.",
-
+      "Mouse gamer inalámbrico ultraliviano pensado para gaming competitivo, precisión y respuesta rápida.",
     features: [
       "Sensor PixArt PAW3395",
       "Hasta 26.000 DPI",
       "Polling rate de hasta 1000 Hz",
       "Peso aproximado de 49 g",
-      "Velocidad de seguimiento de hasta 650 IPS",
-      "Aceleración de hasta 50 G",
       "Wireless 2.4 GHz",
       "Bluetooth",
       "USB-C",
@@ -78,7 +50,6 @@ const products: Product[] = [
       "Patines PTFE",
     ],
   },
-
   {
     id: 2,
     brand: "MCHOSE",
@@ -90,29 +61,19 @@ const products: Product[] = [
     badge: "ESPORTS",
     image: "/mchose-ace60-pro.webp",
     stock: 5,
-
-    weightKg: 0.9,
-    widthCm: 35,
-    heightCm: 8,
-    lengthCm: 15,
-
     description:
-      "Teclado gamer compacto con switches magnéticos Hall Effect, Rapid Trigger y polling rate de hasta 8000 Hz.",
-
+      "Teclado gamer compacto con switches magnéticos Hall Effect, Rapid Trigger y altas prestaciones para gaming competitivo.",
     features: [
       "Formato compacto 60%",
       "Switches magnéticos Hall Effect",
       "Rapid Trigger",
       "Polling rate de hasta 8000 Hz",
       "Actuación configurable",
-      "Switches magnéticos hot-swap",
       "RGB configurable",
       "Macros programables",
       "USB-C",
-      "Software MCHOSE",
     ],
   },
-
   {
     id: 3,
     brand: "GAMESIR",
@@ -124,15 +85,8 @@ const products: Product[] = [
     badge: "MULTIPLATAFORMA",
     image: "/gamesir-nova2-lite.png",
     stock: 7,
-
-    weightKg: 0.6,
-    widthCm: 20,
-    heightCm: 12,
-    lengthCm: 20,
-
     description:
-      "Control inalámbrico multiplataforma con sticks Hall Effect, diseñado para ofrecer precisión, durabilidad y comodidad.",
-
+      "Control inalámbrico multiplataforma diseñado para ofrecer precisión, durabilidad y comodidad.",
     features: [
       "Sticks Hall Effect",
       "Gatillos Hall Effect",
@@ -144,46 +98,8 @@ const products: Product[] = [
       "Compatible con Steam",
       "Compatible con Nintendo Switch",
       "Compatible con Android",
-      "Botones programables",
-      "Motores de vibración",
     ],
   },
-
-  /*
-  ==========================================================
-  PARA AGREGAR OTRO PRODUCTO EN EL FUTURO
-  ==========================================================
-
-  Copiás un bloque como este y cambiás los datos:
-
-  {
-    id: 4,
-    brand: "MARCA",
-    name: "Nombre del producto",
-    category: "Auriculares",
-    subtitle: "Descripción corta",
-    price: 99990,
-    oldPrice: 119990,
-    badge: "NUEVO",
-    image: "/nombre-imagen.webp",
-    stock: 10,
-
-    weightKg: 0.5,
-    widthCm: 20,
-    heightCm: 15,
-    lengthCm: 25,
-
-    description: "Descripción completa.",
-
-    features: [
-      "Característica 1",
-      "Característica 2",
-      "Característica 3",
-    ],
-  },
-
-  ==========================================================
-  */
 ];
 
 function money(value: number) {
@@ -194,2156 +110,1569 @@ function money(value: number) {
   }).format(value);
 }
 
-function generateOrderNumber() {
-  const now = new Date();
-
-  const date =
-    now.getFullYear().toString().slice(-2) +
-    String(now.getMonth() + 1).padStart(2, "0") +
-    String(now.getDate()).padStart(2, "0");
-
-  const random = Math.floor(1000 + Math.random() * 9000);
-
-  return `RXZ-${date}-${random}`;
-}
-
 export default function Home() {
-  const [selectedProduct, setSelectedProduct] =
-    useState<Product | null>(null);
-
   const [cart, setCart] = useState<CartItem[]>([]);
-
   const [cartOpen, setCartOpen] = useState(false);
-
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
-
-  const [orderConfirmed, setOrderConfirmed] = useState(false);
-
-  const [orderNumber, setOrderNumber] = useState("");
-
-  const [receiptName, setReceiptName] = useState("");
-
+  const [selected, setSelected] = useState<Product | null>(null);
   const [search, setSearch] = useState("");
-
   const [category, setCategory] = useState("Todos");
-
-  const [shippingMessage, setShippingMessage] = useState("");
-
-  const [cartLoaded, setCartLoaded] = useState(false);
-
-  const [notification, setNotification] = useState("");
-
-  const [customer, setCustomer] = useState<CustomerData>({
-    name: "",
-    phone: "",
-    email: "",
-    province: "",
-    city: "",
-    postalCode: "",
-    address: "",
-    notes: "",
-  });
-
-  const categories = useMemo(() => {
-    return [
-      "Todos",
-      ...Array.from(
-        new Set(products.map((product) => product.category))
-      ),
-    ];
-  }, []);
+  const [toast, setToast] = useState("");
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     try {
-      const savedCart = localStorage.getItem("rxz-gamer-cart");
+      const saved = localStorage.getItem("rxz-cart");
+      if (saved) setCart(JSON.parse(saved));
+    } catch {}
 
-      if (savedCart) {
-        setCart(JSON.parse(savedCart));
-      }
-    } catch {
-      localStorage.removeItem("rxz-gamer-cart");
-    } finally {
-      setCartLoaded(true);
-    }
+    setLoaded(true);
   }, []);
 
   useEffect(() => {
-    if (!cartLoaded) return;
-
-    localStorage.setItem("rxz-gamer-cart", JSON.stringify(cart));
-  }, [cart, cartLoaded]);
+    if (loaded) {
+      localStorage.setItem("rxz-cart", JSON.stringify(cart));
+    }
+  }, [cart, loaded]);
 
   useEffect(() => {
-    if (!notification) return;
+    if (!toast) return;
 
-    const timer = window.setTimeout(() => setNotification(""), 3500);
+    const timer = setTimeout(() => setToast(""), 3000);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
-    return () => window.clearTimeout(timer);
-  }, [notification]);
+  const categories = [
+    "Todos",
+    ...Array.from(new Set(PRODUCTS.map((p) => p.category))),
+  ];
 
-  const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
-      const matchesCategory =
-        category === "Todos" ||
-        product.category === category;
+  const filtered = useMemo(() => {
+    return PRODUCTS.filter((p) => {
+      const categoryOK = category === "Todos" || p.category === category;
 
-      const text =
-        `${product.brand} ${product.name} ${product.subtitle}`.toLowerCase();
+      const text = `${p.brand} ${p.name} ${p.subtitle}`.toLowerCase();
 
-      const matchesSearch = text.includes(search.toLowerCase());
-
-      return matchesCategory && matchesSearch;
+      return categoryOK && text.includes(search.toLowerCase());
     });
   }, [search, category]);
 
-  const totalItems = useMemo(
-    () =>
-      cart.reduce(
-        (sum, item) => sum + item.quantity,
-        0
-      ),
-    [cart]
+  const totalItems = cart.reduce((a, b) => a + b.quantity, 0);
+
+  const total = cart.reduce(
+    (a, b) => a + b.price * b.quantity,
+    0
   );
 
-  const productsTotal = useMemo(
-    () =>
-      cart.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0
-      ),
-    [cart]
-  );
+  function add(product: Product) {
+    const existing = cart.find((p) => p.id === product.id);
 
-  function addToCart(product: Product) {
-    const currentQuantity =
-      cart.find((item) => item.id === product.id)?.quantity ?? 0;
-
-    if (currentQuantity >= product.stock) {
-      setNotification(`No hay más unidades disponibles de ${product.name}.`);
-      setCartOpen(true);
+    if (existing && existing.quantity >= product.stock) {
+      setToast("Alcanzaste el stock disponible.");
       return;
     }
 
     setCart((current) => {
-      const existing = current.find(
-        (item) => item.id === product.id
-      );
+      const item = current.find((p) => p.id === product.id);
 
-      if (existing) {
-        return current.map((item) =>
-          item.id === product.id
-            ? {
-                ...item,
-                quantity: item.quantity + 1,
-              }
-            : item
+      if (item) {
+        return current.map((p) =>
+          p.id === product.id
+            ? { ...p, quantity: p.quantity + 1 }
+            : p
         );
       }
 
-      return [
-        ...current,
-        {
-          ...product,
-          quantity: 1,
-        },
-      ];
+      return [...current, { ...product, quantity: 1 }];
     });
 
-    setNotification(`✓ ${product.name} agregado al carrito`);
-    setCartOpen(true);
+    setToast(`✓ ${product.name} agregado al carrito`);
   }
 
-  function decreaseQuantity(productId: number) {
+  function changeQuantity(id: number, amount: number) {
     setCart((current) =>
       current
-        .map((item) =>
-          item.id === productId
-            ? {
-                ...item,
-                quantity: item.quantity - 1,
-              }
-            : item
-        )
+        .map((item) => {
+          if (item.id !== id) return item;
+
+          return {
+            ...item,
+            quantity: Math.min(
+              item.stock,
+              Math.max(0, item.quantity + amount)
+            ),
+          };
+        })
         .filter((item) => item.quantity > 0)
     );
   }
 
-  function increaseQuantity(productId: number) {
-    setCart((current) =>
-      current.map((item) =>
-        item.id === productId
-          ? {
-              ...item,
-              quantity: Math.min(item.quantity + 1, item.stock),
-            }
-          : item
+  function remove(id: number) {
+    setCart((current) => current.filter((p) => p.id !== id));
+  }
+
+  function checkoutWhatsApp() {
+    const products = cart
+      .map(
+        (p) =>
+          `${p.quantity}x ${p.brand} ${p.name} - ${money(
+            p.price * p.quantity
+          )}`
       )
+      .join("\n");
+
+    const message = encodeURIComponent(
+      `Hola RXZ Gamer, quiero realizar este pedido:\n\n${products}\n\nTotal productos: ${money(
+        total
+      )}\n\nQuiero coordinar pago y envío por OCA.`
     );
-  }
 
-  function removeFromCart(productId: number) {
-    setCart((current) =>
-      current.filter(
-        (item) => item.id !== productId
-      )
-    );
-  }
-
-  function clearCart() {
-    setCart([]);
-    setNotification("Carrito vaciado.");
-  }
-
-  async function copyAlias() {
-    try {
-      await navigator.clipboard.writeText(PAYMENT_ALIAS);
-
-      alert("Alias copiado.");
-    } catch {
-      alert(`Alias: ${PAYMENT_ALIAS}`);
-    }
-  }
-
-  function handleCustomerChange(
-    field: keyof CustomerData,
-    value: string
-  ) {
-    setCustomer((current) => ({
-      ...current,
-      [field]: value,
-    }));
-  }
-
-  function startCheckout() {
-    if (cart.length === 0) return;
-
-    setCartOpen(false);
-    setCheckoutOpen(true);
-    setOrderConfirmed(false);
-  }
-
-  function prepareOcaQuote() {
-    if (!customer.postalCode.trim()) {
-      setShippingMessage(
-        "Ingresá primero el código postal de destino."
-      );
-
-      return;
-    }
-
-    setShippingMessage(
-      "Destino cargado correctamente. La cotización automática de OCA se activará cuando OCA nos entregue las credenciales de e-Pak."
-    );
-  }
-
-  function confirmOrder() {
-    if (
-      !customer.name.trim() ||
-      !customer.phone.trim() ||
-      !customer.email.trim() ||
-      !customer.province.trim() ||
-      !customer.city.trim() ||
-      !customer.postalCode.trim() ||
-      !customer.address.trim()
-    ) {
-      alert("Completá todos los datos obligatorios.");
-
-      return;
-    }
-
-    if (!receiptName) {
-      alert("Adjuntá el comprobante de transferencia.");
-
-      return;
-    }
-
-    const newOrderNumber = generateOrderNumber();
-
-    setOrderNumber(newOrderNumber);
-    setOrderConfirmed(true);
+    window.open(`https://wa.me/${WHATSAPP}?text=${message}`, "_blank");
   }
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        color: "white",
-        fontFamily: "Arial, Helvetica, sans-serif",
-        position: "relative",
-        overflow: "hidden",
-        background: "#02050c",
-      }}
-    >
-      {/* FONDO DINÁMICO */}
-
-      <div className="dynamic-background">
-        <div className="grid-background" />
-
-        <div className="orb orb-one" />
-        <div className="orb orb-two" />
-        <div className="orb orb-three" />
-
-        <div className="light-beam beam-one" />
-        <div className="light-beam beam-two" />
+    <main>
+      <div className="background">
+        <div className="grid" />
+        <div className="glow glow1" />
+        <div className="glow glow2" />
       </div>
 
-      <div
-        style={{
-          position: "relative",
-          zIndex: 2,
-        }}
-      >
-        {/* HEADER */}
+      <div className="announcement">
+        🚚 ENVÍOS A TODO EL PAÍS · OCA · ATENCIÓN PERSONALIZADA
+      </div>
 
-        <header
-          style={{
-            position: "sticky",
-            top: 0,
-            zIndex: 50,
-            padding: "17px 6%",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "15px",
-            background: "rgba(2,5,12,.75)",
-            backdropFilter: "blur(20px)",
-            borderBottom: "1px solid rgba(255,255,255,.08)",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "29px",
-              fontWeight: 950,
-              letterSpacing: "2px",
-            }}
+      <header>
+        <a href="#inicio" className="logo">
+          RXZ <span>GAMER</span>
+        </a>
+
+        <nav>
+          <a href="#inicio">Inicio</a>
+          <a href="#productos">Productos</a>
+          <a href="#beneficios">Envíos</a>
+          <a href="#contacto">Contacto</a>
+
+          <button className="cartBtn" onClick={() => setCartOpen(true)}>
+            🛒
+            <span>Carrito</span>
+
+            {totalItems > 0 && (
+              <b className="counter">{totalItems}</b>
+            )}
+          </button>
+        </nav>
+      </header>
+
+      <section id="inicio" className="hero">
+        <div className="heroBadge">
+          GAMING · PERFORMANCE · TECNOLOGÍA
+        </div>
+
+        <h1>
+          EQUIPATE PARA
+          <br />
+          <span>JUGAR MEJOR.</span>
+        </h1>
+
+        <p>
+          Hardware y periféricos gamer seleccionados por
+          rendimiento, tecnología y relación precio-calidad.
+        </p>
+
+        <div className="heroButtons">
+          <a href="#productos" className="primary">
+            VER PRODUCTOS
+          </a>
+
+          <a
+            className="secondary"
+            href={`https://wa.me/${WHATSAPP}`}
+            target="_blank"
           >
-            RXZ{" "}
-            <span style={{ color: "#22c55e" }}>
-              GAMER
+            CONSULTAR POR WHATSAPP
+          </a>
+        </div>
+
+        <div className="trust">
+          <div>
+            <strong>🚚</strong>
+            <span>
+              <b>Envíos nacionales</b>
+              <small>Por OCA</small>
             </span>
           </div>
 
-          <nav
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "22px",
-              flexWrap: "wrap",
-            }}
-          >
-            <a href="#inicio" style={navStyle}>
-              Inicio
-            </a>
-
-            <a href="#productos" style={navStyle}>
-              Productos
-            </a>
-
-            <a href="#envios" style={navStyle}>
-              Envíos
-            </a>
-
-            <a href="#contacto" style={navStyle}>
-              Contacto
-            </a>
-
-            <button
-              onClick={() => setCartOpen(true)}
-              style={cartButton}
-            >
-              🛒 Carrito ({totalItems})
-            </button>
-          </nav>
-        </header>
-
-        {/* HERO */}
-
-        <section
-          id="inicio"
-          style={{
-            minHeight: "650px",
-            padding: "80px 20px",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            textAlign: "center",
-          }}
-        >
-          <div
-            style={{
-              maxWidth: "950px",
-            }}
-          >
-            <div
-              style={{
-                display: "inline-block",
-                padding: "9px 15px",
-                borderRadius: "100px",
-                background: "rgba(34,197,94,.1)",
-                border: "1px solid rgba(34,197,94,.35)",
-                color: "#5df38a",
-                fontWeight: 900,
-                letterSpacing: "3px",
-                marginBottom: "26px",
-              }}
-            >
-              GAMING • PERFORMANCE • TECNOLOGÍA
-            </div>
-
-            <h1
-              style={{
-                margin: 0,
-                fontSize: "clamp(65px, 10vw, 130px)",
-                fontWeight: 1000,
-                lineHeight: 0.85,
-                letterSpacing: "-5px",
-              }}
-            >
-              RXZ
-              <span
-                style={{
-                  color: "#22c55e",
-                  textShadow: "0 0 45px rgba(34,197,94,.4)",
-                }}
-              >
-                {" "}
-                GAMER
-              </span>
-            </h1>
-
-            <p
-              style={{
-                maxWidth: "760px",
-                margin: "40px auto",
-                color: "#a9b5ca",
-                fontSize: "21px",
-                lineHeight: 1.7,
-              }}
-            >
-              Periféricos y tecnología gamer
-              seleccionados por rendimiento,
-              prestaciones y relación precio-calidad.
-            </p>
-
-            <a
-              href="#productos"
-              style={{
-                display: "inline-block",
-                padding: "18px 36px",
-                background: "#22c55e",
-                color: "#021006",
-                textDecoration: "none",
-                borderRadius: "11px",
-                fontWeight: 950,
-                boxShadow: "0 0 35px rgba(34,197,94,.25)",
-              }}
-            >
-              EXPLORAR PRODUCTOS
-            </a>
-          </div>
-        </section>
-
-        {/* PRODUCTOS */}
-
-        <section
-          id="productos"
-          style={{
-            maxWidth: "1450px",
-            margin: "0 auto",
-            padding: "70px 5%",
-          }}
-        >
-          <div
-            style={{
-              textAlign: "center",
-              marginBottom: "35px",
-            }}
-          >
-            <div
-              style={{
-                color: "#22c55e",
-                fontWeight: 900,
-                letterSpacing: "3px",
-              }}
-            >
-              RXZ SELECTION
-            </div>
-
-            <h2
-              style={{
-                fontSize: "clamp(36px,5vw,52px)",
-                margin: "10px 0",
-              }}
-            >
-              Productos destacados
-            </h2>
+          <div>
+            <strong>🔒</strong>
+            <span>
+              <b>Compra segura</b>
+              <small>Pago verificado</small>
+            </span>
           </div>
 
-          <div
-            style={{
-              maxWidth: "900px",
-              margin: "0 auto 25px",
-            }}
-          >
+          <div>
+            <strong>💬</strong>
+            <span>
+              <b>Atención directa</b>
+              <small>Por WhatsApp</small>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section id="productos" className="products">
+        <div className="sectionHead">
+          <span>RXZ SELECTION</span>
+          <h2>Productos destacados</h2>
+          <p>
+            Tecnología seleccionada para mejorar tu setup.
+          </p>
+        </div>
+
+        <div className="tools">
+          <div className="search">
+            🔎
             <input
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar mouse, teclado, control..."
-              style={{
-                width: "100%",
-                boxSizing: "border-box",
-                padding: "17px 20px",
-                borderRadius: "13px",
-                border: "1px solid #28374f",
-                background: "rgba(8,14,25,.85)",
-                color: "white",
-                fontSize: "16px",
-                outline: "none",
-                backdropFilter: "blur(15px)",
-              }}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar productos..."
             />
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              flexWrap: "wrap",
-              gap: "10px",
-              marginBottom: "45px",
-            }}
-          >
-            {categories.map((currentCategory) => (
+          <div className="categories">
+            {categories.map((c) => (
               <button
-                key={currentCategory}
-                onClick={() => setCategory(currentCategory)}
-                style={{
-                  border:
-                    category === currentCategory
-                      ? "1px solid #22c55e"
-                      : "1px solid #334155",
-
-                  background:
-                    category === currentCategory
-                      ? "#22c55e"
-                      : "rgba(15,23,42,.85)",
-
-                  color:
-                    category === currentCategory
-                      ? "#021006"
-                      : "#cbd5e1",
-
-                  padding: "10px 17px",
-                  borderRadius: "100px",
-                  cursor: "pointer",
-                  fontWeight: 800,
-                }}
+                key={c}
+                className={category === c ? "active" : ""}
+                onClick={() => setCategory(c)}
               >
-                {currentCategory}
+                {c}
               </button>
             ))}
           </div>
+        </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(290px, 1fr))",
-              gap: "30px",
-            }}
-          >
-            {filteredProducts.map((product) => (
-              <article
-                key={product.id}
-                className="product-card"
-              >
+        <div className="productGrid">
+          {filtered.map((product) => {
+            const discount = product.oldPrice
+              ? Math.round(
+                  (1 - product.price / product.oldPrice) * 100
+                )
+              : 0;
+
+            return (
+              <article className="card" key={product.id}>
                 <div
-                  onClick={() => setSelectedProduct(product)}
-                  style={{
-                    height: "330px",
-                    padding: "25px",
-                    background:
-                      "radial-gradient(circle at center,#263a62,#0a101d 75%)",
-                    cursor: "pointer",
-                    position: "relative",
-                  }}
+                  className="imageBox"
+                  onClick={() => setSelected(product)}
                 >
+                  {product.badge && (
+                    <span className="badge">{product.badge}</span>
+                  )}
+
+                  {discount > 0 && (
+                    <span className="discount">
+                      -{discount}%
+                    </span>
+                  )}
+
                   <img
                     src={product.image}
                     alt={`${product.brand} ${product.name}`}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "contain",
-                      transition: "transform .3s ease",
-                    }}
                   />
-
-                  {product.badge && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "17px",
-                        left: "17px",
-                        background: "#22c55e",
-                        color: "#021006",
-                        fontSize: "11px",
-                        fontWeight: 950,
-                        padding: "8px 11px",
-                        borderRadius: "7px",
-                      }}
-                    >
-                      {product.badge}
-                    </div>
-                  )}
                 </div>
 
-                <div
-                  style={{
-                    padding: "26px",
-                  }}
-                >
-                  <div
-                    style={{
-                      color: "#22c55e",
-                      fontSize: "12px",
-                      letterSpacing: "2px",
-                      fontWeight: 900,
-                    }}
-                  >
-                    {product.brand}
+                <div className="cardBody">
+                  <div className="brand">{product.brand}</div>
+
+                  <h3>{product.name}</h3>
+
+                  <p>{product.subtitle}</p>
+
+                  <div className="stock">
+                    <span className="stockDot" />
+                    {product.stock > 5
+                      ? "Stock disponible"
+                      : `Últimas ${product.stock} unidades`}
                   </div>
 
-                  <h3
-                    style={{
-                      fontSize: "25px",
-                      margin: "9px 0",
-                    }}
-                  >
-                    {product.name}
-                  </h3>
-
-                  <p
-                    style={{
-                      color: "#91a0b5",
-                      minHeight: "25px",
-                    }}
-                  >
-                    {product.subtitle}
-                  </p>
-
                   {product.oldPrice && (
-                    <div
-                      style={{
-                        marginTop: "22px",
-                        color: "#64748b",
-                        textDecoration: "line-through",
-                      }}
-                    >
+                    <div className="old">
                       {money(product.oldPrice)}
                     </div>
                   )}
 
-                  <div
-                    style={{
-                      color: "#22c55e",
-                      fontWeight: 950,
-                      fontSize: "30px",
-                      marginTop: "3px",
-                      marginBottom: "23px",
-                    }}
-                  >
+                  <div className="price">
                     {money(product.price)}
                   </div>
 
-                  <div
-                    style={{
-                      color: product.stock <= 5 ? "#facc15" : "#94a3b8",
-                      fontSize: "13px",
-                      fontWeight: 800,
-                      margin: "-14px 0 18px",
-                    }}
-                  >
-                    {product.stock <= 5
-                      ? `Últimas ${product.stock} unidades`
-                      : "Stock disponible"}
-                  </div>
+                  <small className="transfer">
+                    Precio especial por transferencia
+                  </small>
 
                   <button
-                    onClick={() => setSelectedProduct(product)}
-                    style={secondaryButton}
+                    className="details"
+                    onClick={() => setSelected(product)}
                   >
                     VER DETALLES
                   </button>
 
                   <button
-                    onClick={() => addToCart(product)}
-                    style={primaryButton}
+                    className="buy"
+                    onClick={() => add(product)}
                   >
                     AGREGAR AL CARRITO
                   </button>
                 </div>
               </article>
-            ))}
-          </div>
-        </section>
-
-        {/* BENEFICIOS */}
-
-        <section
-          id="envios"
-          style={{
-            maxWidth: "1250px",
-            margin: "60px auto",
-            padding: "30px 5%",
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit,minmax(220px,1fr))",
-            gap: "20px",
-          }}
-        >
-          <InfoBox
-            icon="🚚"
-            title="Envíos por OCA"
-            text="Origen Villa Allende, Córdoba. Cotización automática próximamente."
-          />
-
-          <InfoBox
-            icon="🏦"
-            title="Transferencia"
-            text={`Transferencias al alias ${PAYMENT_ALIAS}.`}
-          />
-
-          <InfoBox
-            icon="🔐"
-            title="Verificación"
-            text="El pedido se aprueba cuando verificamos que el pago esté acreditado."
-          />
-
-          <InfoBox
-            icon="🎮"
-            title="Gaming seleccionado"
-            text="Productos seleccionados por tecnología y prestaciones."
-          />
-        </section>
-
-        {/* CONTACTO */}
-
-        <section
-          id="contacto"
-          style={{
-            marginTop: "80px",
-            padding: "100px 20px",
-            textAlign: "center",
-            borderTop: "1px solid rgba(255,255,255,.08)",
-          }}
-        >
-          <div
-            style={{
-              color: "#22c55e",
-              fontWeight: 900,
-              letterSpacing: "3px",
-              marginBottom: "10px",
-            }}
-          >
-            CONTACTO RXZ
-          </div>
-
-          <h2
-            style={{
-              fontSize: "40px",
-              marginBottom: "15px",
-            }}
-          >
-            ¿Tenés alguna consulta?
-          </h2>
-
-          <p
-            style={{
-              color: "#94a3b8",
-              fontSize: "18px",
-              lineHeight: 1.7,
-              maxWidth: "650px",
-              margin: "0 auto 28px",
-            }}
-          >
-            Consultanos por productos, disponibilidad,
-            medios de pago y envíos.
-          </p>
-
-          <a
-            href={`https://wa.me/${WHATSAPP_NUMBER}?text=Hola%20RXZ%20Gamer,%20tengo%20una%20consulta.`}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: "inline-block",
-              padding: "17px 30px",
-              background: "#22c55e",
-              color: "#021006",
-              textDecoration: "none",
-              borderRadius: "11px",
-              fontWeight: 900,
-              fontSize: "17px",
-              boxShadow: "0 0 30px rgba(34,197,94,.25)",
-            }}
-          >
-            💬 WhatsApp {WHATSAPP_DISPLAY}
-          </a>
-        </section>
-
-        <footer
-          style={{
-            padding: "32px",
-            borderTop: "1px solid rgba(255,255,255,.08)",
-            textAlign: "center",
-            color: "#56647a",
-          }}
-        >
-          © 2026 RXZ Gamer
-        </footer>
-      </div>
-
-      {/* WHATSAPP FLOTANTE */}
-
-      {notification && (
-        <div className="cart-notification" role="status" aria-live="polite">
-          <span>{notification}</span>
-
-          {cart.length > 0 && (
-            <button
-              onClick={() => {
-                setNotification("");
-                setCartOpen(true);
-              }}
-            >
-              VER CARRITO
-            </button>
-          )}
+            );
+          })}
         </div>
-      )}
+      </section>
+
+      <section id="beneficios" className="benefits">
+        <div>
+          <span>🚚</span>
+          <h3>Envíos a todo el país</h3>
+          <p>
+            Despachamos desde Villa Allende, Córdoba, mediante
+            OCA.
+          </p>
+        </div>
+
+        <div>
+          <span>🏦</span>
+          <h3>Transferencia bancaria</h3>
+          <p>
+            Precio especial abonando mediante transferencia.
+          </p>
+        </div>
+
+        <div>
+          <span>🔐</span>
+          <h3>Pago verificado</h3>
+          <p>
+            Confirmamos cada pedido luego de verificar la
+            acreditación.
+          </p>
+        </div>
+
+        <div>
+          <span>🎮</span>
+          <h3>Selección RXZ</h3>
+          <p>
+            Elegimos productos por rendimiento y relación
+            precio-calidad.
+          </p>
+        </div>
+      </section>
+
+      <section className="payment">
+        <span>COMPRA SIMPLE</span>
+        <h2>¿Cómo comprar?</h2>
+
+        <div className="steps">
+          <div>
+            <b>01</b>
+            <h3>Elegí</h3>
+            <p>Agregá tus productos al carrito.</p>
+          </div>
+
+          <div>
+            <b>02</b>
+            <h3>Confirmá</h3>
+            <p>Revisá cantidades y total.</p>
+          </div>
+
+          <div>
+            <b>03</b>
+            <h3>Pagá</h3>
+            <p>
+              Transferí al alias <strong>{ALIAS}</strong>.
+            </p>
+          </div>
+
+          <div>
+            <b>04</b>
+            <h3>Recibí</h3>
+            <p>Coordinamos tu envío por OCA.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="contacto" className="contact">
+        <span>¿NECESITÁS AYUDA?</span>
+
+        <h2>Estamos para ayudarte.</h2>
+
+        <p>
+          Consultanos sobre productos, stock, pagos o envíos.
+        </p>
+
+        <a
+          href={`https://wa.me/${WHATSAPP}?text=Hola%20RXZ%20Gamer,%20tengo%20una%20consulta.`}
+          target="_blank"
+        >
+          💬 HABLAR POR WHATSAPP
+        </a>
+      </section>
+
+      <footer>
+        <div className="footerLogo">
+          RXZ <span>GAMER</span>
+        </div>
+
+        <p>
+          Gaming · Performance · Tecnología
+        </p>
+
+        <small>
+          © 2026 RXZ Gamer · Todos los derechos reservados.
+        </small>
+      </footer>
 
       <a
-        href={`https://wa.me/${WHATSAPP_NUMBER}?text=Hola%20RXZ%20Gamer,%20tengo%20una%20consulta.`}
+        className="whatsapp"
+        href={`https://wa.me/${WHATSAPP}`}
         target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Consultar por WhatsApp"
-        title={`WhatsApp ${WHATSAPP_DISPLAY}`}
-        className="whatsapp-floating"
+        aria-label="WhatsApp RXZ Gamer"
       >
         💬
       </a>
 
-      {/* MODAL PRODUCTO */}
+      {toast && (
+        <div className="toast">
+          <span>{toast}</span>
 
-      {selectedProduct && (
-        <ModalOverlay
-          onClose={() => setSelectedProduct(null)}
-        >
-          <button
-            onClick={() => setSelectedProduct(null)}
-            style={closeButton}
-          >
-            ×
+          <button onClick={() => setCartOpen(true)}>
+            VER CARRITO
           </button>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit,minmax(320px,1fr))",
-              gap: "45px",
-            }}
-          >
-            <div
-              style={{
-                minHeight: "430px",
-                padding: "25px",
-                borderRadius: "18px",
-                background:
-                  "radial-gradient(circle,#293b60,#101827)",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <img
-                src={selectedProduct.image}
-                alt={selectedProduct.name}
-                style={{
-                  width: "100%",
-                  maxHeight: "420px",
-                  objectFit: "contain",
-                }}
-              />
-            </div>
-
-            <div>
-              <div
-                style={{
-                  color: "#22c55e",
-                  fontWeight: 900,
-                  letterSpacing: "2px",
-                }}
-              >
-                {selectedProduct.brand}
-              </div>
-
-              <h2
-                style={{
-                  fontSize: "39px",
-                  margin: "9px 0",
-                }}
-              >
-                {selectedProduct.name}
-              </h2>
-
-              <p
-                style={{
-                  color: "#c1cada",
-                  lineHeight: 1.75,
-                }}
-              >
-                {selectedProduct.description}
-              </p>
-
-              <h3>Características</h3>
-
-              <ul
-                style={{
-                  paddingLeft: "20px",
-                  color: "#cbd5e1",
-                  lineHeight: 1.9,
-                }}
-              >
-                {selectedProduct.features.map((feature) => (
-                  <li key={feature}>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-
-              <div
-                style={{
-                  color: "#22c55e",
-                  fontWeight: 950,
-                  fontSize: "35px",
-                  marginTop: "20px",
-                }}
-              >
-                {money(selectedProduct.price)}
-              </div>
-
-              <p
-                style={{
-                  color: selectedProduct.stock <= 5 ? "#facc15" : "#94a3b8",
-                  fontWeight: 800,
-                }}
-              >
-                {selectedProduct.stock <= 5
-                  ? `Últimas ${selectedProduct.stock} unidades disponibles`
-                  : `${selectedProduct.stock} unidades disponibles`}
-              </p>
-
-              <button
-                onClick={() => addToCart(selectedProduct)}
-                style={{
-                  ...primaryButton,
-                  marginTop: "20px",
-                }}
-              >
-                AGREGAR AL CARRITO
-              </button>
-            </div>
-          </div>
-        </ModalOverlay>
+        </div>
       )}
 
-      {/* CARRITO */}
+      {selected && (
+        <div
+          className="overlay"
+          onClick={() => setSelected(null)}
+        >
+          <div
+            className="modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="close"
+              onClick={() => setSelected(null)}
+            >
+              ×
+            </button>
+
+            <div className="modalGrid">
+              <div className="modalImage">
+                <img
+                  src={selected.image}
+                  alt={selected.name}
+                />
+              </div>
+
+              <div>
+                <div className="brand">
+                  {selected.brand}
+                </div>
+
+                <h2>{selected.name}</h2>
+
+                <p className="description">
+                  {selected.description}
+                </p>
+
+                <h4>Características principales</h4>
+
+                <ul>
+                  {selected.features.map((feature) => (
+                    <li key={feature}>✓ {feature}</li>
+                  ))}
+                </ul>
+
+                <div className="modalPrice">
+                  {money(selected.price)}
+                </div>
+
+                <button
+                  className="buy"
+                  onClick={() => {
+                    add(selected);
+                    setSelected(null);
+                  }}
+                >
+                  AGREGAR AL CARRITO
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {cartOpen && (
         <div
+          className="overlay cartOverlay"
           onClick={() => setCartOpen(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,.85)",
-            zIndex: 300,
-            display: "flex",
-            justifyContent: "flex-end",
-          }}
         >
-          <div
-            onClick={(event) => event.stopPropagation()}
-            style={{
-              width: "100%",
-              maxWidth: "470px",
-              height: "100%",
-              background: "rgba(8,14,25,.97)",
-              padding: "30px",
-              boxSizing: "border-box",
-              overflowY: "auto",
-              borderLeft: "1px solid #26334a",
-              backdropFilter: "blur(20px)",
-            }}
+          <aside
+            className="cart"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <h2>Tu carrito</h2>
+            <div className="cartHeader">
+              <div>
+                <small>RXZ GAMER</small>
+                <h2>Tu carrito</h2>
+              </div>
 
               <button
+                className="closeNormal"
                 onClick={() => setCartOpen(false)}
-                style={closeButtonNormal}
               >
                 ×
               </button>
             </div>
 
             {cart.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "70px 15px" }}>
-                <div style={{ fontSize: "58px" }}>🛒</div>
+              <div className="empty">
+                <div>🛒</div>
                 <h3>Tu carrito está vacío</h3>
-                <p style={{ color: "#94a3b8", lineHeight: 1.6 }}>
-                  Agregá productos para ver aquí el resumen de tu compra.
+                <p>
+                  Agregá un producto para comenzar tu compra.
                 </p>
+
                 <button
+                  className="buy"
                   onClick={() => setCartOpen(false)}
-                  style={{ ...primaryButton, marginTop: "15px" }}
                 >
                   VER PRODUCTOS
                 </button>
               </div>
             ) : (
               <>
-                {cart.map((item) => (
-                  <div
-                    key={item.id}
-                    style={{
-                      padding: "18px 0",
-                      borderBottom: "1px solid #253147",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "15px",
-                      }}
-                    >
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        style={{
-                          width: "80px",
-                          height: "80px",
-                          objectFit: "contain",
-                          background: "#172033",
-                          borderRadius: "8px",
-                        }}
-                      />
+                <div className="cartItems">
+                  {cart.map((item) => (
+                    <div className="cartItem" key={item.id}>
+                      <img src={item.image} alt={item.name} />
 
-                      <div style={{ flex: 1 }}>
-                        <strong>
-                          {item.name}
-                        </strong>
+                      <div className="cartInfo">
+                        <b>{item.name}</b>
 
-                        <div
-                          style={{
-                            marginTop: "8px",
-                            color: "#22c55e",
-                            fontWeight: 900,
-                          }}
-                        >
-                          {money(item.price)}
-                        </div>
+                        <span>{money(item.price)}</span>
 
-                        <div
-                          style={{
-                            marginTop: "5px",
-                            color: "#94a3b8",
-                            fontSize: "13px",
-                          }}
-                        >
-                          Subtotal: {money(item.price * item.quantity)}
-                        </div>
-
-                        <div
-                          style={{
-                            marginTop: "12px",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "10px",
-                          }}
-                        >
+                        <div className="quantity">
                           <button
                             onClick={() =>
-                              decreaseQuantity(item.id)
+                              changeQuantity(item.id, -1)
                             }
-                            style={quantityButton}
                           >
                             −
                           </button>
 
-                          <strong>
-                            {item.quantity}
-                          </strong>
+                          <strong>{item.quantity}</strong>
 
                           <button
                             onClick={() =>
-                              increaseQuantity(item.id)
+                              changeQuantity(item.id, 1)
                             }
-                            disabled={item.quantity >= item.stock}
-                            title={
-                              item.quantity >= item.stock
-                                ? "Alcanzaste el stock disponible"
-                                : "Agregar una unidad"
-                            }
-                            style={{
-                              ...quantityButton,
-                              opacity: item.quantity >= item.stock ? 0.4 : 1,
-                            }}
                           >
                             +
                           </button>
                         </div>
 
                         <button
-                          onClick={() =>
-                            removeFromCart(item.id)
-                          }
-                          style={{
-                            marginTop: "10px",
-                            border: "none",
-                            background: "transparent",
-                            color: "#f87171",
-                            cursor: "pointer",
-                            padding: 0,
-                          }}
+                          className="remove"
+                          onClick={() => remove(item.id)}
                         >
                           Eliminar
                         </button>
                       </div>
                     </div>
-                  </div>
-                ))}
-
-                <div
-                  style={{
-                    marginTop: "30px",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    fontSize: "23px",
-                    fontWeight: 900,
-                  }}
-                >
-                  <span>Productos</span>
-
-                  <span
-                    style={{
-                      color: "#22c55e",
-                    }}
-                  >
-                    {money(productsTotal)}
-                  </span>
+                  ))}
                 </div>
 
-                <p
-                  style={{
-                    color: "#94a3b8",
-                    fontSize: "13px",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  El envío OCA se agregará según el
-                  código postal del comprador.
-                </p>
+                <div className="summary">
+                  <div>
+                    <span>Productos</span>
+                    <strong>{totalItems}</strong>
+                  </div>
 
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: "10px",
-                    marginTop: "20px",
-                  }}
-                >
-                  <button
-                    onClick={() => setCartOpen(false)}
-                    style={{ ...secondaryButton, marginBottom: 0 }}
-                  >
-                    SEGUIR COMPRANDO
-                  </button>
+                  <div className="total">
+                    <span>Total</span>
+                    <strong>{money(total)}</strong>
+                  </div>
 
-                  <button
-                    onClick={clearCart}
-                    style={{
-                      ...secondaryButton,
-                      marginBottom: 0,
-                      color: "#fca5a5",
-                    }}
-                  >
-                    VACIAR CARRITO
-                  </button>
+                  <small>
+                    El costo del envío se coordina según
+                    destino.
+                  </small>
                 </div>
 
                 <button
-                  onClick={startCheckout}
-                  style={{
-                    ...primaryButton,
-                    marginTop: "20px",
-                    fontSize: "16px",
-                  }}
+                  className="buy checkout"
+                  onClick={checkoutWhatsApp}
                 >
-                  FINALIZAR COMPRA
+                  CONTINUAR COMPRA POR WHATSAPP
+                </button>
+
+                <button
+                  className="continue"
+                  onClick={() => setCartOpen(false)}
+                >
+                  SEGUIR COMPRANDO
                 </button>
               </>
             )}
-          </div>
+          </aside>
         </div>
       )}
 
-      {/* CHECKOUT */}
-
-      {checkoutOpen && (
-        <ModalOverlay
-          onClose={() => setCheckoutOpen(false)}
-        >
-          <button
-            onClick={() => setCheckoutOpen(false)}
-            style={closeButton}
-          >
-            ×
-          </button>
-
-          {!orderConfirmed ? (
-            <>
-              <h2
-                style={{
-                  fontSize: "35px",
-                  marginTop: 0,
-                }}
-              >
-                Finalizar compra
-              </h2>
-
-              <p
-                style={{
-                  color: "#94a3b8",
-                  lineHeight: 1.7,
-                }}
-              >
-                Completá tus datos para calcular el envío
-                y preparar el pedido.
-              </p>
-
-              <h3>Datos del comprador</h3>
-
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns:
-                    "repeat(auto-fit,minmax(250px,1fr))",
-                  gap: "15px",
-                }}
-              >
-                <Input
-                  label="Nombre y apellido *"
-                  value={customer.name}
-                  onChange={(value) =>
-                    handleCustomerChange("name", value)
-                  }
-                />
-
-                <Input
-                  label="Teléfono / WhatsApp *"
-                  value={customer.phone}
-                  onChange={(value) =>
-                    handleCustomerChange("phone", value)
-                  }
-                />
-
-                <Input
-                  label="Email *"
-                  value={customer.email}
-                  onChange={(value) =>
-                    handleCustomerChange("email", value)
-                  }
-                />
-
-                <Input
-                  label="Provincia *"
-                  value={customer.province}
-                  onChange={(value) =>
-                    handleCustomerChange("province", value)
-                  }
-                />
-
-                <Input
-                  label="Ciudad / Localidad *"
-                  value={customer.city}
-                  onChange={(value) =>
-                    handleCustomerChange("city", value)
-                  }
-                />
-
-                <Input
-                  label="Código postal *"
-                  value={customer.postalCode}
-                  onChange={(value) => {
-                    handleCustomerChange("postalCode", value);
-                    setShippingMessage("");
-                  }}
-                />
-              </div>
-
-              <div
-                style={{
-                  marginTop: "15px",
-                }}
-              >
-                <Input
-                  label="Dirección completa *"
-                  value={customer.address}
-                  onChange={(value) =>
-                    handleCustomerChange("address", value)
-                  }
-                />
-              </div>
-
-              {/* OCA */}
-
-              <div
-                style={{
-                  marginTop: "30px",
-                  padding: "25px",
-                  background: "rgba(15,23,42,.85)",
-                  border: "1px solid #29374d",
-                  borderRadius: "15px",
-                }}
-              >
-                <div
-                  style={{
-                    color: "#22c55e",
-                    fontWeight: 900,
-                    letterSpacing: "2px",
-                  }}
-                >
-                  ENVÍO OCA
-                </div>
-
-                <h3
-                  style={{
-                    marginBottom: "7px",
-                  }}
-                >
-                  Calcular envío
-                </h3>
-
-                <p
-                  style={{
-                    color: "#94a3b8",
-                    lineHeight: 1.6,
-                  }}
-                >
-                  Origen: Villa Allende, Córdoba.
-                </p>
-
-                <button
-                  onClick={prepareOcaQuote}
-                  style={secondaryButton}
-                >
-                  CALCULAR ENVÍO
-                </button>
-
-                {shippingMessage && (
-                  <div
-                    style={{
-                      marginTop: "15px",
-                      padding: "14px",
-                      borderRadius: "9px",
-                      background: "#172033",
-                      color: "#cbd5e1",
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    {shippingMessage}
-                  </div>
-                )}
-              </div>
-
-              {/* PAGO */}
-
-              <div
-                style={{
-                  margin: "30px 0",
-                  padding: "25px",
-                  borderRadius: "16px",
-                  background: "rgba(17,24,39,.9)",
-                  border: "1px solid #26334a",
-                }}
-              >
-                <div
-                  style={{
-                    color: "#94a3b8",
-                  }}
-                >
-                  Productos
-                </div>
-
-                <div
-                  style={{
-                    fontSize: "30px",
-                    color: "#22c55e",
-                    fontWeight: 950,
-                  }}
-                >
-                  {money(productsTotal)}
-                </div>
-
-                <p
-                  style={{
-                    color: "#facc15",
-                    lineHeight: 1.6,
-                  }}
-                >
-                  El costo de OCA todavía no está incluido
-                  hasta activar las credenciales e-Pak.
-                </p>
-
-                <div
-                  style={{
-                    marginTop: "25px",
-                    color: "#94a3b8",
-                  }}
-                >
-                  Alias para transferencia
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "10px",
-                    flexWrap: "wrap",
-                    marginTop: "8px",
-                  }}
-                >
-                  <div
-                    style={{
-                      flex: 1,
-                      minWidth: "200px",
-                      padding: "14px",
-                      borderRadius: "9px",
-                      background: "#060b13",
-                      border: "1px solid #334155",
-                      fontSize: "20px",
-                      fontWeight: 900,
-                    }}
-                  >
-                    {PAYMENT_ALIAS}
-                  </div>
-
-                  <button
-                    onClick={copyAlias}
-                    style={{
-                      border: "none",
-                      background: "#22c55e",
-                      color: "#021006",
-                      padding: "0 18px",
-                      borderRadius: "9px",
-                      fontWeight: 900,
-                      cursor: "pointer",
-                    }}
-                  >
-                    COPIAR
-                  </button>
-                </div>
-              </div>
-
-              <label
-                style={{
-                  display: "block",
-                  marginTop: "18px",
-                  color: "#cbd5e1",
-                  fontWeight: 700,
-                }}
-              >
-                Observaciones
-              </label>
-
-              <textarea
-                value={customer.notes}
-                onChange={(event) =>
-                  handleCustomerChange(
-                    "notes",
-                    event.target.value
-                  )
-                }
-                placeholder="Departamento, piso, referencias para la entrega..."
-                style={{
-                  width: "100%",
-                  minHeight: "100px",
-                  marginTop: "8px",
-                  boxSizing: "border-box",
-                  background: "#060b13",
-                  border: "1px solid #334155",
-                  borderRadius: "9px",
-                  color: "white",
-                  padding: "13px",
-                }}
-              />
-
-              <h3
-                style={{
-                  marginTop: "30px",
-                }}
-              >
-                Comprobante de transferencia
-              </h3>
-
-              <div
-                style={{
-                  padding: "22px",
-                  borderRadius: "12px",
-                  border: "1px dashed #475569",
-                  background: "#090f19",
-                }}
-              >
-                <input
-                  type="file"
-                  accept="image/*,.pdf"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-
-                    if (file) {
-                      setReceiptName(file.name);
-                    }
-                  }}
-                  style={{
-                    width: "100%",
-                    color: "#cbd5e1",
-                  }}
-                />
-
-                {receiptName && (
-                  <p
-                    style={{
-                      color: "#22c55e",
-                    }}
-                  >
-                    Archivo: {receiptName}
-                  </p>
-                )}
-              </div>
-
-              <div
-                style={{
-                  marginTop: "20px",
-                  padding: "17px",
-                  background: "#2a2107",
-                  border: "1px solid #6b5412",
-                  borderRadius: "10px",
-                  color: "#facc15",
-                  lineHeight: 1.6,
-                }}
-              >
-                El pedido se confirma solamente cuando la
-                transferencia se encuentra efectivamente
-                acreditada.
-              </div>
-
-              <button
-                onClick={confirmOrder}
-                style={{
-                  ...primaryButton,
-                  marginTop: "25px",
-                  fontSize: "17px",
-                }}
-              >
-                ENVIAR PEDIDO
-              </button>
-            </>
-          ) : (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "40px 10px",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "70px",
-                }}
-              >
-                ✅
-              </div>
-
-              <h2
-                style={{
-                  fontSize: "36px",
-                }}
-              >
-                Pedido recibido
-              </h2>
-
-              <p
-                style={{
-                  color: "#94a3b8",
-                  fontSize: "18px",
-                }}
-              >
-                Pedido pendiente de verificación.
-              </p>
-
-              <div
-                style={{
-                  maxWidth: "500px",
-                  margin: "30px auto",
-                  padding: "25px",
-                  borderRadius: "14px",
-                  background: "#111827",
-                  border: "1px solid #26334a",
-                }}
-              >
-                <div
-                  style={{
-                    color: "#94a3b8",
-                  }}
-                >
-                  Número de pedido
-                </div>
-
-                <div
-                  style={{
-                    marginTop: "8px",
-                    fontSize: "28px",
-                    color: "#22c55e",
-                    fontWeight: 900,
-                  }}
-                >
-                  {orderNumber}
-                </div>
-
-                <div
-                  style={{
-                    marginTop: "22px",
-                    color: "#facc15",
-                    fontWeight: 900,
-                  }}
-                >
-                  PENDIENTE DE VERIFICACIÓN
-                </div>
-              </div>
-
-              <button
-                onClick={() => {
-                  setCheckoutOpen(false);
-                  setCart([]);
-                  setReceiptName("");
-                  setShippingMessage("");
-                }}
-                style={{
-                  ...primaryButton,
-                  maxWidth: "400px",
-                }}
-              >
-                VOLVER A LA TIENDA
-              </button>
-            </div>
-          )}
-        </ModalOverlay>
-      )}
-
-      {/* ANIMACIONES */}
-
       <style jsx global>{`
+        * {
+          box-sizing: border-box;
+        }
+
         html {
           scroll-behavior: smooth;
         }
 
         body {
           margin: 0;
-          background: #02050c;
+          background: #03060b;
+          color: white;
+          font-family: Arial, Helvetica, sans-serif;
         }
 
-        .dynamic-background {
+        button,
+        input {
+          font: inherit;
+        }
+
+        button {
+          cursor: pointer;
+        }
+
+        main {
+          min-height: 100vh;
+          position: relative;
+          overflow: hidden;
+          background: #03060b;
+        }
+
+        .background {
           position: fixed;
           inset: 0;
+          z-index: 0;
           pointer-events: none;
           overflow: hidden;
-          z-index: 0;
         }
 
-        .grid-background {
+        .grid {
           position: absolute;
           inset: 0;
-
           background-image:
-            linear-gradient(
-              rgba(255,255,255,0.018) 1px,
-              transparent 1px
-            ),
-            linear-gradient(
-              90deg,
-              rgba(255,255,255,0.018) 1px,
-              transparent 1px
-            );
-
-          background-size: 60px 60px;
-
-          mask-image:
-            linear-gradient(
-              to bottom,
-              black,
-              transparent 95%
-            );
+            linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+            linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+          background-size: 65px 65px;
         }
 
-        .orb {
+        .glow {
           position: absolute;
           border-radius: 50%;
-          filter: blur(90px);
-          opacity: 0.25;
+          filter: blur(130px);
+          opacity: .17;
         }
 
-        .orb-one {
-          width: 520px;
-          height: 520px;
-          background: #22c55e;
-          left: -160px;
-          top: 5%;
-          animation: floatOne 18s ease-in-out infinite alternate;
-        }
-
-        .orb-two {
+        .glow1 {
           width: 650px;
           height: 650px;
-          background: #2563eb;
-          right: -220px;
-          top: 25%;
-          animation: floatTwo 22s ease-in-out infinite alternate;
+          background: #16a34a;
+          top: 50px;
+          left: -300px;
+          animation: move1 15s infinite alternate ease-in-out;
         }
 
-        .orb-three {
-          width: 500px;
-          height: 500px;
-          background: #7c3aed;
-          left: 35%;
-          bottom: -300px;
-          opacity: 0.15;
-          animation: floatThree 25s ease-in-out infinite alternate;
+        .glow2 {
+          width: 750px;
+          height: 750px;
+          background: #1d4ed8;
+          right: -350px;
+          top: 350px;
+          animation: move2 20s infinite alternate ease-in-out;
         }
 
-        .light-beam {
-          position: absolute;
-          width: 700px;
-          height: 2px;
-          background:
-            linear-gradient(
-              90deg,
-              transparent,
-              rgba(34,197,94,.5),
-              transparent
-            );
-          filter: blur(2px);
+        .announcement,
+        header,
+        section,
+        footer {
+          position: relative;
+          z-index: 2;
         }
 
-        .beam-one {
-          top: 20%;
-          left: -500px;
-          animation: beamMove 14s linear infinite;
-        }
-
-        .beam-two {
-          top: 72%;
-          left: -700px;
-          animation: beamMove 19s linear infinite;
-          animation-delay: 4s;
-        }
-
-        .product-card {
-          overflow: hidden;
-          border-radius: 20px;
-
-          background:
-            linear-gradient(
-              180deg,
-              rgba(17,24,39,.94),
-              rgba(7,12,21,.96)
-            );
-
-          border:
-            1px solid rgba(71,85,105,.55);
-
-          box-shadow:
-            0 25px 65px rgba(0,0,0,.35);
-
-          transition:
-            transform .25s ease,
-            border-color .25s ease,
-            box-shadow .25s ease;
-        }
-
-        .product-card:hover {
-          transform: translateY(-7px);
-          border-color: rgba(34,197,94,.55);
-
-          box-shadow:
-            0 32px 80px rgba(0,0,0,.48);
-        }
-
-        .product-card:hover img {
-          transform: scale(1.05);
-        }
-
-        .whatsapp-floating {
-          position: fixed;
-          right: 24px;
-          bottom: 24px;
-          z-index: 500;
-
-          width: 64px;
-          height: 64px;
-
-          border-radius: 50%;
-
+        .announcement {
           background: #22c55e;
-          color: #021006;
-
-          display: flex;
-          justify-content: center;
-          align-items: center;
-
-          text-decoration: none;
-          font-size: 29px;
-
-          border: 2px solid rgba(255,255,255,.15);
-
-          box-shadow:
-            0 10px 40px rgba(34,197,94,.4);
-
-          transition:
-            transform .2s ease,
-            box-shadow .2s ease;
+          color: #031008;
+          text-align: center;
+          font-size: 12px;
+          font-weight: 950;
+          letter-spacing: 1.8px;
+          padding: 9px 15px;
         }
 
-        .whatsapp-floating:hover {
-          transform: scale(1.1);
-
-          box-shadow:
-            0 12px 50px rgba(34,197,94,.6);
-        }
-
-        .cart-notification {
-          position: fixed;
-          top: 92px;
-          right: 24px;
-          z-index: 650;
-          width: min(420px, calc(100vw - 48px));
-          box-sizing: border-box;
+        header {
+          min-height: 76px;
+          padding: 0 5%;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 14px;
-          padding: 17px 18px;
-          border-radius: 13px;
-          border: 1px solid rgba(34,197,94,.55);
-          background: rgba(8,14,25,.97);
-          color: #e2e8f0;
-          box-shadow: 0 20px 55px rgba(0,0,0,.48);
-          backdrop-filter: blur(18px);
-          animation: notificationIn .25s ease-out;
+          gap: 30px;
+          position: sticky;
+          top: 0;
+          z-index: 100;
+          background: rgba(3,6,11,.84);
+          backdrop-filter: blur(24px);
+          border-bottom: 1px solid rgba(255,255,255,.08);
+        }
+
+        .logo,
+        .footerLogo {
+          color: white;
+          text-decoration: none;
+          font-weight: 1000;
+          font-size: 26px;
+          letter-spacing: 1px;
+        }
+
+        .logo span,
+        .footerLogo span {
+          color: #22c55e;
+        }
+
+        nav {
+          display: flex;
+          align-items: center;
+          gap: 25px;
+        }
+
+        nav > a {
+          color: #aab5c7;
+          text-decoration: none;
+          font-size: 14px;
+          font-weight: 700;
+          transition: .2s;
+        }
+
+        nav > a:hover {
+          color: white;
+        }
+
+        .cartBtn {
+          position: relative;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          border: 1px solid rgba(34,197,94,.45);
+          border-radius: 9px;
+          padding: 10px 14px;
+          color: white;
+          background: rgba(34,197,94,.08);
           font-weight: 800;
         }
 
-        .cart-notification button {
-          flex-shrink: 0;
-          border: 0;
-          border-radius: 8px;
-          padding: 10px 12px;
+        .counter {
+          position: absolute;
+          top: -9px;
+          right: -9px;
           background: #22c55e;
-          color: #021006;
-          cursor: pointer;
-          font-size: 12px;
+          color: #031008;
+          min-width: 22px;
+          height: 22px;
+          border-radius: 20px;
+          display: grid;
+          place-items: center;
+          font-size: 11px;
+        }
+
+        .hero {
+          min-height: 760px;
+          padding: 130px 20px 80px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+        }
+
+        .heroBadge {
+          color: #64f18d;
+          border: 1px solid rgba(34,197,94,.3);
+          background: rgba(34,197,94,.08);
+          padding: 9px 15px;
+          border-radius: 50px;
+          font-size: 11px;
+          letter-spacing: 2.5px;
+          font-weight: 900;
+        }
+
+        .hero h1 {
+          margin: 28px 0 0;
+          max-width: 1100px;
+          font-size: clamp(55px, 8vw, 105px);
+          line-height: .91;
+          letter-spacing: -5px;
+          font-weight: 1000;
+        }
+
+        .hero h1 span {
+          color: #22c55e;
+          text-shadow: 0 0 55px rgba(34,197,94,.3);
+        }
+
+        .hero > p {
+          max-width: 720px;
+          color: #9aa7bb;
+          font-size: 19px;
+          line-height: 1.7;
+          margin: 32px auto;
+        }
+
+        .heroButtons {
+          display: flex;
+          justify-content: center;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+
+        .primary,
+        .secondary {
+          text-decoration: none;
+          padding: 16px 25px;
+          border-radius: 9px;
+          font-size: 13px;
           font-weight: 950;
         }
 
-        @keyframes notificationIn {
-          from {
-            opacity: 0;
-            transform: translateY(-12px);
-          }
+        .primary {
+          background: #22c55e;
+          color: #031008;
+          box-shadow: 0 0 35px rgba(34,197,94,.25);
+        }
 
+        .secondary {
+          color: white;
+          border: 1px solid #344154;
+          background: rgba(15,23,42,.75);
+        }
+
+        .trust {
+          display: grid;
+          grid-template-columns: repeat(3,1fr);
+          gap: 15px;
+          width: min(850px,100%);
+          margin-top: 70px;
+        }
+
+        .trust > div {
+          display: flex;
+          align-items: center;
+          text-align: left;
+          gap: 13px;
+          padding: 18px;
+          border: 1px solid rgba(255,255,255,.08);
+          border-radius: 12px;
+          background: rgba(12,18,29,.65);
+        }
+
+        .trust strong {
+          font-size: 24px;
+        }
+
+        .trust span {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .trust b {
+          font-size: 13px;
+        }
+
+        .trust small {
+          color: #7e8ca1;
+        }
+
+        .products {
+          max-width: 1450px;
+          margin: auto;
+          padding: 90px 5%;
+        }
+
+        .sectionHead {
+          text-align: center;
+          margin-bottom: 40px;
+        }
+
+        .sectionHead > span,
+        .payment > span,
+        .contact > span {
+          color: #22c55e;
+          font-size: 12px;
+          font-weight: 950;
+          letter-spacing: 3px;
+        }
+
+        .sectionHead h2,
+        .payment h2,
+        .contact h2 {
+          font-size: clamp(35px,5vw,55px);
+          margin: 10px 0;
+        }
+
+        .sectionHead p {
+          color: #8794a8;
+        }
+
+        .tools {
+          max-width: 900px;
+          margin: 0 auto 45px;
+        }
+
+        .search {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: rgba(9,14,24,.9);
+          border: 1px solid #29364a;
+          padding: 0 17px;
+          border-radius: 12px;
+        }
+
+        .search input {
+          flex: 1;
+          border: 0;
+          outline: 0;
+          padding: 16px 5px;
+          background: transparent;
+          color: white;
+        }
+
+        .categories {
+          display: flex;
+          justify-content: center;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 15px;
+        }
+
+        .categories button {
+          border: 1px solid #29364a;
+          border-radius: 50px;
+          background: rgba(15,23,42,.8);
+          color: #9eabbe;
+          padding: 9px 15px;
+          font-size: 12px;
+          font-weight: 800;
+        }
+
+        .categories .active {
+          background: #22c55e;
+          color: #031008;
+          border-color: #22c55e;
+        }
+
+        .productGrid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit,minmax(290px,1fr));
+          gap: 25px;
+        }
+
+        .card {
+          overflow: hidden;
+          border: 1px solid rgba(72,85,105,.45);
+          border-radius: 18px;
+          background: linear-gradient(180deg,rgba(17,24,39,.95),rgba(6,10,17,.98));
+          transition: .25s;
+          box-shadow: 0 25px 60px rgba(0,0,0,.25);
+        }
+
+        .card:hover {
+          transform: translateY(-6px);
+          border-color: rgba(34,197,94,.45);
+          box-shadow: 0 30px 80px rgba(0,0,0,.45);
+        }
+
+        .imageBox {
+          height: 320px;
+          padding: 30px;
+          position: relative;
+          cursor: pointer;
+          background: radial-gradient(circle,#233556,#090f19 70%);
+        }
+
+        .imageBox img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          transition: .3s;
+        }
+
+        .card:hover .imageBox img {
+          transform: scale(1.05);
+        }
+
+        .badge,
+        .discount {
+          position: absolute;
+          z-index: 2;
+          top: 15px;
+          border-radius: 6px;
+          font-size: 10px;
+          font-weight: 950;
+          padding: 7px 9px;
+        }
+
+        .badge {
+          left: 15px;
+          background: #22c55e;
+          color: #031008;
+        }
+
+        .discount {
+          right: 15px;
+          background: #ef4444;
+        }
+
+        .cardBody {
+          padding: 24px;
+        }
+
+        .brand {
+          color: #22c55e;
+          font-size: 11px;
+          font-weight: 950;
+          letter-spacing: 2px;
+        }
+
+        .card h3 {
+          margin: 8px 0;
+          font-size: 23px;
+        }
+
+        .cardBody > p {
+          color: #8897ab;
+          min-height: 40px;
+          line-height: 1.5;
+        }
+
+        .stock {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          color: #a7b3c5;
+          font-size: 12px;
+          margin: 18px 0;
+        }
+
+        .stockDot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #22c55e;
+          box-shadow: 0 0 10px #22c55e;
+        }
+
+        .old {
+          color: #66758b;
+          text-decoration: line-through;
+          font-size: 13px;
+        }
+
+        .price {
+          color: #22c55e;
+          font-size: 29px;
+          font-weight: 950;
+          margin: 3px 0;
+        }
+
+        .transfer {
+          color: #77869b;
+        }
+
+        .details,
+        .buy {
+          width: 100%;
+          padding: 13px;
+          border-radius: 8px;
+          font-weight: 900;
+        }
+
+        .details {
+          margin-top: 22px;
+          border: 1px solid #344154;
+          background: #131d2c;
+          color: white;
+        }
+
+        .buy {
+          margin-top: 9px;
+          border: 0;
+          background: #22c55e;
+          color: #031008;
+        }
+
+        .benefits {
+          max-width: 1250px;
+          margin: 60px auto;
+          padding: 0 5%;
+          display: grid;
+          grid-template-columns: repeat(4,1fr);
+          gap: 15px;
+        }
+
+        .benefits > div {
+          padding: 28px;
+          border: 1px solid rgba(255,255,255,.08);
+          border-radius: 14px;
+          background: rgba(12,18,29,.7);
+        }
+
+        .benefits > div > span {
+          font-size: 29px;
+        }
+
+        .benefits h3 {
+          margin-bottom: 7px;
+        }
+
+        .benefits p {
+          color: #8190a5;
+          line-height: 1.6;
+          font-size: 14px;
+        }
+
+        .payment {
+          max-width: 1250px;
+          margin: 120px auto;
+          padding: 0 5%;
+          text-align: center;
+        }
+
+        .steps {
+          margin-top: 45px;
+          display: grid;
+          grid-template-columns: repeat(4,1fr);
+          gap: 15px;
+          text-align: left;
+        }
+
+        .steps > div {
+          padding: 27px;
+          background: rgba(11,17,27,.8);
+          border: 1px solid rgba(255,255,255,.08);
+          border-radius: 14px;
+        }
+
+        .steps b {
+          color: #22c55e;
+          font-size: 25px;
+        }
+
+        .steps p {
+          color: #8190a5;
+          line-height: 1.6;
+        }
+
+        .contact {
+          padding: 120px 20px;
+          text-align: center;
+          border-top: 1px solid rgba(255,255,255,.07);
+          border-bottom: 1px solid rgba(255,255,255,.07);
+          background: radial-gradient(circle at center,rgba(34,197,94,.08),transparent 55%);
+        }
+
+        .contact p {
+          color: #8c9aaf;
+          font-size: 17px;
+        }
+
+        .contact a {
+          display: inline-block;
+          margin-top: 20px;
+          padding: 16px 25px;
+          border-radius: 9px;
+          background: #22c55e;
+          color: #031008;
+          text-decoration: none;
+          font-weight: 950;
+        }
+
+        footer {
+          padding: 50px 5%;
+          text-align: center;
+          color: #69778b;
+        }
+
+        footer p {
+          font-size: 13px;
+        }
+
+        .whatsapp {
+          position: fixed;
+          right: 23px;
+          bottom: 23px;
+          z-index: 500;
+          width: 60px;
+          height: 60px;
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          background: #22c55e;
+          text-decoration: none;
+          font-size: 27px;
+          box-shadow: 0 10px 40px rgba(34,197,94,.35);
+        }
+
+        .toast {
+          position: fixed;
+          z-index: 600;
+          right: 22px;
+          top: 110px;
+          max-width: 430px;
+          padding: 15px 17px;
+          border-radius: 11px;
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          background: rgba(7,12,20,.97);
+          border: 1px solid rgba(34,197,94,.5);
+          box-shadow: 0 20px 60px rgba(0,0,0,.5);
+        }
+
+        .toast button {
+          border: 0;
+          background: #22c55e;
+          color: #031008;
+          border-radius: 7px;
+          padding: 8px;
+          font-size: 11px;
+          font-weight: 950;
+        }
+
+        .overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 700;
+          background: rgba(0,0,0,.88);
+          backdrop-filter: blur(8px);
+          padding: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .modal {
+          position: relative;
+          width: min(1050px,100%);
+          max-height: 92vh;
+          overflow-y: auto;
+          border-radius: 20px;
+          padding: 40px;
+          background: linear-gradient(145deg,#111827,#060a12);
+          border: 1px solid #2b384d;
+        }
+
+        .close,
+        .closeNormal {
+          border: 0;
+          background: #263449;
+          color: white;
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          font-size: 23px;
+        }
+
+        .close {
+          position: absolute;
+          right: 18px;
+          top: 18px;
+        }
+
+        .modalGrid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 45px;
+        }
+
+        .modalImage {
+          min-height: 430px;
+          display: grid;
+          place-items: center;
+          border-radius: 15px;
+          padding: 25px;
+          background: radial-gradient(circle,#293b60,#0c1320);
+        }
+
+        .modalImage img {
+          width: 100%;
+          max-height: 420px;
+          object-fit: contain;
+        }
+
+        .modal h2 {
+          font-size: 37px;
+          margin: 8px 0 15px;
+        }
+
+        .description {
+          color: #a7b2c4;
+          line-height: 1.7;
+        }
+
+        .modal ul {
+          padding: 0;
+          list-style: none;
+          color: #b7c1d0;
+          line-height: 1.9;
+        }
+
+        .modal li::first-letter {
+          color: #22c55e;
+        }
+
+        .modalPrice {
+          color: #22c55e;
+          font-size: 34px;
+          font-weight: 950;
+          margin-top: 20px;
+        }
+
+        .cartOverlay {
+          justify-content: flex-end;
+          padding: 0;
+        }
+
+        .cart {
+          width: min(480px,100%);
+          height: 100%;
+          overflow-y: auto;
+          background: #080e18;
+          border-left: 1px solid #28364a;
+          padding: 28px;
+        }
+
+        .cartHeader {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding-bottom: 20px;
+          border-bottom: 1px solid #253247;
+        }
+
+        .cartHeader small {
+          color: #22c55e;
+          font-weight: 900;
+          letter-spacing: 2px;
+        }
+
+        .cartHeader h2 {
+          margin: 5px 0;
+        }
+
+        .empty {
+          text-align: center;
+          padding: 80px 10px;
+        }
+
+        .empty > div {
+          font-size: 55px;
+        }
+
+        .empty p {
+          color: #8492a7;
+        }
+
+        .cartItem {
+          display: flex;
+          gap: 15px;
+          padding: 20px 0;
+          border-bottom: 1px solid #222f42;
+        }
+
+        .cartItem img {
+          width: 85px;
+          height: 85px;
+          object-fit: contain;
+          border-radius: 9px;
+          background: #131d2d;
+        }
+
+        .cartInfo {
+          flex: 1;
+        }
+
+        .cartInfo > b {
+          display: block;
+        }
+
+        .cartInfo > span {
+          display: block;
+          color: #22c55e;
+          font-weight: 900;
+          margin: 7px 0;
+        }
+
+        .quantity {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-top: 10px;
+        }
+
+        .quantity button {
+          width: 31px;
+          height: 31px;
+          border-radius: 6px;
+          border: 1px solid #344154;
+          background: #172234;
+          color: white;
+        }
+
+        .remove {
+          border: 0;
+          padding: 0;
+          margin-top: 11px;
+          background: transparent;
+          color: #f87171;
+          font-size: 12px;
+        }
+
+        .summary {
+          padding: 25px 0;
+        }
+
+        .summary > div {
+          display: flex;
+          justify-content: space-between;
+          margin: 9px 0;
+        }
+
+        .summary .total {
+          font-size: 24px;
+          padding-top: 15px;
+          border-top: 1px solid #29364a;
+        }
+
+        .summary .total strong {
+          color: #22c55e;
+        }
+
+        .summary small {
+          display: block;
+          margin-top: 15px;
+          color: #7e8ca1;
+        }
+
+        .checkout {
+          font-size: 14px;
+          padding: 16px;
+        }
+
+        .continue {
+          width: 100%;
+          margin-top: 10px;
+          padding: 13px;
+          border: 1px solid #344154;
+          background: transparent;
+          color: #b9c3d2;
+          border-radius: 8px;
+          font-weight: 800;
+        }
+
+        @keyframes move1 {
           to {
-            opacity: 1;
-            transform: translateY(0);
+            transform: translate(300px,180px);
           }
         }
 
-        @media (max-width: 700px) {
-          .cart-notification {
-            top: auto;
+        @keyframes move2 {
+          to {
+            transform: translate(-300px,150px);
+          }
+        }
+
+        @media(max-width:850px) {
+          nav > a {
+            display: none;
+          }
+
+          .trust,
+          .benefits,
+          .steps,
+          .modalGrid {
+            grid-template-columns: 1fr;
+          }
+
+          .hero {
+            padding-top: 100px;
+          }
+
+          .hero h1 {
+            letter-spacing: -3px;
+          }
+
+          .modal {
+            padding: 25px;
+          }
+
+          .modalImage {
+            min-height: 300px;
+          }
+        }
+
+        @media(max-width:550px) {
+          header {
+            padding: 0 16px;
+          }
+
+          .logo {
+            font-size: 20px;
+          }
+
+          .cartBtn span {
+            display: none;
+          }
+
+          .announcement {
+            font-size: 9px;
+          }
+
+          .hero {
+            min-height: 650px;
+          }
+
+          .hero h1 {
+            font-size: 52px;
+          }
+
+          .trust {
+            margin-top: 45px;
+          }
+
+          .products {
+            padding-left: 15px;
+            padding-right: 15px;
+          }
+
+          .toast {
+            left: 14px;
             right: 14px;
-            bottom: 94px;
-            width: calc(100vw - 28px);
-          }
-
-          .whatsapp-floating {
-            right: 16px;
-            bottom: 16px;
-            width: 56px;
-            height: 56px;
-          }
-        }
-
-        @keyframes floatOne {
-          from {
-            transform: translate(0,0) scale(1);
-          }
-
-          to {
-            transform:
-              translate(280px,180px)
-              scale(1.18);
-          }
-        }
-
-        @keyframes floatTwo {
-          from {
-            transform: translate(0,0) scale(1);
-          }
-
-          to {
-            transform:
-              translate(-300px,180px)
-              scale(.85);
-          }
-        }
-
-        @keyframes floatThree {
-          from {
-            transform: translate(0,0);
-          }
-
-          to {
-            transform:
-              translate(-200px,-250px);
-          }
-        }
-
-        @keyframes beamMove {
-          from {
-            transform: translateX(0);
-          }
-
-          to {
-            transform:
-              translateX(calc(100vw + 1400px));
+            top: auto;
+            bottom: 90px;
           }
         }
       `}</style>
     </main>
   );
 }
-
-function Input({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <label
-      style={{
-        display: "block",
-        color: "#cbd5e1",
-        fontWeight: 700,
-      }}
-    >
-      {label}
-
-      <input
-        value={value}
-        onChange={(event) =>
-          onChange(event.target.value)
-        }
-        style={{
-          width: "100%",
-          marginTop: "8px",
-          boxSizing: "border-box",
-          background: "#060b13",
-          border: "1px solid #334155",
-          borderRadius: "9px",
-          color: "white",
-          padding: "13px",
-          outline: "none",
-        }}
-      />
-    </label>
-  );
-}
-
-function InfoBox({
-  icon,
-  title,
-  text,
-}: {
-  icon: string;
-  title: string;
-  text: string;
-}) {
-  return (
-    <div
-      style={{
-        background: "rgba(13,20,33,.85)",
-        backdropFilter: "blur(15px)",
-        border: "1px solid #223047",
-        padding: "25px",
-        borderRadius: "14px",
-        textAlign: "center",
-      }}
-    >
-      <div style={{ fontSize: "30px" }}>
-        {icon}
-      </div>
-
-      <h3>{title}</h3>
-
-      <p
-        style={{
-          color: "#8796ad",
-          lineHeight: 1.6,
-        }}
-      >
-        {text}
-      </p>
-    </div>
-  );
-}
-
-function ModalOverlay({
-  children,
-  onClose,
-}: {
-  children: React.ReactNode;
-  onClose: () => void;
-}) {
-  return (
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 400,
-        background: "rgba(0,0,0,.9)",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: "20px",
-      }}
-    >
-      <div
-        onClick={(event) =>
-          event.stopPropagation()
-        }
-        style={{
-          width: "100%",
-          maxWidth: "1050px",
-          maxHeight: "92vh",
-          overflowY: "auto",
-          position: "relative",
-          padding: "40px",
-          boxSizing: "border-box",
-          borderRadius: "22px",
-          background:
-            "linear-gradient(145deg,#111827,#060a12)",
-          border: "1px solid #29364d",
-          boxShadow: "0 40px 100px rgba(0,0,0,.6)",
-        }}
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
-
-const navStyle: React.CSSProperties = {
-  color: "#cbd5e1",
-  textDecoration: "none",
-  fontWeight: 600,
-};
-
-const cartButton: React.CSSProperties = {
-  border: "none",
-  background: "#22c55e",
-  color: "#021006",
-  borderRadius: "9px",
-  padding: "11px 17px",
-  fontWeight: 900,
-  cursor: "pointer",
-};
-
-const primaryButton: React.CSSProperties = {
-  width: "100%",
-  border: "none",
-  background: "#22c55e",
-  color: "#021006",
-  padding: "14px",
-  borderRadius: "9px",
-  cursor: "pointer",
-  fontWeight: 900,
-};
-
-const secondaryButton: React.CSSProperties = {
-  width: "100%",
-  border: "1px solid #334155",
-  background: "#172033",
-  color: "white",
-  padding: "13px",
-  borderRadius: "9px",
-  cursor: "pointer",
-  fontWeight: 800,
-  marginBottom: "11px",
-};
-
-const closeButton: React.CSSProperties = {
-  position: "absolute",
-  right: "20px",
-  top: "20px",
-  width: "42px",
-  height: "42px",
-  borderRadius: "50%",
-  border: "none",
-  background: "#253249",
-  color: "white",
-  fontSize: "23px",
-  cursor: "pointer",
-  zIndex: 10,
-};
-
-const closeButtonNormal: React.CSSProperties = {
-  width: "42px",
-  height: "42px",
-  borderRadius: "50%",
-  border: "none",
-  background: "#253249",
-  color: "white",
-  fontSize: "23px",
-  cursor: "pointer",
-};
-
-const quantityButton: React.CSSProperties = {
-  width: "32px",
-  height: "32px",
-  borderRadius: "7px",
-  border: "1px solid #334155",
-  background: "#172033",
-  color: "white",
-  cursor: "pointer",
-  fontWeight: 900,
-};
