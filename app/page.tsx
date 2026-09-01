@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 type Spec = {
   label: string;
@@ -42,12 +43,10 @@ const PRODUCTS: Product[] = [
     oldPrice: 74990,
     badge: "BEST SELLER",
     images: [
-      "/attack-shark-x3.webp",
       "/attack-shark-x3-2.jpg",
       "/attack-shark-x3-3.jpg",
-      "/attack-shark-x3-4.jpg",
     ],
-    fallbackImage: "/attack-shark-x3.webp",
+    fallbackImage: "/attack-shark-x3-2.jpg",
     stock: 8,
     description:
       "Mouse gamer inalámbrico ultraliviano con sensor PixArt PAW3395, conectividad triple y prestaciones pensadas para gaming competitivo.",
@@ -217,6 +216,7 @@ export default function Home() {
   const [category, setCategory] = useState("Todos");
   const [toast, setToast] = useState("");
   const [loaded, setLoaded] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -224,6 +224,18 @@ export default function Home() {
       if (saved) setCart(JSON.parse(saved));
     } catch {}
     setLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUserEmail(data.user?.email ?? null);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserEmail(session?.user?.email ?? null);
+    });
+
+    return () => listener.subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -295,23 +307,9 @@ export default function Home() {
     setCart((current) => current.filter((p) => p.id !== id));
   }
 
-  function checkoutWhatsApp() {
-    const products = cart
-      .map(
-        (p) =>
-          `${p.quantity}x ${p.brand} ${p.name} - ${money(
-            p.price * p.quantity
-          )}`
-      )
-      .join("\n");
-
-    const message = encodeURIComponent(
-      `Hola RXZ Gamer, quiero realizar este pedido:\n\n${products}\n\nTotal productos: ${money(
-        total
-      )}\n\nQuiero coordinar pago y envío por OCA.`
-    );
-
-    window.open(`https://wa.me/${WHATSAPP}?text=${message}`, "_blank");
+  function goToCheckout() {
+    setCartOpen(false);
+    window.location.href = userEmail ? "/checkout" : "/login?next=/checkout";
   }
 
   function nextImage(direction: number) {
@@ -344,6 +342,10 @@ export default function Home() {
           <a href="#productos">Productos</a>
           <a href="#beneficios">Envíos</a>
           <a href="#contacto">Contacto</a>
+
+          <a className="accountBtn" href={userEmail ? "/cuenta" : "/login"}>
+            👤 <span>{userEmail ? "Mi cuenta" : "Iniciar sesión"}</span>
+          </a>
 
           <button className="cartBtn" onClick={() => setCartOpen(true)}>
             🛒 <span>Carrito</span>
@@ -394,7 +396,7 @@ export default function Home() {
             <strong>🔒</strong>
             <span>
               <b>Compra segura</b>
-              <small>Pago verificado</small>
+              <small>Transferencia verificada</small>
             </span>
           </div>
 
@@ -802,8 +804,8 @@ export default function Home() {
                   <small>El costo del envío se coordina según destino.</small>
                 </div>
 
-                <button className="buy checkout" onClick={checkoutWhatsApp}>
-                  CONTINUAR COMPRA POR WHATSAPP
+                <button className="buy checkout" onClick={goToCheckout}>
+                  FINALIZAR COMPRA
                 </button>
 
                 <button
@@ -917,6 +919,20 @@ export default function Home() {
           transition: .2s;
         }
         nav > a:hover { color: white; }
+        .accountBtn {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          padding: 10px 13px;
+          border: 1px solid #344154;
+          border-radius: 9px;
+          color: #dbe5f3;
+          background: rgba(15,23,42,.75);
+          text-decoration: none;
+          font-size: 13px;
+          font-weight: 800;
+        }
+        .accountBtn:hover { border-color: rgba(34,197,94,.55); color: white; }
         .cartBtn {
           position: relative;
           display: flex;
