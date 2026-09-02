@@ -23,6 +23,7 @@ type Product = {
   description: string;
   features: string[];
   specs: Spec[];
+  sourceUrl?: string;
 };
 
 type CartItem = Product & {
@@ -173,6 +174,145 @@ const PRODUCTS: Product[] = [
       { label: "Software", value: "GameSir Connect" },
     ],
   },
+
+  {
+    id: 4,
+    brand: "GAMEGAGA",
+    name: "CM-619 Wireless Game Controller",
+    category: "Controles",
+    subtitle: "RGB • Bluetooth • Multiplataforma",
+    price: 49990,
+    oldPrice: 62990,
+    badge: "NUEVO",
+    images: [
+      "/cm-619-alibaba-1.jpg",
+      "/cm-619-alibaba-2.jpg",
+      "/cm-619-alibaba-3.jpg",
+    ],
+    fallbackImage: "/cm-619-alibaba-1.jpg",
+    stock: 100,
+    description:
+      "Control inalámbrico multiplataforma con iluminación RGB, vibración y batería recargable. Pensado para Nintendo Switch, PC y dispositivos móviles.",
+    features: [
+      "Conexión inalámbrica Bluetooth",
+      "Compatibilidad con Nintendo Switch, PC, Android e iOS",
+      "Iluminación RGB",
+      "Vibración integrada",
+      "Batería recargable de 600 mAh",
+      "Autonomía declarada superior a 10 horas",
+      "Carga mediante USB-C",
+      "Diseño ergonómico para sesiones prolongadas",
+    ],
+    specs: [
+      { label: "Modelo", value: "CM-619 / 2412-K12" },
+      { label: "Tipo", value: "Gamepad inalámbrico" },
+      { label: "Conectividad", value: "Bluetooth / USB-C" },
+      { label: "Compatibilidad", value: "Nintendo Switch / PC / Android / iOS" },
+      { label: "Iluminación", value: "RGB" },
+      { label: "Vibración", value: "Sí" },
+      { label: "Batería", value: "600 mAh" },
+      { label: "Autonomía declarada", value: "Más de 10 horas" },
+      { label: "Alcance Bluetooth", value: "Hasta 10 m aprox." },
+      { label: "Carga", value: "USB-C" },
+    ],
+    sourceUrl:
+      "https://www.alibaba.com/product-detail/CM-619-Wireless-Game-Controller-for_1601605763608.html",
+  },
+  {
+    id: 5,
+    brand: "ATTACK SHARK",
+    name: "X11 Wireless Gaming Mouse",
+    category: "Mouse",
+    subtitle: "PAW3311 • 22.000 DPI • Dock RGB",
+    price: 44990,
+    oldPrice: 54990,
+    badge: "NUEVO",
+    images: [
+      "/attack-shark-x11-alibaba-1.jpg",
+      "/attack-shark-x11-alibaba-2.jpg",
+      "/attack-shark-x11-alibaba-3.jpg",
+    ],
+    fallbackImage: "/attack-shark-x11-alibaba-1.jpg",
+    stock: 100,
+    description:
+      "Mouse gamer inalámbrico tri-mode con sensor PixArt PAW3311 y base magnética de carga RGB, pensado para gaming y uso diario.",
+    features: [
+      "Sensor PixArt PAW3311",
+      "Hasta 22.000 DPI",
+      "Polling rate de hasta 1000 Hz",
+      "Conexión Bluetooth 5.2, 2.4 GHz y USB-C",
+      "Base magnética de carga con iluminación RGB",
+      "Peso aproximado de 63 g",
+      "Switches HUANO de hasta 20 millones de clics",
+      "Patines de PTFE",
+      "Software y configurador web",
+    ],
+    specs: [
+      { label: "Modelo", value: "X11" },
+      { label: "Sensor", value: "PixArt PAW3311" },
+      { label: "DPI máximo", value: "22.000 DPI" },
+      { label: "Polling rate", value: "125–1000 Hz" },
+      { label: "Velocidad máxima", value: "400 IPS" },
+      { label: "Aceleración máxima", value: "40 G" },
+      { label: "Peso", value: "63 g ± 3 g" },
+      { label: "Conectividad", value: "Bluetooth 5.2 / 2.4 GHz / USB-C" },
+      { label: "Batería", value: "300 mAh" },
+      { label: "Dock", value: "Magnético con RGB" },
+      { label: "Switches", value: "HUANO" },
+      { label: "Durabilidad", value: "Hasta 20 millones de clics" },
+      { label: "Dimensiones", value: "128 × 64 × 40 mm" },
+      { label: "Pies", value: "PTFE" },
+    ],
+    sourceUrl:
+      "https://www.alibaba.com/product-detail/Attack-Shark-X11-RGB-Wireless-Mouse_10000020335336.html",
+  },
+  {
+    id: 6,
+    brand: "AULA",
+    name: "F75 HE Magnetic Gaming Keyboard",
+    category: "Teclados",
+    subtitle: "Hall Effect • Rapid Trigger • 8000 Hz",
+    price: 149990,
+    oldPrice: 179990,
+    badge: "HALL EFFECT",
+    images: [
+      "/aula-f75-he-alibaba-1.jpg",
+      "/aula-f75-he-alibaba-2.jpg",
+      "/aula-f75-he-alibaba-3.jpg",
+    ],
+    fallbackImage: "/aula-f75-he-alibaba-1.jpg",
+    stock: 100,
+    description:
+      "Teclado gamer 75% con switches magnéticos Hall Effect, Rapid Trigger, actuación configurable y conectividad tri-mode.",
+    features: [
+      "Formato compacto 75% con 80 teclas",
+      "Switches magnéticos Hall Effect",
+      "Rapid Trigger con actuación configurable",
+      "Polling rate de hasta 8000 Hz por cable",
+      "Conectividad 2.4 GHz, Bluetooth 5.0 y USB-C",
+      "Batería recargable de 4000 mAh",
+      "Iluminación RGB",
+      "Perilla multifunción",
+      "Hot-swap para switches magnéticos compatibles",
+    ],
+    specs: [
+      { label: "Modelo", value: "AULA F75 HE" },
+      { label: "Formato", value: "75%" },
+      { label: "Cantidad de teclas", value: "80" },
+      { label: "Tecnología", value: "Hall Effect magnético" },
+      { label: "Rapid Trigger", value: "Sí" },
+      { label: "Actuación", value: "Configurable" },
+      { label: "Polling rate cableado", value: "Hasta 8000 Hz" },
+      { label: "Conectividad", value: "2.4 GHz / Bluetooth 5.0 / USB-C" },
+      { label: "Batería", value: "4000 mAh" },
+      { label: "RGB", value: "Sí" },
+      { label: "Perilla", value: "Multifunción" },
+      { label: "Hot-swap", value: "Switches magnéticos compatibles" },
+    ],
+    sourceUrl:
+      "https://www.alibaba.com/product-detail/AULA-F75-HE-Mechanical-Keyboard-Magnetic_1601834778422.html",
+  },
+
 ];
 
 function money(value: number) {
@@ -692,6 +832,17 @@ export default function Home() {
                 >
                   CONSULTAR POR WHATSAPP
                 </a>
+
+                {selected.sourceUrl && (
+                  <a
+                    className="productWhatsapp"
+                    href={selected.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    VER PUBLICACIÓN ORIGINAL
+                  </a>
+                )}
               </div>
             </div>
 
