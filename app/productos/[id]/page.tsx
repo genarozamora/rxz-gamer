@@ -68,8 +68,14 @@ export default function ProductPage() {
             <p className="mt-4 leading-7 text-slate-300">{product.description}</p>
             <div className="mt-6 text-4xl font-black text-emerald-400">{money(product.price)}</div>
             <p className="mt-2 text-sm text-slate-400">Precio final en pesos argentinos · Transferencia</p>
-            <div className="mt-5 rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm text-emerald-100">{product.stock > 5 ? "Stock disponible" : `Últimas ${product.stock} unidades`} · Envíos nacionales por OCA</div>
-            <Link href="/" className="mt-6 block rounded-xl bg-emerald-500 p-4 text-center font-black text-[#031008] no-underline">AGREGAR DESDE LA TIENDA</Link>
+            <div className={`mt-5 rounded-xl border p-4 text-sm font-bold ${product.stock <= 0 ? "border-red-400/30 bg-red-400/10 text-red-400" : "border-emerald-400/20 bg-emerald-400/5 text-emerald-100"}`}>
+              {product.stock <= 0 ? "0 unidades · Producto sin stock" : `${product.stock > 5 ? "Stock disponible" : `Últimas ${product.stock} unidades`} · Envíos nacionales por OCA`}
+            </div>
+            {product.stock <= 0 ? (
+              <button disabled className="mt-6 block w-full cursor-not-allowed rounded-xl bg-slate-700 p-4 text-center font-black text-slate-400">SIN STOCK</button>
+            ) : (
+              <Link href="/" className="mt-6 block rounded-xl bg-emerald-500 p-4 text-center font-black text-[#031008] no-underline">AGREGAR DESDE LA TIENDA</Link>
+            )}
             <Link href="/ayuda" className="mt-3 block rounded-xl border border-white/15 p-4 text-center font-bold text-white no-underline">CONSULTAR A SOPORTE</Link>
           </div>
         </div>

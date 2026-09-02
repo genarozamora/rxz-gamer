@@ -449,6 +449,11 @@ export default function Home() {
   }
 
   function add(product: Product) {
+    if (product.stock <= 0) {
+      setToast("Este producto no tiene stock disponible.");
+      return;
+    }
+
     const existing = cart.find((p) => p.id === product.id);
 
     if (existing && existing.quantity >= product.stock) {
@@ -658,9 +663,11 @@ export default function Home() {
                   <h3>{product.name}</h3>
                   <p>{product.subtitle}</p>
 
-                  <div className="stock">
+                  <div className={product.stock <= 0 ? "stock outOfStock" : "stock"}>
                     <span className="stockDot" />
-                    {product.stock > 5
+                    {product.stock <= 0
+                      ? "0 unidades"
+                      : product.stock > 5
                       ? "Stock disponible"
                       : `Últimas ${product.stock} unidades`}
                   </div>
@@ -678,8 +685,8 @@ export default function Home() {
                     VER DETALLES Y FICHA TÉCNICA
                   </button>
 
-                  <button className="buy" onClick={() => add(product)}>
-                    AGREGAR AL CARRITO
+                  <button className="buy" disabled={product.stock <= 0} onClick={() => add(product)}>
+                    {product.stock <= 0 ? "SIN STOCK" : "AGREGAR AL CARRITO"}
                   </button>
                 </div>
               </article>
@@ -848,9 +855,11 @@ export default function Home() {
                 <h2>{selected.name}</h2>
                 <p className="description">{selected.description}</p>
 
-                <div className="modalStock">
+                <div className={selected.stock <= 0 ? "modalStock outOfStock" : "modalStock"}>
                   <span className="stockDot" />
-                  {selected.stock > 5
+                  {selected.stock <= 0
+                    ? "0 unidades"
+                    : selected.stock > 5
                     ? "Stock disponible"
                     : `Últimas ${selected.stock} unidades`}
                 </div>
@@ -866,9 +875,10 @@ export default function Home() {
 
                 <button
                   className="buy modalBuy"
+                  disabled={selected.stock <= 0}
                   onClick={() => add(selected)}
                 >
-                  AGREGAR AL CARRITO
+                  {selected.stock <= 0 ? "SIN STOCK" : "AGREGAR AL CARRITO"}
                 </button>
 
                 <a className="productDetailLink" href={`/productos/${selected.id}`}>
@@ -1385,6 +1395,14 @@ export default function Home() {
           border-radius: 50%;
           background: #22c55e;
           box-shadow: 0 0 10px #22c55e;
+        }
+        .outOfStock {
+          color: #f87171;
+          font-weight: 800;
+        }
+        .outOfStock .stockDot {
+          background: #ef4444;
+          box-shadow: 0 0 10px #ef4444;
         }
         .old, .modalOld {
           color: #66758b;
