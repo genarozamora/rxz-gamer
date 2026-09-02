@@ -18,6 +18,7 @@ type CreatedOrder = {
 };
 
 const ALIAS = "genaroperaltaz";
+const PROVINCES = ["Buenos Aires", "CABA", "Catamarca", "Chaco", "Chubut", "Córdoba", "Corrientes", "Entre Ríos", "Formosa", "Jujuy", "La Pampa", "La Rioja", "Mendoza", "Misiones", "Neuquén", "Río Negro", "Salta", "San Juan", "San Luis", "Santa Cruz", "Santa Fe", "Santiago del Estero", "Tierra del Fuego", "Tucumán"];
 
 export default function CheckoutPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -32,6 +33,8 @@ export default function CheckoutPage() {
   const [city, setCity] = useState("");
   const [province, setProvince] = useState("Córdoba");
   const [postalCode, setPostalCode] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [copied, setCopied] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -89,6 +92,21 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (!/^\+?[0-9 ()-]{8,20}$/.test(phone.trim())) {
+      setMessage("Ingresá un teléfono válido, incluyendo código de área.");
+      return;
+    }
+
+    if (!/^[A-Za-z0-9 -]{3,10}$/.test(postalCode.trim())) {
+      setMessage("Ingresá un código postal válido.");
+      return;
+    }
+
+    if (!acceptedTerms) {
+      setMessage("Para continuar, aceptá los términos y las políticas de compra.");
+      return;
+    }
+
     setCreating(true);
 
     try {
@@ -102,45 +120,30 @@ export default function CheckoutPage() {
       }
 
       const { data: order, error: orderError } = await supabase
-        .from("orders")
-        .insert({
-          user_id: user.id,
-          status: "pending_payment",
-          subtotal,
-          shipping_cost: 0,
-          total: subtotal,
-          customer_name: fullName.trim(),
-          customer_email: user.email || "",
-          customer_phone: phone.trim(),
-          shipping_address: address.trim(),
-          shipping_city: city.trim(),
-          shipping_province: province.trim(),
-          shipping_postal_code: postalCode.trim(),
+        .rpc("create_store_order", {
+          p_customer_name: fullName.trim(),
+          p_customer_email: user.email || "",
+          p_customer_phone: phone.trim(),
+          p_shipping_address: address.trim(),
+          p_shipping_city: city.trim(),
+          p_shipping_province: province.trim(),
+          p_shipping_postal_code: postalCode.trim(),
+          p_items: cart.map((item) => ({ product_id: item.id, quantity: item.quantity })),
         })
-        .select("id, order_number, total")
         .single();
 
       if (orderError || !order) {
         throw orderError || new Error("No se pudo crear el pedido.");
       }
 
-      const items = cart.map((item) => ({
-        order_id: order.id,
-        product_id: String(item.id),
-        product_name: `${item.brand} ${item.name}`,
-        quantity: item.quantity,
-        unit_price: item.price,
-      }));
+      const created = order as { order_id: string; order_number: string; total: number };
+      setCreatedOrder({ id: created.order_id, order_number: created.order_number, total: Number(created.total) });
 
-      const { error: itemsError } = await supabase
-        .from("order_items")
-        .insert(items);
-
-      if (itemsError) {
-        throw itemsError;
-      }
-
-      setCreatedOrder(order);
+      void supabase.from("store_events").insert({
+        event_name: "purchase",
+        user_id: user.id,
+        metadata: { order_id: created.order_id, total: Number(created.total) },
+      });
 
       localStorage.removeItem("rxz-cart");
 
@@ -158,6 +161,12 @@ export default function CheckoutPage() {
       currency: "ARS",
       maximumFractionDigits: 0,
     }).format(value);
+  }
+
+  async function copy(text: string, label: string) {
+    await navigator.clipboard.writeText(text);
+    setCopied(label);
+    window.setTimeout(() => setCopied(""), 1800);
   }
 
   if (loading) {
@@ -183,6 +192,7 @@ export default function CheckoutPage() {
             <strong style={{ fontSize: 22 }}>
               {createdOrder.order_number}
             </strong>
+            <button style={styles.copyButton} onClick={() => copy(createdOrder.order_number, "pedido")}>{copied === "pedido" ? "COPIADO" : "COPIAR"}</button>
           </div>
 
           <div style={styles.orderBox}>
@@ -207,6 +217,7 @@ export default function CheckoutPage() {
             >
               {ALIAS}
             </div>
+            <button style={styles.copyButton} onClick={() => copy(ALIAS, "alias")}>{copied === "alias" ? "COPIADO" : "COPIAR ALIAS"}</button>
           </div>
 
           <p
@@ -277,12 +288,13 @@ export default function CheckoutPage() {
             onChange={(e) => setCity(e.target.value)}
           />
 
-          <input
+          <select
             style={styles.input}
-            placeholder="Provincia"
             value={province}
             onChange={(e) => setProvince(e.target.value)}
-          />
+          >
+            {PROVINCES.map((item) => <option key={item} value={item}>{item}</option>)}
+          </select>
 
           <input
             style={styles.input}
@@ -333,8 +345,13 @@ export default function CheckoutPage() {
               </div>
 
               <div style={styles.shippingNote}>
-                El envío se calcula y coordina según destino.
+                El costo y plazo del envío se confirman según el código postal antes del despacho. Nunca se cobrará un importe adicional sin informártelo.
               </div>
+
+              <label style={styles.termsRow}>
+                <input type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} />
+                <span>Acepto los <a href="/legal/terminos" target="_blank">términos</a>, la <a href="/legal/privacidad" target="_blank">privacidad</a> y las condiciones de <a href="/legal/envios" target="_blank">envío</a>.</span>
+              </label>
 
               <button
                 style={styles.primaryButton}
@@ -426,6 +443,26 @@ const styles: Record<string, React.CSSProperties> = {
     marginTop: 15,
     color: "#9ca3af",
     fontSize: 14,
+  },
+
+  termsRow: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 10,
+    marginTop: 18,
+    color: "#cbd5e1",
+    fontSize: 13,
+    lineHeight: 1.5,
+  },
+
+  copyButton: {
+    padding: "8px 10px",
+    borderRadius: 8,
+    border: "1px solid #334155",
+    background: "#0b1220",
+    color: "#86efac",
+    fontSize: 11,
+    fontWeight: 900,
   },
 
   primaryButton: {

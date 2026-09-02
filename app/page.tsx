@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
 type Spec = {
@@ -8,7 +9,7 @@ type Spec = {
   value: string;
 };
 
-type Product = {
+export type Product = {
   id: number;
   brand: string;
   name: string;
@@ -23,17 +24,15 @@ type Product = {
   description: string;
   features: string[];
   specs: Spec[];
-  sourceUrl?: string;
 };
 
 type CartItem = Product & {
   quantity: number;
 };
 
-const WHATSAPP = "543512285839";
 const ALIAS = "genaroperaltaz";
 
-const PRODUCTS: Product[] = [
+export const PRODUCTS: Product[] = [
   {
     id: 1,
     brand: "ATTACK SHARK",
@@ -215,8 +214,6 @@ const PRODUCTS: Product[] = [
       { label: "Alcance Bluetooth", value: "Hasta 10 m aprox." },
       { label: "Carga", value: "USB-C" },
     ],
-    sourceUrl:
-      "https://www.alibaba.com/product-detail/CM-619-Wireless-Game-Controller-for_1601605763608.html",
   },
   {
     id: 5,
@@ -263,8 +260,6 @@ const PRODUCTS: Product[] = [
       { label: "Dimensiones", value: "128 × 64 × 40 mm" },
       { label: "Pies", value: "PTFE" },
     ],
-    sourceUrl:
-      "https://www.alibaba.com/product-detail/Attack-Shark-X11-RGB-Wireless-Mouse_10000020335336.html",
   },
   {
     id: 6,
@@ -309,8 +304,6 @@ const PRODUCTS: Product[] = [
       { label: "Perilla", value: "Multifunción" },
       { label: "Hot-swap", value: "Switches magnéticos compatibles" },
     ],
-    sourceUrl:
-      "https://www.alibaba.com/product-detail/AULA-F75-HE-Mechanical-Keyboard-Magnetic_1601834778422.html",
   },
 
 ];
@@ -348,6 +341,7 @@ function SafeImage({
 }
 
 export default function Home() {
+  const [catalogProducts, setCatalogProducts] = useState<Product[]>(PRODUCTS);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [selected, setSelected] = useState<Product | null>(null);
@@ -357,6 +351,8 @@ export default function Home() {
   const [toast, setToast] = useState("");
   const [loaded, setLoaded] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -367,12 +363,47 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    supabase.from("products").select("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs").eq("active", true).then(({ data }) => {
+      if (!data?.length) return;
+      const managed = data.map((row) => ({
+        id: Number(row.id), brand: row.brand, name: row.name, category: row.category,
+        subtitle: row.subtitle || "", description: row.description || "",
+        price: Number(row.price), oldPrice: row.old_price ? Number(row.old_price) : undefined,
+        stock: Number(row.stock), badge: row.badge || undefined,
+        images: Array.isArray(row.images) && row.images.length ? row.images as string[] : ["/file.svg"],
+        fallbackImage: Array.isArray(row.images) && row.images[0] ? String(row.images[0]) : "/file.svg",
+        features: Array.isArray(row.features) ? row.features as string[] : [],
+        specs: Array.isArray(row.specs) ? row.specs as Spec[] : [],
+      }));
+      const managedIds = new Set(managed.map((item) => item.id));
+      setCatalogProducts([...managed, ...PRODUCTS.filter((item) => !managedIds.has(item.id))]);
+    });
+  }, []);
+
+  useEffect(() => {
+    async function syncUser(user: User | null) {
+      setUserEmail(user?.email ?? null);
+
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      setIsAdmin(profile?.role === "admin");
+    }
+
     supabase.auth.getUser().then(({ data }) => {
-      setUserEmail(data.user?.email ?? null);
+      void syncUser(data.user);
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUserEmail(session?.user?.email ?? null);
+      void syncUser(session?.user ?? null);
     });
 
     return () => listener.subscription.unsubscribe();
@@ -393,20 +424,29 @@ export default function Home() {
   }, [selected?.id]);
 
   const categories = useMemo(
-    () => ["Todos", ...Array.from(new Set(PRODUCTS.map((p) => p.category)))],
-    []
+    () => ["Todos", ...Array.from(new Set(catalogProducts.map((p) => p.category)))],
+    [catalogProducts]
   );
 
   const filtered = useMemo(() => {
-    return PRODUCTS.filter((p) => {
+    return catalogProducts.filter((p) => {
       const categoryOK = category === "Todos" || p.category === category;
       const text = `${p.brand} ${p.name} ${p.subtitle}`.toLowerCase();
       return categoryOK && text.includes(search.toLowerCase());
     });
-  }, [search, category]);
+  }, [search, category, catalogProducts]);
 
   const totalItems = cart.reduce((a, b) => a + b.quantity, 0);
   const total = cart.reduce((a, b) => a + b.price * b.quantity, 0);
+
+  function track(eventName: string, productId?: number) {
+    void supabase.from("store_events").insert({ event_name: eventName, product_id: productId ? String(productId) : null });
+  }
+
+  function openProduct(product: Product) {
+    setSelected(product);
+    track("product_view", product.id);
+  }
 
   function add(product: Product) {
     const existing = cart.find((p) => p.id === product.id);
@@ -427,6 +467,7 @@ export default function Home() {
     });
 
     setToast(`✓ ${product.name} agregado al carrito`);
+    track("add_to_cart", product.id);
   }
 
   function changeQuantity(id: number, amount: number) {
@@ -449,6 +490,7 @@ export default function Home() {
 
   function goToCheckout() {
     setCartOpen(false);
+    track("begin_checkout");
     window.location.href = userEmail ? "/checkout" : "/login?next=/checkout";
   }
 
@@ -477,11 +519,22 @@ export default function Home() {
           RXZ <span>GAMER</span>
         </a>
 
-        <nav>
+        <button className="menuBtn" onClick={() => setMenuOpen((open) => !open)} aria-label="Abrir menú">
+          {menuOpen ? "✕" : "☰"}
+        </button>
+
+        <nav className={menuOpen ? "navOpen" : ""} onClick={() => setMenuOpen(false)}>
           <a href="#inicio">Inicio</a>
           <a href="#productos">Productos</a>
           <a href="#beneficios">Envíos</a>
           <a href="#contacto">Contacto</a>
+          <a href={userEmail ? "/ayuda" : "/login?next=/ayuda"}>Ayuda</a>
+
+          {isAdmin && (
+            <a className="adminBtn" href="/admin">
+              Soporte / Admin
+            </a>
+          )}
 
           <a className="accountBtn" href={userEmail ? "/cuenta" : "/login"}>
             👤 <span>{userEmail ? "Mi cuenta" : "Iniciar sesión"}</span>
@@ -513,13 +566,8 @@ export default function Home() {
             VER PRODUCTOS
           </a>
 
-          <a
-            className="secondary"
-            href={`https://wa.me/${WHATSAPP}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            CONSULTAR POR WHATSAPP
+          <a className="secondary" href={userEmail ? "/ayuda" : "/login?next=/ayuda"}>
+            HABLAR CON SOPORTE
           </a>
         </div>
 
@@ -542,10 +590,10 @@ export default function Home() {
 
           <div>
             <strong>💬</strong>
-            <span>
-              <b>Atención directa</b>
-              <small>Por WhatsApp</small>
-            </span>
+              <span>
+                <b>Atención directa</b>
+                <small>Chat interno RXZ</small>
+              </span>
           </div>
         </div>
       </section>
@@ -588,7 +636,7 @@ export default function Home() {
 
             return (
               <article className="card" key={product.id}>
-                <div className="imageBox" onClick={() => setSelected(product)}>
+                <div className="imageBox" onClick={() => openProduct(product)}>
                   {product.badge && <span className="badge">{product.badge}</span>}
                   {discount > 0 && (
                     <span className="discount">-{discount}%</span>
@@ -626,7 +674,7 @@ export default function Home() {
                     Precio especial por transferencia
                   </small>
 
-                  <button className="details" onClick={() => setSelected(product)}>
+                  <button className="details" onClick={() => openProduct(product)}>
                     VER DETALLES Y FICHA TÉCNICA
                   </button>
 
@@ -705,12 +753,8 @@ export default function Home() {
         <h2>Estamos para ayudarte.</h2>
         <p>Consultanos sobre productos, stock, pagos o envíos.</p>
 
-        <a
-          href={`https://wa.me/${WHATSAPP}?text=Hola%20RXZ%20Gamer,%20tengo%20una%20consulta.`}
-          target="_blank"
-          rel="noreferrer"
-        >
-          💬 HABLAR POR WHATSAPP
+        <a href={userEmail ? "/ayuda" : "/login?next=/ayuda"}>
+          💬 ABRIR CHAT DE SOPORTE
         </a>
       </section>
 
@@ -719,15 +763,20 @@ export default function Home() {
           RXZ <span>GAMER</span>
         </div>
         <p>Gaming · Performance · Tecnología</p>
+        <div className="footerLinks">
+          <a href="/legal/terminos">Términos</a>
+          <a href="/legal/privacidad">Privacidad</a>
+          <a href="/legal/garantias">Cambios y garantías</a>
+          <a href="/legal/envios">Envíos</a>
+          <a href="/arrepentimiento">BOTÓN DE ARREPENTIMIENTO</a>
+        </div>
         <small>© 2026 RXZ Gamer · Todos los derechos reservados.</small>
       </footer>
 
       <a
-        className="whatsapp"
-        href={`https://wa.me/${WHATSAPP}`}
-        target="_blank"
-        rel="noreferrer"
-        aria-label="WhatsApp RXZ Gamer"
+        className="supportFloat"
+        href={userEmail ? "/ayuda" : "/login?next=/ayuda"}
+        aria-label="Abrir chat de soporte RXZ Gamer"
       >
         💬
       </a>
@@ -822,27 +871,18 @@ export default function Home() {
                   AGREGAR AL CARRITO
                 </button>
 
-                <a
-                  className="productWhatsapp"
-                  href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(
-                    `Hola RXZ Gamer, quiero consultar por ${selected.brand} ${selected.name}.`
-                  )}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  CONSULTAR POR WHATSAPP
+                <a className="productDetailLink" href={`/productos/${selected.id}`}>
+                  VER FICHA COMPLETA
                 </a>
 
-                {selected.sourceUrl && (
-                  <a
-                    className="productWhatsapp"
-                    href={selected.sourceUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    VER PUBLICACIÓN ORIGINAL
-                  </a>
-                )}
+                <a
+                  className="productSupport"
+                  href={userEmail ? "/ayuda" : "/login?next=/ayuda"}
+                >
+                  CONSULTAR A SOPORTE
+                </a>
+
+
               </div>
             </div>
 
@@ -1062,6 +1102,15 @@ export default function Home() {
         }
         .logo span, .footerLogo span { color: #22c55e; }
         nav { display: flex; align-items: center; gap: 25px; }
+        .menuBtn {
+          display: none;
+          border: 1px solid #344154;
+          border-radius: 9px;
+          background: #0f172a;
+          color: white;
+          padding: 9px 12px;
+          font-size: 20px;
+        }
         nav > a {
           color: #aab5c7;
           text-decoration: none;
@@ -1084,6 +1133,13 @@ export default function Home() {
           font-weight: 800;
         }
         .accountBtn:hover { border-color: rgba(34,197,94,.55); color: white; }
+        .adminBtn {
+          padding: 10px 13px;
+          border: 1px solid rgba(34,197,94,.55);
+          border-radius: 9px;
+          background: rgba(34,197,94,.12);
+          color: #86efac;
+        }
         .cartBtn {
           position: relative;
           display: flex;
@@ -1421,7 +1477,16 @@ export default function Home() {
         }
         footer { padding: 50px 5%; text-align: center; color: #69778b; }
         footer p { font-size: 13px; }
-        .whatsapp {
+        .footerLinks {
+          display: flex;
+          justify-content: center;
+          flex-wrap: wrap;
+          gap: 10px 22px;
+          margin: 22px auto;
+        }
+        .footerLinks a { color: #aab5c7; font-size: 12px; text-decoration: none; }
+        .footerLinks a:last-child { color: #86efac; font-weight: 900; }
+        .supportFloat {
           position: fixed;
           right: 23px;
           bottom: 23px;
@@ -1594,7 +1659,7 @@ export default function Home() {
           margin-top: 28px;
           padding: 16px;
         }
-        .productWhatsapp {
+        .productSupport {
           width: 100%;
           max-width: 430px;
           margin-top: 10px;
@@ -1605,6 +1670,21 @@ export default function Home() {
           text-decoration: none;
           color: white;
           background: #111b2a;
+          font-size: 13px;
+          font-weight: 900;
+        }
+        .productDetailLink {
+          display: block;
+          width: 100%;
+          max-width: 430px;
+          margin-top: 10px;
+          padding: 14px;
+          border-radius: 8px;
+          text-align: center;
+          text-decoration: none;
+          color: #86efac;
+          border: 1px solid rgba(34,197,94,.4);
+          background: rgba(34,197,94,.08);
           font-size: 13px;
           font-weight: 900;
         }
@@ -1766,7 +1846,26 @@ export default function Home() {
         }
 
         @media(max-width:900px) {
-          nav > a { display: none; }
+          .menuBtn { display: block; margin-left: auto; }
+          nav {
+            display: none;
+            position: absolute;
+            top: 75px;
+            left: 16px;
+            right: 16px;
+            padding: 16px;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 6px;
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 14px;
+            background: rgba(5,12,20,.98);
+            box-shadow: 0 20px 50px rgba(0,0,0,.5);
+          }
+          nav.navOpen { display: flex; }
+          nav > a { display: block; padding: 12px; }
+          nav > a.adminBtn, nav > a.accountBtn { display: flex; }
+          nav .cartBtn { width: 100%; justify-content: center; margin-top: 5px; }
           .trust, .benefits, .steps, .modalGrid, .detailsSection {
             grid-template-columns: 1fr;
           }

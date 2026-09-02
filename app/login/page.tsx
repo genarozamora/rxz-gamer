@@ -38,7 +38,8 @@ export default function LoginPage() {
         if (error) {
           setMessage(error.message);
         } else {
-          window.location.href = "/";
+          const requested = new URLSearchParams(window.location.search).get("next");
+          window.location.href = requested?.startsWith("/") && !requested.startsWith("//") ? requested : "/";
         }
       }
     } catch {
