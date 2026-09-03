@@ -97,6 +97,16 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (fullName.trim().length > 120 || address.trim().length > 250 || city.trim().length > 120) {
+      setMessage("Uno de los datos de envío es demasiado largo.");
+      return;
+    }
+
+    if (cart.some((item) => !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 10)) {
+      setMessage("La cantidad de productos del carrito no es válida.");
+      return;
+    }
+
     if (!/^[A-Za-z0-9 -]{3,10}$/.test(postalCode.trim())) {
       setMessage("Ingresá un código postal válido.");
       return;

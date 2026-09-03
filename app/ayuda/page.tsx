@@ -149,6 +149,10 @@ export default function AyudaPage() {
 
     const text = draft.trim();
     if (!text || !user || sending) return;
+    if (text.length > 2000) {
+      setError("El mensaje puede tener hasta 2000 caracteres.");
+      return;
+    }
 
     setSending(true);
     setError("");
@@ -295,7 +299,7 @@ export default function AyudaPage() {
                 }
               }}
               rows={1}
-              maxLength={3000}
+              maxLength={2000}
               disabled={sending}
               placeholder="Escribí tu consulta…"
               className="max-h-36 min-h-12 flex-1 resize-none rounded-2xl border border-white/10 bg-[#0d1a29] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-400/10 disabled:opacity-60"

@@ -10,6 +10,8 @@ export default function LoginPage() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const normalizedEmail = email.trim().toLowerCase();
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -17,8 +19,12 @@ export default function LoginPage() {
 
     try {
       if (mode === "register") {
+        if (password.length < 12) {
+          setMessage("Usá una contraseña de al menos 12 caracteres.");
+          return;
+        }
         const { error } = await supabase.auth.signUp({
-          email,
+          email: normalizedEmail,
           password,
         });
 
@@ -31,7 +37,7 @@ export default function LoginPage() {
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
-          email,
+          email: normalizedEmail,
           password,
         });
 
@@ -97,6 +103,9 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit}>
           <input
             type="email"
+            autoComplete="email"
+            inputMode="email"
+            maxLength={200}
             placeholder="Correo electrónico"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -114,11 +123,12 @@ export default function LoginPage() {
 
           <input
             type="password"
+            autoComplete={mode === "login" ? "current-password" : "new-password"}
             placeholder="Contraseña"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            minLength={6}
+            minLength={mode === "register" ? 12 : 6}
             style={{
               width: "100%",
               padding: "13px",

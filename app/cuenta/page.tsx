@@ -270,14 +270,10 @@ export default function CuentaPage() {
 
       if (uploadError) throw uploadError;
 
-      const { error: orderError } = await supabase
-        .from("orders")
-        .update({
-          receipt_path: filePath,
-          status: "receipt_uploaded",
-          payment_rejection_reason: null,
-        })
-        .eq("id", order.id);
+      const { error: orderError } = await supabase.rpc("submit_payment_receipt", {
+        p_order_id: order.id,
+        p_receipt_path: filePath,
+      });
 
       if (orderError) throw orderError;
 

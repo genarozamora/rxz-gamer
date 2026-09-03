@@ -84,13 +84,13 @@ export default function AdminPage() {
       return;
     }
 
-    const { data: profile, error } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    const { data: staff, error } = await supabase
+      .from("support_staff")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
 
-    if (error || profile?.role !== "admin") {
+    if (error || !staff) {
       setAuthorized(false);
       setLoading(false);
       return;
@@ -143,6 +143,10 @@ export default function AdminPage() {
   async function sendSupportReply() {
     const text = supportDraft.trim();
     if (!text || !selectedConversationId || !adminUserId || supportSending) return;
+    if (text.length > 2000) {
+      setMessage("La respuesta puede tener hasta 2000 caracteres.");
+      return;
+    }
 
     setSupportSending(true);
     setMessage("");
