@@ -454,17 +454,34 @@ export default function Home() {
   useEffect(() => {
     supabase.from("products").select("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants").eq("active", true).then(({ data }) => {
       if (!data?.length) return;
-      const managed = data.map((row) => ({
-        id: Number(row.id), brand: row.brand, name: row.name, category: row.category,
+      const managed = data.map((row) => {
+        const id = Number(row.id);
+        const staticProduct = PRODUCTS.find((product) => product.id === id);
+        const normalizeImage = (image: string) => {
+          if (id === 6 && image.includes("aulajapan.com/cdn/shop/files/1_343970a8")) {
+            return "/aula-f75-he-alibaba-1.jpg";
+          }
+          return image;
+        };
+        const images = Array.isArray(row.images) && row.images.length
+          ? (row.images as string[]).map(normalizeImage)
+          : staticProduct?.images || ["/file.svg"];
+        const variants = Array.isArray(row.variants)
+          ? (row.variants as ProductVariant[]).map((variant) => ({ ...variant, image: normalizeImage(variant.image) }))
+          : staticProduct?.variants;
+
+        return {
+        id, brand: row.brand, name: row.name, category: row.category,
         subtitle: row.subtitle || "", description: row.description || "",
         price: Number(row.price), oldPrice: row.old_price ? Number(row.old_price) : undefined,
         stock: Number(row.stock), badge: row.badge || undefined,
-        images: Array.isArray(row.images) && row.images.length ? row.images as string[] : ["/file.svg"],
-        fallbackImage: Array.isArray(row.images) && row.images[0] ? String(row.images[0]) : "/file.svg",
+        images,
+        fallbackImage: staticProduct?.fallbackImage || images[0] || "/file.svg",
         features: Array.isArray(row.features) ? row.features as string[] : [],
         specs: Array.isArray(row.specs) ? row.specs as Spec[] : [],
-        variants: Array.isArray(row.variants) ? row.variants as ProductVariant[] : undefined,
-      }));
+        variants,
+      };
+      });
       const managedIds = new Set(managed.map((item) => item.id));
       setCatalogProducts([...managed, ...PRODUCTS.filter((item) => !managedIds.has(item.id))]);
     });
