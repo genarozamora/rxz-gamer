@@ -58,7 +58,7 @@ export const PRODUCTS: Product[] = [
     images: [
       "https://e-topshop.com.ua/image/cache/catalog/mouse/ASX3/Pro/black-800x800.jpeg",
       "https://attackshark.com/cdn/shop/files/1_4K_logo_d23c047c-0870-4d14-981a-82735559aa68.jpg?v=1712546749&width=2048",
-      "https://taskrevolution.com/cdn/shop/files/MouseX3PRO_3.webp?v=1719776150&width=1946",
+      "https://m.media-amazon.com/images/I/71aZBHC2tyL._AC_SL1500_.jpg",
       "https://techdiversitybd.com/wp-content/uploads/2024/04/Attack-Shark-x3-pro.png",
       "https://http2.mlstatic.com/D_Q_NP_2X_972874-MLB77246414533_062024-E-mouse-game-attack-shark-x3-pro-4k-sfio-8k-cfio-paw3395-59g.webp",
     ],
@@ -67,7 +67,7 @@ export const PRODUCTS: Product[] = [
     variants: [
       { id: "black", label: "Negro", color: "#17191d", stock: 1, image: "https://e-topshop.com.ua/image/cache/catalog/mouse/ASX3/Pro/black-800x800.jpeg" },
       { id: "white", label: "Blanco", color: "#f4f4f3", stock: 1, image: "https://attackshark.com/cdn/shop/files/1_4K_logo_d23c047c-0870-4d14-981a-82735559aa68.jpg?v=1712546749&width=2048" },
-      { id: "red", label: "Rojo", color: "#df2635", stock: 1, image: "https://taskrevolution.com/cdn/shop/files/MouseX3PRO_3.webp?v=1719776150&width=1946" },
+      { id: "red", label: "Rojo", color: "#df2635", stock: 1, image: "https://m.media-amazon.com/images/I/71aZBHC2tyL._AC_SL1500_.jpg" },
     ],
     description:
       "Mouse gamer ultraliviano de alto rendimiento con sensor PixArt PAW3395, conectividad triple y polling de hasta 4K inalámbrico y 8K cableado.",
@@ -979,8 +979,18 @@ export default function Home() {
                           type="button"
                           disabled={variant.stock <= 0}
                           className={selectedVariantId === variant.id ? "variantOption activeVariant" : "variantOption"}
-                          onClick={() => setSelectedVariantId(variant.id)}
+                          onClick={() => {
+                            setSelectedVariantId(variant.id);
+                            const variantImageIndex = selected.images.indexOf(variant.image);
+                            if (variantImageIndex >= 0) setSelectedImage(variantImageIndex);
+                          }}
                         >
+                          <SafeImage
+                            src={variant.image}
+                            fallback={selected.fallbackImage}
+                            alt={`Vista previa ${selected.name} ${variant.label}`}
+                            className="variantPreview"
+                          />
                           <span className="colorDot" style={{ background: variant.color }} />
                           <span>{variant.label}<small>{variant.stock > 0 ? `${variant.stock} ${variant.stock === 1 ? "unidad" : "unidades"}` : "Sin stock"}</small></span>
                         </button>
@@ -1822,6 +1832,7 @@ export default function Home() {
           display: flex; align-items: center; gap: 10px; min-width: 180px; padding: 11px 13px;
           border: 1px solid #344154; border-radius: 10px; background: #101a28; color: white; text-align: left;
         }
+        .variantPreview { width: 58px; height: 58px; flex: 0 0 auto; object-fit: contain; padding: 4px; border-radius: 9px; background: white; }
         .variantOption:hover:not(:disabled), .activeVariant { border-color: #22c55e; box-shadow: 0 0 0 1px rgba(34,197,94,.25); }
         .variantOption:disabled { opacity: .45; cursor: not-allowed; }
         .variantOption small { display: block; margin-top: 3px; color: #8fa0b5; }
