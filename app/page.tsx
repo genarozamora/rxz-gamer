@@ -45,7 +45,7 @@ type CartItem = Product & {
 
 const ALIAS = "genaroperaltaz";
 
-export const PRODUCTS: Product[] = [
+const ALL_PRODUCTS: Product[] = [
   {
     id: 1,
     brand: "ATTACK SHARK",
@@ -389,6 +389,9 @@ export const PRODUCTS: Product[] = [
   },
 
 ];
+
+// Catálogo actual: solo los productos confirmados por RXZ Gamer.
+export const PRODUCTS: Product[] = ALL_PRODUCTS.filter((product) => [1, 3, 6, 7].includes(product.id));
 
 function money(value: number) {
   return new Intl.NumberFormat("es-AR", {
