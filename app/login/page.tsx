@@ -19,8 +19,8 @@ export default function LoginPage() {
 
     try {
       if (mode === "register") {
-        if (password.length < 12) {
-          setMessage("Usá una contraseña de al menos 12 caracteres.");
+        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password)) {
+          setMessage("8 caracteres: números, letras, una mayúscula y símbolos.");
           return;
         }
         const { error } = await supabase.auth.signUp({
@@ -128,7 +128,7 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            minLength={mode === "register" ? 12 : 6}
+            minLength={mode === "register" ? 8 : 6}
             style={{
               width: "100%",
               padding: "13px",
