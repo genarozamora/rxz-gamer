@@ -59,6 +59,8 @@ export const PRODUCTS: Product[] = [
       "https://e-topshop.com.ua/image/cache/catalog/mouse/ASX3/Pro/black-800x800.jpeg",
       "https://attackshark.com/cdn/shop/files/1_4K_logo_d23c047c-0870-4d14-981a-82735559aa68.jpg?v=1712546749&width=2048",
       "https://taskrevolution.com/cdn/shop/files/MouseX3PRO_3.webp?v=1719776150&width=1946",
+      "https://techdiversitybd.com/wp-content/uploads/2024/04/Attack-Shark-x3-pro.png",
+      "https://http2.mlstatic.com/D_Q_NP_2X_972874-MLB77246414533_062024-E-mouse-game-attack-shark-x3-pro-4k-sfio-8k-cfio-paw3395-59g.webp",
     ],
     fallbackImage: "/attack-shark-x3-2.jpg",
     stock: 3,
@@ -158,7 +160,8 @@ export const PRODUCTS: Product[] = [
       "/gamesir-nova2-lite.png",
       "/gamesir-nova2-lite-2.jpg",
       "/gamesir-nova2-lite-3.jpg",
-      "/gamesir-nova2-lite-4.jpg",
+      "https://down-ph.img.susercontent.com/file/my-11134208-820lb-mio261i1lgjmce",
+      "https://down-ph.img.susercontent.com/file/my-11134208-820l8-mio261i1ineq8a",
     ],
     fallbackImage: "/gamesir-nova2-lite.png",
     stock: 2,
@@ -300,6 +303,8 @@ export const PRODUCTS: Product[] = [
       "/aula-f75-he-alibaba-1.jpg",
       "/aula-f75-he-alibaba-2.jpg",
       "/aula-f75-he-alibaba-3.jpg",
+      "https://lacdau.com/media/product/6546-z6511049706330_d7050573782eed397359cc42f36080ed.jpg",
+      "https://lacdau.com/media/product/250-6546-z6511049698713_415ee834ab8cf5d7da8ff7332767e332.jpg",
     ],
     fallbackImage: "/aula-f75-he-alibaba-1.jpg",
     stock: 4,
@@ -345,7 +350,11 @@ export const PRODUCTS: Product[] = [
     price: 89990,
     oldPrice: 109990,
     badge: "COMBO COMPLETO",
-    images: ["https://www.easysmx.com/cdn/shop/files/D10_-1000X1000_b7bff737-127f-492d-8436-120915dce879_1024x1024.png?v=1747905818", "https://cdn.qeemat.com.pk/product/11116/easysmx-d10-wireless-gaming-controller-black.png"],
+    images: [
+      "https://www.easysmx.com/cdn/shop/files/D10_-1000X1000_b7bff737-127f-492d-8436-120915dce879_1024x1024.png?v=1747905818",
+      "https://cdn.qeemat.com.pk/product/11116/easysmx-d10-wireless-gaming-controller-black.png",
+      "https://m.media-amazon.com/images/I/71iCwG4m6RL._AC_SL1500_.jpg",
+    ],
     fallbackImage: "/file.svg",
     stock: 1,
     variants: [
@@ -912,7 +921,7 @@ export default function Home() {
                   </button>
 
                   <SafeImage
-                    src={selectedVariant?.image || selected.images[selectedImage]}
+                    src={selected.images[selectedImage] || selectedVariant?.image || selected.fallbackImage}
                     fallback={selected.fallbackImage}
                     alt={`${selected.name} imagen ${selectedImage + 1}`}
                   />
@@ -952,6 +961,13 @@ export default function Home() {
                 <div className="brand">{selected.brand}</div>
                 <h2>{selected.name}</h2>
                 <p className="description">{selected.description}</p>
+
+                {selected.specs.find((spec) => spec.label === "Incluye") && (
+                  <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm leading-6 text-emerald-50">
+                    <strong className="block text-emerald-400">TODO LO QUE RECIBÍS</strong>
+                    {selected.specs.find((spec) => spec.label === "Incluye")?.value}
+                  </div>
+                )}
 
                 {selected.variants?.length ? (
                   <div className="variantPicker">

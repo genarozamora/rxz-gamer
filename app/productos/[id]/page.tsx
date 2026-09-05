@@ -19,6 +19,7 @@ export default function ProductPage() {
   const [comment, setComment] = useState("");
   const [reviewMessage, setReviewMessage] = useState("");
   const [variantId, setVariantId] = useState("");
+  const [imageIndex, setImageIndex] = useState(0);
 
   useEffect(() => {
     supabase.from("products").select("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants").eq("id", id).eq("active", true).maybeSingle().then(({ data }) => {
@@ -45,6 +46,7 @@ export default function ProductPage() {
   }
 
   const selectedVariant = product.variants?.find((variant) => variant.id === variantId) || product.variants?.find((variant) => variant.stock > 0) || product.variants?.[0];
+  const included = product.specs.find((spec) => spec.label === "Incluye")?.value;
 
   const schema = {
     "@context": "https://schema.org",
@@ -67,13 +69,17 @@ export default function ProductPage() {
       <div className="mx-auto max-w-6xl">
         <Link href="/" className="text-sm font-bold text-emerald-400 no-underline">← VOLVER A PRODUCTOS</Link>
         <div className="mt-7 grid gap-8 rounded-3xl border border-white/10 bg-[#09131e] p-5 shadow-2xl md:grid-cols-2 md:p-9">
+          <div>
           <div className="flex min-h-[360px] items-center justify-center overflow-hidden rounded-2xl bg-white p-6">
-            <img src={selectedVariant?.image || product.images[0]} alt={`${product.brand} ${product.name}${selectedVariant ? ` color ${selectedVariant.label}` : ""}`} className="max-h-[420px] max-w-full object-contain" />
+            <img src={product.images[imageIndex] || selectedVariant?.image || product.images[0]} alt={`${product.brand} ${product.name} imagen ${imageIndex + 1}`} className="max-h-[420px] max-w-full object-contain" />
+          </div>
+          <div className="mt-3 grid grid-cols-4 gap-2">{product.images.map((image, index) => <button key={`${image}-${index}`} onClick={() => setImageIndex(index)} className={`h-20 overflow-hidden rounded-xl border bg-white p-1 ${imageIndex === index ? "border-emerald-400" : "border-white/10"}`}><img src={image} alt={`Miniatura ${index + 1} de ${product.name}`} className="h-full w-full object-contain" /></button>)}</div>
           </div>
           <div>
             <p className="text-xs font-black tracking-[.22em] text-emerald-400">{product.brand}</p>
             <h1 className="mt-2 text-4xl font-black">{product.name}</h1>
             <p className="mt-4 leading-7 text-slate-300">{product.description}</p>
+            {included && <div className="mt-5 rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm leading-6 text-emerald-50"><strong className="block text-emerald-400">TODO LO QUE RECIBÍS</strong>{included}</div>}
             {product.variants?.length ? <div className="mt-5"><strong className="text-sm">Color</strong><div className="mt-2 flex flex-wrap gap-2">{product.variants.map((variant) => <button key={variant.id} disabled={variant.stock <= 0} onClick={() => setVariantId(variant.id)} className={`rounded-xl border px-4 py-3 text-left text-sm ${selectedVariant?.id === variant.id ? "border-emerald-400 bg-emerald-400/10" : "border-white/15 bg-[#101c29]"} disabled:opacity-40`}><span className="font-bold">{variant.label}</span><small className="ml-2 text-slate-400">{variant.stock} u.</small></button>)}</div></div> : null}
             <div className="mt-6 text-4xl font-black text-emerald-400">{money(product.price)}</div>
             <p className="mt-2 text-sm text-slate-400">Precio final en pesos argentinos · Transferencia</p>
