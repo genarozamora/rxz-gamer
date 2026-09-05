@@ -9,6 +9,14 @@ type Spec = {
   value: string;
 };
 
+export type ProductVariant = {
+  id: string;
+  label: string;
+  color: string;
+  stock: number;
+  image: string;
+};
+
 export type Product = {
   id: number;
   brand: string;
@@ -24,10 +32,15 @@ export type Product = {
   description: string;
   features: string[];
   specs: Spec[];
+  variants?: ProductVariant[];
 };
 
 type CartItem = Product & {
   quantity: number;
+  cartKey: string;
+  variantId?: string;
+  variantLabel?: string;
+  variantStock?: number;
 };
 
 const ALIAS = "genaroperaltaz";
@@ -36,38 +49,44 @@ export const PRODUCTS: Product[] = [
   {
     id: 1,
     brand: "ATTACK SHARK",
-    name: "X3 Wireless Gaming Mouse",
+    name: "X3 Pro 8K Wireless Gaming Mouse",
     category: "Mouse",
-    subtitle: "PAW3395 • 26.000 DPI • 49 g",
+    subtitle: "PAW3395 • 26.000 DPI • 4K/8K Hz",
     price: 64990,
     oldPrice: 74990,
     badge: "BEST SELLER",
     images: [
-      "/attack-shark-x3-2.jpg",
-      "/attack-shark-x3-3.jpg",
+      "https://e-topshop.com.ua/image/cache/catalog/mouse/ASX3/Pro/black-800x800.jpeg",
+      "https://attackshark.com/cdn/shop/files/1_4K_logo_d23c047c-0870-4d14-981a-82735559aa68.jpg?v=1712546749&width=2048",
+      "https://taskrevolution.com/cdn/shop/files/MouseX3PRO_3.webp?v=1719776150&width=1946",
     ],
     fallbackImage: "/attack-shark-x3-2.jpg",
-    stock: 8,
+    stock: 3,
+    variants: [
+      { id: "black", label: "Negro", color: "#17191d", stock: 1, image: "https://e-topshop.com.ua/image/cache/catalog/mouse/ASX3/Pro/black-800x800.jpeg" },
+      { id: "white", label: "Blanco", color: "#f4f4f3", stock: 1, image: "https://attackshark.com/cdn/shop/files/1_4K_logo_d23c047c-0870-4d14-981a-82735559aa68.jpg?v=1712546749&width=2048" },
+      { id: "red", label: "Rojo", color: "#df2635", stock: 1, image: "https://taskrevolution.com/cdn/shop/files/MouseX3PRO_3.webp?v=1719776150&width=1946" },
+    ],
     description:
-      "Mouse gamer inalámbrico ultraliviano con sensor PixArt PAW3395, conectividad triple y prestaciones pensadas para gaming competitivo.",
+      "Mouse gamer ultraliviano de alto rendimiento con sensor PixArt PAW3395, conectividad triple y polling de hasta 4K inalámbrico y 8K cableado.",
     features: [
       "Sensor PixArt PAW3395",
       "Hasta 26.000 DPI programables",
-      "Polling rate de hasta 1000 Hz",
-      "Peso aproximado de 49 g",
+      "Polling rate de hasta 4000 Hz inalámbrico y 8000 Hz cableado",
+      "Peso aproximado de 59 g",
       "Conexión Bluetooth 5.2, 2.4 GHz y USB-C",
       "Switches Kailh con vida útil de hasta 80 millones de clics",
       "Patines PTFE",
       "Software de configuración y memoria interna",
     ],
     specs: [
-      { label: "Modelo", value: "X3" },
+      { label: "Modelo", value: "X3 Pro 8K" },
       { label: "Sensor", value: "PixArt PAW3395" },
       { label: "DPI máximo", value: "26.000 DPI" },
-      { label: "Polling rate", value: "1000 Hz / 1 ms" },
+      { label: "Polling rate", value: "Hasta 4000 Hz inalámbrico / 8000 Hz cableado" },
       { label: "Velocidad máxima", value: "650 IPS" },
       { label: "Aceleración máxima", value: "50 G" },
-      { label: "Peso", value: "49 g ± 3 g" },
+      { label: "Peso", value: "59 g ± 3 g" },
       { label: "Conectividad", value: "Bluetooth 5.2 / 2.4 GHz / USB-C" },
       { label: "Batería", value: "300 mAh" },
       { label: "Autonomía declarada", value: "Hasta 200 horas" },
@@ -75,6 +94,7 @@ export const PRODUCTS: Product[] = [
       { label: "Durabilidad switches", value: "Hasta 80 millones de clics" },
       { label: "Dimensiones", value: "118,5 × 61 × 39,7 mm" },
       { label: "Pies", value: "PTFE" },
+      { label: "Incluye", value: "Mouse, receptor inalámbrico, cable USB-C y manual" },
     ],
   },
   {
@@ -141,7 +161,11 @@ export const PRODUCTS: Product[] = [
       "/gamesir-nova2-lite-4.jpg",
     ],
     fallbackImage: "/gamesir-nova2-lite.png",
-    stock: 7,
+    stock: 2,
+    variants: [
+      { id: "midnight-gray", label: "Negro (Midnight Gray)", color: "#30343b", stock: 1, image: "/gamesir-nova2-lite.png" },
+      { id: "luminous-white", label: "Blanco (Luminous White)", color: "#f2f3f4", stock: 1, image: "https://gamesir.com/cdn/shop/files/10_5bd11b1c-e7fa-4b78-b551-6785e3c99861.png?v=1748246138" },
+    ],
     description:
       "Control inalámbrico multiplataforma con sticks y gatillos Hall Effect, polling de alta velocidad y botones traseros configurables.",
     features: [
@@ -154,6 +178,7 @@ export const PRODUCTS: Product[] = [
       "Turbo",
       "Configuración mediante GameSir Connect",
       "Bluetooth, dongle 2.4 GHz y USB-C",
+      "Combo RXZ: base de carga RGB y receptor USB incluidos",
     ],
     specs: [
       { label: "Modelo", value: "GameSir Nova 2 Lite" },
@@ -171,6 +196,7 @@ export const PRODUCTS: Product[] = [
       { label: "Batería", value: "600 mAh" },
       { label: "Peso aproximado", value: "225 g" },
       { label: "Software", value: "GameSir Connect" },
+      { label: "Incluye", value: "Control, base de carga RGB, receptor USB 2.4 GHz, cable USB-C y manual" },
     ],
   },
 
@@ -276,7 +302,11 @@ export const PRODUCTS: Product[] = [
       "/aula-f75-he-alibaba-3.jpg",
     ],
     fallbackImage: "/aula-f75-he-alibaba-1.jpg",
-    stock: 100,
+    stock: 4,
+    variants: [
+      { id: "black-contour", label: "Black Contour", color: "#14181d", stock: 3, image: "/aula-f75-he-alibaba-3.jpg" },
+      { id: "gradient-gray", label: "Gradient Gray", color: "#9ca3af", stock: 1, image: "/aula-f75-he-alibaba-1.jpg" },
+    ],
     description:
       "Teclado gamer 75% con switches magnéticos Hall Effect, Rapid Trigger, actuación configurable y conectividad tri-mode.",
     features: [
@@ -303,6 +333,49 @@ export const PRODUCTS: Product[] = [
       { label: "RGB", value: "Sí" },
       { label: "Perilla", value: "Multifunción" },
       { label: "Hot-swap", value: "Switches magnéticos compatibles" },
+      { label: "Incluye", value: "Teclado, receptor USB 2.4 GHz, cable USB-C, extractor y manual" },
+    ],
+  },
+  {
+    id: 7,
+    brand: "EASYSMX",
+    name: "D10 Wireless Gaming Controller",
+    category: "Controles",
+    subtitle: "TMR • 1000 Hz • Base de carga incluida",
+    price: 89990,
+    oldPrice: 109990,
+    badge: "COMBO COMPLETO",
+    images: ["https://www.easysmx.com/cdn/shop/files/D10_-1000X1000_b7bff737-127f-492d-8436-120915dce879_1024x1024.png?v=1747905818", "https://cdn.qeemat.com.pk/product/11116/easysmx-d10-wireless-gaming-controller-black.png"],
+    fallbackImage: "/file.svg",
+    stock: 1,
+    variants: [
+      { id: "space-black", label: "Negro (Space Black)", color: "#101216", stock: 1, image: "https://www.easysmx.com/cdn/shop/files/D10_-1000X1000_b7bff737-127f-492d-8436-120915dce879_1024x1024.png?v=1747905818" },
+    ],
+    description: "Control inalámbrico multiplataforma con sticks TMR de alta precisión, gatillos de doble modo, botones mecánicos y base inteligente de carga. El combo incluye receptor USB 2.4 GHz.",
+    features: [
+      "Sticks TMR anti-drift de alta precisión",
+      "Polling rate de 1000 Hz por cable y 2.4 GHz",
+      "Gatillos Hall Effect con bloqueo de recorrido y modo microswitch",
+      "D-pad EasyPos de 8 direcciones y botones mecánicos",
+      "2 botones traseros programables",
+      "Vibración regulable en 4 niveles y RGB personalizable",
+      "Giroscopio de 6 ejes en Nintendo Switch",
+      "Base de carga inteligente con reconexión automática",
+      "Receptor USB 2.4 GHz incluido",
+    ],
+    specs: [
+      { label: "Modelo", value: "EasySMX D10" },
+      { label: "Plataformas", value: "PC / Steam Deck / Switch / Android / iOS" },
+      { label: "Conectividad", value: "2.4 GHz / Bluetooth / USB-C" },
+      { label: "Joysticks", value: "TMR" },
+      { label: "Gatillos", value: "Hall Effect + microswitch con bloqueo de 2 posiciones" },
+      { label: "Polling rate", value: "Hasta 1000 Hz por cable y receptor 2.4 GHz" },
+      { label: "Botones", value: "Mecánicos + 2 traseros programables" },
+      { label: "Batería", value: "1000 mAh" },
+      { label: "Carga", value: "Base inteligente / USB-C" },
+      { label: "Peso", value: "256 g" },
+      { label: "Dimensiones", value: "156 × 103 × 63,6 mm" },
+      { label: "Incluye", value: "Control, base de carga, receptor USB 2.4 GHz, cable USB-C y manual" },
     ],
   },
 
@@ -346,6 +419,7 @@ export default function Home() {
   const [cartOpen, setCartOpen] = useState(false);
   const [selected, setSelected] = useState<Product | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedVariantId, setSelectedVariantId] = useState("");
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Todos");
   const [toast, setToast] = useState("");
@@ -357,13 +431,16 @@ export default function Home() {
   useEffect(() => {
     try {
       const saved = localStorage.getItem("rxz-cart");
-      if (saved) setCart(JSON.parse(saved));
+      if (saved) {
+        const parsed = JSON.parse(saved) as CartItem[];
+        setCart(parsed.map((item) => ({ ...item, cartKey: item.cartKey || String(item.id) })));
+      }
     } catch {}
     setLoaded(true);
   }, []);
 
   useEffect(() => {
-    supabase.from("products").select("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs").eq("active", true).then(({ data }) => {
+    supabase.from("products").select("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants").eq("active", true).then(({ data }) => {
       if (!data?.length) return;
       const managed = data.map((row) => ({
         id: Number(row.id), brand: row.brand, name: row.name, category: row.category,
@@ -374,6 +451,7 @@ export default function Home() {
         fallbackImage: Array.isArray(row.images) && row.images[0] ? String(row.images[0]) : "/file.svg",
         features: Array.isArray(row.features) ? row.features as string[] : [],
         specs: Array.isArray(row.specs) ? row.specs as Spec[] : [],
+        variants: Array.isArray(row.variants) ? row.variants as ProductVariant[] : undefined,
       }));
       const managedIds = new Set(managed.map((item) => item.id));
       setCatalogProducts([...managed, ...PRODUCTS.filter((item) => !managedIds.has(item.id))]);
@@ -421,7 +499,10 @@ export default function Home() {
 
   useEffect(() => {
     setSelectedImage(0);
+    setSelectedVariantId("");
   }, [selected?.id]);
+
+  const selectedVariant = selected?.variants?.find((variant) => variant.id === selectedVariantId);
 
   const categories = useMemo(
     () => ["Todos", ...Array.from(new Set(catalogProducts.map((p) => p.category)))],
@@ -448,49 +529,66 @@ export default function Home() {
     track("product_view", product.id);
   }
 
-  function add(product: Product) {
-    if (product.stock <= 0) {
+  function add(product: Product, variantId?: string) {
+    if (product.variants?.length && !variantId) {
+      openProduct(product);
+      setToast("Elegí un color antes de agregarlo.");
+      return;
+    }
+
+    const variant = product.variants?.find((item) => item.id === variantId);
+    const availableStock = variant ? variant.stock : product.stock;
+    if (availableStock <= 0) {
       setToast("Este producto no tiene stock disponible.");
       return;
     }
 
-    const existing = cart.find((p) => p.id === product.id);
+    const cartKey = `${product.id}:${variant?.id || "default"}`;
+    const existing = cart.find((p) => p.cartKey === cartKey);
 
-    if (existing && existing.quantity >= product.stock) {
+    if (existing && existing.quantity >= availableStock) {
       setToast("Alcanzaste el stock disponible.");
       return;
     }
 
     setCart((current) => {
-      const item = current.find((p) => p.id === product.id);
+      const item = current.find((p) => p.cartKey === cartKey);
       if (item) {
         return current.map((p) =>
-          p.id === product.id ? { ...p, quantity: p.quantity + 1 } : p
+          p.cartKey === cartKey ? { ...p, quantity: p.quantity + 1 } : p
         );
       }
-      return [...current, { ...product, quantity: 1 }];
+      return [...current, {
+        ...product,
+        quantity: 1,
+        cartKey,
+        variantId: variant?.id,
+        variantLabel: variant?.label,
+        variantStock: availableStock,
+        images: variant ? [variant.image, ...product.images.filter((image) => image !== variant.image)] : product.images,
+      }];
     });
 
     setToast(`✓ ${product.name} agregado al carrito`);
     track("add_to_cart", product.id);
   }
 
-  function changeQuantity(id: number, amount: number) {
+  function changeQuantity(cartKey: string, amount: number) {
     setCart((current) =>
       current
         .map((item) => {
-          if (item.id !== id) return item;
+          if (item.cartKey !== cartKey) return item;
           return {
             ...item,
-            quantity: Math.min(item.stock, Math.max(0, item.quantity + amount)),
+            quantity: Math.min(item.variantStock ?? item.stock, Math.max(0, item.quantity + amount)),
           };
         })
         .filter((item) => item.quantity > 0)
     );
   }
 
-  function remove(id: number) {
-    setCart((current) => current.filter((p) => p.id !== id));
+  function remove(cartKey: string) {
+    setCart((current) => current.filter((p) => p.cartKey !== cartKey));
   }
 
   function goToCheckout() {
@@ -685,8 +783,8 @@ export default function Home() {
                     VER DETALLES Y FICHA TÉCNICA
                   </button>
 
-                  <button className="buy" disabled={product.stock <= 0} onClick={() => add(product)}>
-                    {product.stock <= 0 ? "SIN STOCK" : "AGREGAR AL CARRITO"}
+                  <button className="buy" disabled={product.stock <= 0} onClick={() => openProduct(product)}>
+                    {product.stock <= 0 ? "SIN STOCK" : product.variants?.length ? "VER Y ELEGIR COLOR" : "VER ANTES DE COMPRAR"}
                   </button>
                 </div>
               </article>
@@ -814,7 +912,7 @@ export default function Home() {
                   </button>
 
                   <SafeImage
-                    src={selected.images[selectedImage]}
+                    src={selectedVariant?.image || selected.images[selectedImage]}
                     fallback={selected.fallbackImage}
                     alt={`${selected.name} imagen ${selectedImage + 1}`}
                   />
@@ -855,13 +953,33 @@ export default function Home() {
                 <h2>{selected.name}</h2>
                 <p className="description">{selected.description}</p>
 
-                <div className={selected.stock <= 0 ? "modalStock outOfStock" : "modalStock"}>
+                {selected.variants?.length ? (
+                  <div className="variantPicker">
+                    <strong>Elegí el color</strong>
+                    <div className="variantOptions">
+                      {selected.variants.map((variant) => (
+                        <button
+                          key={variant.id}
+                          type="button"
+                          disabled={variant.stock <= 0}
+                          className={selectedVariantId === variant.id ? "variantOption activeVariant" : "variantOption"}
+                          onClick={() => setSelectedVariantId(variant.id)}
+                        >
+                          <span className="colorDot" style={{ background: variant.color }} />
+                          <span>{variant.label}<small>{variant.stock > 0 ? `${variant.stock} ${variant.stock === 1 ? "unidad" : "unidades"}` : "Sin stock"}</small></span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className={(selectedVariant ? selectedVariant.stock : selected.stock) <= 0 ? "modalStock outOfStock" : "modalStock"}>
                   <span className="stockDot" />
-                  {selected.stock <= 0
+                  {(selectedVariant ? selectedVariant.stock : selected.stock) <= 0
                     ? "0 unidades"
-                    : selected.stock > 5
+                    : (selectedVariant ? selectedVariant.stock : selected.stock) > 5
                     ? "Stock disponible"
-                    : `Últimas ${selected.stock} unidades`}
+                    : `${selectedVariant ? "Disponible" : "Últimas"} ${selectedVariant ? selectedVariant.stock : selected.stock} ${(selectedVariant ? selectedVariant.stock : selected.stock) === 1 ? "unidad" : "unidades"}`}
                 </div>
 
                 {selected.oldPrice && (
@@ -872,14 +990,6 @@ export default function Home() {
                 <small className="transfer">
                   Precio especial por transferencia
                 </small>
-
-                <button
-                  className="buy modalBuy"
-                  disabled={selected.stock <= 0}
-                  onClick={() => add(selected)}
-                >
-                  {selected.stock <= 0 ? "SIN STOCK" : "AGREGAR AL CARRITO"}
-                </button>
 
                 <a className="productDetailLink" href={`/productos/${selected.id}`}>
                   VER FICHA COMPLETA
@@ -924,6 +1034,28 @@ export default function Home() {
                 </div>
               </div>
             </div>
+
+            <div className="finalPurchase">
+              <div>
+                <strong>Último paso</strong>
+                <span>
+                  {selected.variants?.length
+                    ? "Revisá las especificaciones y elegí arriba el color que querés."
+                    : "Revisá las características y especificaciones antes de agregarlo."}
+                </span>
+              </div>
+              <button
+                className="buy modalBuy"
+                disabled={(selected.variants?.length && !selectedVariant) || (selectedVariant ? selectedVariant.stock : selected.stock) <= 0}
+                onClick={() => add(selected, selectedVariantId || undefined)}
+              >
+                {selected.variants?.length && !selectedVariant
+                  ? "ELEGÍ UN COLOR"
+                  : (selectedVariant ? selectedVariant.stock : selected.stock) <= 0
+                  ? "SIN STOCK"
+                  : "AGREGAR AL CARRITO"}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -959,7 +1091,7 @@ export default function Home() {
               <>
                 <div className="cartItems">
                   {cart.map((item) => (
-                    <div className="cartItem" key={item.id}>
+                    <div className="cartItem" key={item.cartKey}>
                       <SafeImage
                         src={item.images[0]}
                         fallback={item.fallbackImage}
@@ -968,22 +1100,23 @@ export default function Home() {
 
                       <div className="cartInfo">
                         <b>{item.name}</b>
+                        {item.variantLabel && <small className="cartVariant">Color: {item.variantLabel}</small>}
                         <span>{money(item.price)}</span>
 
                         <div className="quantity">
-                          <button onClick={() => changeQuantity(item.id, -1)}>
+                          <button onClick={() => changeQuantity(item.cartKey, -1)}>
                             −
                           </button>
                           <strong>{item.quantity}</strong>
                           <button
-                            disabled={item.quantity >= item.stock}
-                            onClick={() => changeQuantity(item.id, 1)}
+                            disabled={item.quantity >= (item.variantStock ?? item.stock)}
+                            onClick={() => changeQuantity(item.cartKey, 1)}
                           >
                             +
                           </button>
                         </div>
 
-                        <button className="remove" onClick={() => remove(item.id)}>
+                        <button className="remove" onClick={() => remove(item.cartKey)}>
                           Eliminar
                         </button>
                       </div>
@@ -1666,6 +1799,17 @@ export default function Home() {
           line-height: 1.75;
           font-size: 16px;
         }
+        .variantPicker { width: 100%; max-width: 520px; margin: 18px 0 8px; }
+        .variantPicker > strong { display: block; margin-bottom: 10px; font-size: 14px; }
+        .variantOptions { display: flex; flex-wrap: wrap; gap: 10px; }
+        .variantOption {
+          display: flex; align-items: center; gap: 10px; min-width: 180px; padding: 11px 13px;
+          border: 1px solid #344154; border-radius: 10px; background: #101a28; color: white; text-align: left;
+        }
+        .variantOption:hover:not(:disabled), .activeVariant { border-color: #22c55e; box-shadow: 0 0 0 1px rgba(34,197,94,.25); }
+        .variantOption:disabled { opacity: .45; cursor: not-allowed; }
+        .variantOption small { display: block; margin-top: 3px; color: #8fa0b5; }
+        .colorDot { width: 22px; height: 22px; flex: 0 0 auto; border: 2px solid rgba(255,255,255,.35); border-radius: 50%; }
         .modalPrice {
           color: #22c55e;
           font-size: 38px;
@@ -1714,6 +1858,20 @@ export default function Home() {
           padding-top: 34px;
           border-top: 1px solid #26344a;
         }
+        .finalPurchase {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 20px;
+          margin-top: 22px;
+          padding: 22px;
+          border: 1px solid rgba(34,197,94,.3);
+          border-radius: 15px;
+          background: rgba(34,197,94,.07);
+        }
+        .finalPurchase strong, .finalPurchase span { display: block; }
+        .finalPurchase span { margin-top: 5px; color: #9dacbd; font-size: 14px; }
+        .finalPurchase .modalBuy { width: min(100%,360px); margin-top: 0; }
         .featuresPanel, .specPanel {
           padding: 26px;
           border-radius: 15px;
@@ -1799,6 +1957,7 @@ export default function Home() {
         }
         .cartInfo { flex: 1; }
         .cartInfo > b { display: block; }
+        .cartVariant { display: block; margin-top: 5px; color: #a7b2c4; }
         .cartInfo > span {
           display: block;
           color: #22c55e;
@@ -1887,6 +2046,8 @@ export default function Home() {
           .trust, .benefits, .steps, .modalGrid, .detailsSection {
             grid-template-columns: 1fr;
           }
+          .finalPurchase { align-items: stretch; flex-direction: column; }
+          .finalPurchase .modalBuy { width: 100%; max-width: none; }
           .hero { padding-top: 100px; }
           .hero h1 { letter-spacing: -3px; }
           .modal { padding: 25px; }

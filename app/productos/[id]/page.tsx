@@ -18,11 +18,12 @@ export default function ProductPage() {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [reviewMessage, setReviewMessage] = useState("");
+  const [variantId, setVariantId] = useState("");
 
   useEffect(() => {
-    supabase.from("products").select("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs").eq("id", id).eq("active", true).maybeSingle().then(({ data }) => {
+    supabase.from("products").select("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants").eq("id", id).eq("active", true).maybeSingle().then(({ data }) => {
       if (!data) return;
-      setProduct({ id: Number(data.id), brand: data.brand, name: data.name, category: data.category, subtitle: data.subtitle || "", description: data.description || "", price: Number(data.price), oldPrice: data.old_price ? Number(data.old_price) : undefined, stock: Number(data.stock), badge: data.badge || undefined, images: Array.isArray(data.images) && data.images.length ? data.images as string[] : ["/file.svg"], fallbackImage: Array.isArray(data.images) && data.images[0] ? String(data.images[0]) : "/file.svg", features: Array.isArray(data.features) ? data.features as string[] : [], specs: Array.isArray(data.specs) ? data.specs : [] });
+      setProduct({ id: Number(data.id), brand: data.brand, name: data.name, category: data.category, subtitle: data.subtitle || "", description: data.description || "", price: Number(data.price), oldPrice: data.old_price ? Number(data.old_price) : undefined, stock: Number(data.stock), badge: data.badge || undefined, images: Array.isArray(data.images) && data.images.length ? data.images as string[] : ["/file.svg"], fallbackImage: Array.isArray(data.images) && data.images[0] ? String(data.images[0]) : "/file.svg", features: Array.isArray(data.features) ? data.features as string[] : [], specs: Array.isArray(data.specs) ? data.specs : [], variants: Array.isArray(data.variants) ? data.variants : undefined });
     });
   }, [id]);
 
@@ -42,6 +43,8 @@ export default function ProductPage() {
   if (!product) {
     return <main className="grid min-h-screen place-items-center bg-[#03070c] p-5 text-white"><div className="text-center"><h1 className="text-3xl font-black">Producto no encontrado</h1><Link href="/" className="mt-5 inline-block text-emerald-400">Volver a la tienda</Link></div></main>;
   }
+
+  const selectedVariant = product.variants?.find((variant) => variant.id === variantId) || product.variants?.find((variant) => variant.stock > 0) || product.variants?.[0];
 
   const schema = {
     "@context": "https://schema.org",
@@ -65,12 +68,13 @@ export default function ProductPage() {
         <Link href="/" className="text-sm font-bold text-emerald-400 no-underline">← VOLVER A PRODUCTOS</Link>
         <div className="mt-7 grid gap-8 rounded-3xl border border-white/10 bg-[#09131e] p-5 shadow-2xl md:grid-cols-2 md:p-9">
           <div className="flex min-h-[360px] items-center justify-center overflow-hidden rounded-2xl bg-white p-6">
-            <img src={product.images[0]} alt={`${product.brand} ${product.name}`} className="max-h-[420px] max-w-full object-contain" />
+            <img src={selectedVariant?.image || product.images[0]} alt={`${product.brand} ${product.name}${selectedVariant ? ` color ${selectedVariant.label}` : ""}`} className="max-h-[420px] max-w-full object-contain" />
           </div>
           <div>
             <p className="text-xs font-black tracking-[.22em] text-emerald-400">{product.brand}</p>
             <h1 className="mt-2 text-4xl font-black">{product.name}</h1>
             <p className="mt-4 leading-7 text-slate-300">{product.description}</p>
+            {product.variants?.length ? <div className="mt-5"><strong className="text-sm">Color</strong><div className="mt-2 flex flex-wrap gap-2">{product.variants.map((variant) => <button key={variant.id} disabled={variant.stock <= 0} onClick={() => setVariantId(variant.id)} className={`rounded-xl border px-4 py-3 text-left text-sm ${selectedVariant?.id === variant.id ? "border-emerald-400 bg-emerald-400/10" : "border-white/15 bg-[#101c29]"} disabled:opacity-40`}><span className="font-bold">{variant.label}</span><small className="ml-2 text-slate-400">{variant.stock} u.</small></button>)}</div></div> : null}
             <div className="mt-6 text-4xl font-black text-emerald-400">{money(product.price)}</div>
             <p className="mt-2 text-sm text-slate-400">Precio final en pesos argentinos · Transferencia</p>
             <div className={`mt-5 rounded-xl border p-4 text-sm font-bold ${product.stock <= 0 ? "border-red-400/30 bg-red-400/10 text-red-400" : "border-emerald-400/20 bg-emerald-400/5 text-emerald-100"}`}>

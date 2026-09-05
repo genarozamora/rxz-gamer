@@ -9,6 +9,8 @@ type CartItem = {
   name: string;
   price: number;
   quantity: number;
+  variantId?: string;
+  variantLabel?: string;
 };
 
 type CreatedOrder = {
@@ -138,7 +140,7 @@ export default function CheckoutPage() {
           p_shipping_city: city.trim(),
           p_shipping_province: province.trim(),
           p_shipping_postal_code: postalCode.trim(),
-          p_items: cart.map((item) => ({ product_id: item.id, quantity: item.quantity })),
+          p_items: cart.map((item) => ({ product_id: item.id, variant_id: item.variantId || null, quantity: item.quantity })),
         })
         .single();
 
@@ -336,11 +338,12 @@ export default function CheckoutPage() {
           ) : (
             <>
               {cart.map((item) => (
-                <div key={item.id} style={styles.itemRow}>
+                <div key={`${item.id}:${item.variantId || "default"}`} style={styles.itemRow}>
                   <div>
                     <strong>
                       {item.quantity}x {item.brand} {item.name}
                     </strong>
+                    {item.variantLabel && <div style={{ color: "#94a3b8", marginTop: 4 }}>Color: {item.variantLabel}</div>}
                   </div>
 
                   <strong>
