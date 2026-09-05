@@ -907,6 +907,9 @@ export default function Home() {
 
       {selected && (
         <div className="overlay" onClick={() => setSelected(null)}>
+          <button className="fixedMenuBack" onClick={() => setSelected(null)}>
+            ← VOLVER AL MENÚ
+          </button>
           <div className="modal productModal" onClick={(e) => e.stopPropagation()}>
             <button className="close" onClick={() => setSelected(null)}>
               ×
@@ -1836,6 +1839,13 @@ export default function Home() {
           border: 1px solid #344154; border-radius: 10px; background: #101a28; color: white; text-align: left;
         }
         .variantPreview { width: 58px; height: 58px; flex: 0 0 auto; object-fit: contain; padding: 4px; border-radius: 9px; background: white; }
+        .fixedMenuBack {
+          position: fixed; top: 18px; left: 18px; z-index: 120;
+          padding: 12px 16px; border: 1px solid rgba(52,211,153,.45); border-radius: 12px;
+          background: rgba(3,10,16,.94); color: #6ee7b7; font-size: 12px; font-weight: 900;
+          letter-spacing: .05em; box-shadow: 0 12px 35px rgba(0,0,0,.35); backdrop-filter: blur(10px);
+        }
+        .fixedMenuBack:hover { border-color: #34d399; background: #0a1b20; color: white; }
         .variantOption:hover:not(:disabled), .activeVariant { border-color: #22c55e; box-shadow: 0 0 0 1px rgba(34,197,94,.25); }
         .variantOption:disabled { opacity: .45; cursor: not-allowed; }
         .variantOption small { display: block; margin-top: 3px; color: #8fa0b5; }
@@ -2086,6 +2096,7 @@ export default function Home() {
         }
 
         @media(max-width:550px) {
+          .fixedMenuBack { top: 10px; left: 10px; padding: 10px 12px; font-size: 10px; }
           header { padding: 0 16px; }
           .logo { font-size: 20px; }
           .cartBtn span { display: none; }

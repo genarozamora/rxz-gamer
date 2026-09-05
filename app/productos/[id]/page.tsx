@@ -60,6 +60,9 @@ export default function ProductPage() {
 
   return (
     <main className="min-h-screen bg-[#03070c] px-5 py-10 text-white">
+      <Link href="/" className="fixed left-3 top-3 z-50 rounded-xl border border-emerald-400/40 bg-[#030a10]/95 px-4 py-3 text-xs font-black tracking-wide text-emerald-300 no-underline shadow-2xl backdrop-blur hover:border-emerald-400 hover:text-white sm:left-5 sm:top-5">
+        ← VOLVER AL MENÚ
+      </Link>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
