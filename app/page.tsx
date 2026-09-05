@@ -300,7 +300,7 @@ export const PRODUCTS: Product[] = [
     oldPrice: 179990,
     badge: "HALL EFFECT",
     images: [
-      "/aula-f75-he-alibaba-1.jpg",
+      "https://aulajapan.com/cdn/shop/files/1_343970a8-f661-4161-b9ae-0effcf8ba8f7.jpg?v=1727268139",
       "/aula-f75-he-alibaba-2.jpg",
       "/aula-f75-he-alibaba-3.jpg",
       "https://lacdau.com/media/product/6546-z6511049706330_d7050573782eed397359cc42f36080ed.jpg",
@@ -310,7 +310,7 @@ export const PRODUCTS: Product[] = [
     stock: 4,
     variants: [
       { id: "black-contour", label: "Black Contour", color: "#14181d", stock: 3, image: "/aula-f75-he-alibaba-3.jpg" },
-      { id: "gradient-gray", label: "Gradient Gray", color: "#9ca3af", stock: 1, image: "/aula-f75-he-alibaba-1.jpg" },
+      { id: "gradient-gray", label: "Gradient Gray", color: "#9ca3af", stock: 1, image: "https://aulajapan.com/cdn/shop/files/1_343970a8-f661-4161-b9ae-0effcf8ba8f7.jpg?v=1727268139" },
     ],
     description:
       "Teclado gamer 75% con switches magnéticos Hall Effect, Rapid Trigger, actuación configurable y conectividad tri-mode.",
