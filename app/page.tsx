@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
@@ -440,16 +441,24 @@ export default function Home() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
+  const [recentIds, setRecentIds] = useState<number[]>([]);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("rxz-cart");
-      if (saved) {
-        const parsed = JSON.parse(saved) as CartItem[];
-        setCart(parsed.map((item) => ({ ...item, cartKey: item.cartKey || String(item.id) })));
-      }
-    } catch {}
-    setLoaded(true);
+    queueMicrotask(() => {
+      try {
+        const saved = localStorage.getItem("rxz-cart");
+        if (saved) {
+          const parsed = JSON.parse(saved) as CartItem[];
+          setCart(parsed.map((item) => ({ ...item, cartKey: item.cartKey || String(item.id) })));
+        }
+        const savedFavorites = localStorage.getItem("rxz-favorites");
+        const savedRecent = localStorage.getItem("rxz-recent");
+        if (savedFavorites) setFavoriteIds(JSON.parse(savedFavorites));
+        if (savedRecent) setRecentIds(JSON.parse(savedRecent));
+      } catch {}
+      setLoaded(true);
+    });
   }, []);
 
   useEffect(() => {
@@ -525,15 +534,35 @@ export default function Home() {
   }, [cart, loaded]);
 
   useEffect(() => {
+    if (loaded) localStorage.setItem("rxz-favorites", JSON.stringify(favoriteIds));
+  }, [favoriteIds, loaded]);
+
+  useEffect(() => {
+    if (loaded) localStorage.setItem("rxz-recent", JSON.stringify(recentIds));
+  }, [recentIds, loaded]);
+
+  useEffect(() => {
+    if (!selected && !cartOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSelected(null);
+        setCartOpen(false);
+      }
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [selected, cartOpen]);
+
+  useEffect(() => {
     if (!toast) return;
     const timer = window.setTimeout(() => setToast(""), 3000);
     return () => window.clearTimeout(timer);
   }, [toast]);
-
-  useEffect(() => {
-    setSelectedImage(0);
-    setSelectedVariantId("");
-  }, [selected?.id]);
 
   const selectedVariant = selected?.variants?.find((variant) => variant.id === selectedVariantId);
 
@@ -552,14 +581,52 @@ export default function Home() {
 
   const totalItems = cart.reduce((a, b) => a + b.quantity, 0);
   const total = cart.reduce((a, b) => a + b.price * b.quantity, 0);
+  const recentProducts = recentIds
+    .map((id) => catalogProducts.find((product) => product.id === id))
+    .filter((product): product is Product => Boolean(product));
 
   function track(eventName: string, productId?: number) {
     void supabase.from("store_events").insert({ event_name: eventName, product_id: productId ? String(productId) : null });
   }
 
   function openProduct(product: Product) {
+    setSelectedImage(0);
+    setSelectedVariantId("");
     setSelected(product);
+    setRecentIds((current) => [product.id, ...current.filter((id) => id !== product.id)].slice(0, 4));
     track("product_view", product.id);
+  }
+
+  function toggleFavorite(productId: number) {
+    setFavoriteIds((current) =>
+      current.includes(productId)
+        ? current.filter((id) => id !== productId)
+        : [productId, ...current]
+    );
+    setToast(favoriteIds.includes(productId) ? "Producto quitado de favoritos" : "Producto guardado en favoritos");
+  }
+
+  async function shareProduct(product: Product) {
+    const url = `${window.location.origin}/productos/${product.id}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: `${product.brand} ${product.name}`, text: product.subtitle, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        setToast("Enlace del producto copiado");
+      }
+    } catch (error) {
+      if ((error as DOMException).name !== "AbortError") setToast("No se pudo compartir el producto");
+    }
+  }
+
+  function buyNow(product: Product, variantId?: string) {
+    add(product, variantId);
+    const variant = product.variants?.find((item) => item.id === variantId);
+    if ((!product.variants?.length || variant) && (variant?.stock ?? product.stock) > 0) {
+      setSelected(null);
+      setCartOpen(true);
+    }
   }
 
   function add(product: Product, variantId?: string) {
@@ -773,6 +840,14 @@ export default function Home() {
             return (
               <article className="card" key={product.id}>
                 <div className="imageBox" onClick={() => openProduct(product)}>
+                  <button
+                    className={favoriteIds.includes(product.id) ? "favoriteBtn isFavorite" : "favoriteBtn"}
+                    onClick={(event) => { event.stopPropagation(); toggleFavorite(product.id); }}
+                    aria-label={favoriteIds.includes(product.id) ? "Quitar de favoritos" : "Guardar en favoritos"}
+                    title={favoriteIds.includes(product.id) ? "Quitar de favoritos" : "Guardar en favoritos"}
+                  >
+                    {favoriteIds.includes(product.id) ? "♥" : "♡"}
+                  </button>
                   {product.badge && <span className="badge">{product.badge}</span>}
                   {discount > 0 && (
                     <span className="discount">-{discount}%</span>
@@ -825,6 +900,23 @@ export default function Home() {
           })}
         </div>
       </section>
+
+      {recentProducts.length > 0 && (
+        <section className="recentSection" aria-labelledby="recent-title">
+          <div className="sectionHead compactHead">
+            <span>CONTINUÁ EXPLORANDO</span>
+            <h2 id="recent-title">Vistos recientemente</h2>
+          </div>
+          <div className="recentGrid">
+            {recentProducts.map((product) => (
+              <button key={product.id} className="recentCard" onClick={() => openProduct(product)}>
+                <SafeImage src={product.images[0]} fallback={product.fallbackImage} alt="" />
+                <span><small>{product.brand}</small><strong>{product.name}</strong><b>{money(product.price)}</b></span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section id="beneficios" className="benefits">
         <div>
@@ -902,11 +994,11 @@ export default function Home() {
         </div>
         <p>Gaming · Performance · Tecnología</p>
         <div className="footerLinks">
-          <a href="/legal/terminos">Términos</a>
-          <a href="/legal/privacidad">Privacidad</a>
-          <a href="/legal/garantias">Cambios y garantías</a>
-          <a href="/legal/envios">Envíos</a>
-          <a href="/arrepentimiento">BOTÓN DE ARREPENTIMIENTO</a>
+          <Link href="/legal/terminos">Términos</Link>
+          <Link href="/legal/privacidad">Privacidad</Link>
+          <Link href="/legal/garantias">Cambios y garantías</Link>
+          <Link href="/legal/envios">Envíos</Link>
+          <Link href="/arrepentimiento">BOTÓN DE ARREPENTIMIENTO</Link>
         </div>
         <small>© 2026 RXZ Gamer · Todos los derechos reservados.</small>
       </footer>
@@ -927,7 +1019,7 @@ export default function Home() {
       )}
 
       {selected && (
-        <div className="overlay" onClick={() => setSelected(null)}>
+        <div className="overlay" onClick={() => setSelected(null)} role="dialog" aria-modal="true" aria-label={`Detalle de ${selected.name}`}>
           <button className="fixedMenuBack" onClick={() => setSelected(null)}>
             ← VOLVER AL MENÚ
           </button>
@@ -985,7 +1077,15 @@ export default function Home() {
               </div>
 
               <div className="productInfo">
-                <div className="brand">{selected.brand}</div>
+                <div className="productTopline">
+                  <div className="brand">{selected.brand}</div>
+                  <div className="productActions">
+                    <button onClick={() => toggleFavorite(selected.id)} aria-label="Guardar producto en favoritos">
+                      {favoriteIds.includes(selected.id) ? "♥ Guardado" : "♡ Guardar"}
+                    </button>
+                    <button onClick={() => void shareProduct(selected)} aria-label="Compartir producto">↗ Compartir</button>
+                  </div>
+                </div>
                 <h2>{selected.name}</h2>
                 <p className="description">{selected.description}</p>
 
@@ -1043,6 +1143,12 @@ export default function Home() {
                 <small className="transfer">
                   Precio especial por transferencia
                 </small>
+
+                <div className="purchaseTrust" aria-label="Beneficios de compra">
+                  <span>🔒 Compra protegida</span>
+                  <span>🚚 Envíos por OCA</span>
+                  <span>💬 Soporte directo</span>
+                </div>
 
                 <a className="productDetailLink" href={`/productos/${selected.id}`}>
                   VER FICHA COMPLETA
@@ -1106,7 +1212,14 @@ export default function Home() {
                   ? "ELEGÍ UN COLOR"
                   : (selectedVariant ? selectedVariant.stock : selected.stock) <= 0
                   ? "SIN STOCK"
-                  : "AGREGAR AL CARRITO"}
+                : "AGREGAR AL CARRITO"}
+              </button>
+              <button
+                className="buyNowBtn"
+                disabled={(selected.variants?.length && !selectedVariant) || (selectedVariant ? selectedVariant.stock : selected.stock) <= 0}
+                onClick={() => buyNow(selected, selectedVariantId || undefined)}
+              >
+                COMPRAR AHORA
               </button>
             </div>
           </div>
@@ -2083,7 +2196,31 @@ export default function Home() {
           to { transform: translate(-300px,150px); }
         }
 
+        .favoriteBtn { position:absolute; top:12px; right:12px; z-index:5; width:42px; height:42px; border:1px solid rgba(255,255,255,.16); border-radius:50%; background:rgba(3,6,11,.78); color:white; font-size:24px; line-height:1; backdrop-filter:blur(10px); transition:.2s; }
+        .favoriteBtn:hover { transform:scale(1.07); border-color:#22c55e; }
+        .favoriteBtn.isFavorite { color:#22c55e; border-color:rgba(34,197,94,.6); }
+        .recentSection { padding:35px 5% 85px; max-width:1500px; margin:auto; }
+        .compactHead { text-align:left; margin-bottom:22px; }
+        .compactHead h2 { margin-bottom:0; font-size:clamp(25px,3vw,38px); }
+        .recentGrid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:15px; }
+        .recentCard { display:flex; align-items:center; gap:14px; min-width:0; padding:13px; text-align:left; color:white; background:rgba(15,23,42,.72); border:1px solid #253247; border-radius:14px; transition:.2s; }
+        .recentCard:hover { border-color:#22c55e; transform:translateY(-2px); }
+        .recentCard img { width:72px; height:72px; object-fit:contain; border-radius:10px; background:white; }
+        .recentCard span { min-width:0; display:grid; gap:4px; }
+        .recentCard small { color:#22c55e; font-weight:900; font-size:10px; letter-spacing:1px; }
+        .recentCard strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .recentCard b { color:#cbd5e1; font-size:14px; }
+        .productTopline { display:flex; align-items:center; justify-content:space-between; gap:15px; }
+        .productActions { display:flex; gap:8px; }
+        .productActions button { border:1px solid #344154; border-radius:9px; background:#111c2d; color:#dce6f4; padding:8px 10px; font-size:12px; font-weight:800; }
+        .productActions button:hover { border-color:#22c55e; color:#86efac; }
+        .purchaseTrust { display:flex; flex-wrap:wrap; gap:8px; margin:17px 0; }
+        .purchaseTrust span { padding:8px 10px; border:1px solid #263349; border-radius:9px; background:rgba(15,23,42,.75); color:#cbd5e1; font-size:12px; }
+        .buyNowBtn { min-width:190px; border:1px solid #22c55e; border-radius:10px; padding:14px 20px; background:transparent; color:#86efac; font-weight:950; }
+        .buyNowBtn:hover:not(:disabled) { background:rgba(34,197,94,.1); }
+
         @media(max-width:900px) {
+          .recentGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
           .menuBtn { display: block; margin-left: auto; }
           nav {
             display: none;
@@ -2117,6 +2254,12 @@ export default function Home() {
         }
 
         @media(max-width:550px) {
+          .recentGrid { grid-template-columns:1fr; }
+          .recentSection { padding-bottom:60px; }
+          .productTopline { align-items:flex-start; flex-direction:column; }
+          .productActions { width:100%; }
+          .productActions button { flex:1; }
+          .finalPurchase .buyNowBtn { width:100%; }
           .fixedMenuBack { top: 10px; left: 10px; padding: 10px 12px; font-size: 10px; }
           header { padding: 0 16px; }
           .logo { font-size: 20px; }
