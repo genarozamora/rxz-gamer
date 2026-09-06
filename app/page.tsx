@@ -1654,7 +1654,7 @@ export default function Home() {
           padding: 7px 9px;
         }
         .badge { left: 15px; background: #22c55e; color: #031008; }
-        .discount { right: 15px; background: #ef4444; }
+        .discount { right: 15px; top: 66px; background: #ef4444; }
         .photoCount {
           position: absolute;
           right: 14px;
