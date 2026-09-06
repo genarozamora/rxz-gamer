@@ -160,14 +160,14 @@ const ALL_PRODUCTS: Product[] = [
       "/gamesir-nova2-lite.png",
       "/gamesir-nova2-lite-2.jpg",
       "/gamesir-nova2-lite-3.jpg",
-      "https://down-ph.img.susercontent.com/file/my-11134208-820lb-mio261i1lgjmce",
-      "https://down-ph.img.susercontent.com/file/my-11134208-820l8-mio261i1ineq8a",
+      "/gamesir-nova2-lite-angle-4.jpg",
+      "/gamesir-nova2-lite-angle-5.jpg",
     ],
     fallbackImage: "/gamesir-nova2-lite.png",
     stock: 2,
     variants: [
       { id: "midnight-gray", label: "Negro (Midnight Gray)", color: "#30343b", stock: 1, image: "/gamesir-nova2-lite.png" },
-      { id: "luminous-white", label: "Blanco (Luminous White)", color: "#f2f3f4", stock: 1, image: "https://gamesir.com/cdn/shop/files/10_5bd11b1c-e7fa-4b78-b551-6785e3c99861.png?v=1748246138" },
+      { id: "luminous-white", label: "Blanco (Luminous White)", color: "#f2f3f4", stock: 1, image: "/gamesir-nova2-lite-3.jpg" },
     ],
     description:
       "Control inalámbrico multiplataforma con sticks y gatillos Hall Effect, polling de alta velocidad y botones traseros configurables.",
@@ -351,14 +351,15 @@ const ALL_PRODUCTS: Product[] = [
     oldPrice: 109990,
     badge: "COMBO COMPLETO",
     images: [
-      "https://www.easysmx.com/cdn/shop/files/D10_-1000X1000_b7bff737-127f-492d-8436-120915dce879_1024x1024.png?v=1747905818",
-      "https://cdn.qeemat.com.pk/product/11116/easysmx-d10-wireless-gaming-controller-black.png",
-      "https://m.media-amazon.com/images/I/71iCwG4m6RL._AC_SL1500_.jpg",
+      "/easysmx-d10-official-1.png",
+      "/easysmx-d10-official-2.jpg",
+      "/easysmx-d10-official-3.jpg",
+      "/easysmx-d10-official-4.jpg",
     ],
-    fallbackImage: "/file.svg",
+    fallbackImage: "/easysmx-d10-official-1.png",
     stock: 1,
     variants: [
-      { id: "space-black", label: "Negro (Space Black)", color: "#101216", stock: 1, image: "https://www.easysmx.com/cdn/shop/files/D10_-1000X1000_b7bff737-127f-492d-8436-120915dce879_1024x1024.png?v=1747905818" },
+      { id: "space-black", label: "Negro (Space Black)", color: "#101216", stock: 1, image: "/easysmx-d10-official-1.png" },
     ],
     description: "Control inalámbrico multiplataforma con sticks TMR de alta precisión, gatillos de doble modo, botones mecánicos y base inteligente de carga. El combo incluye receptor USB 2.4 GHz.",
     features: [
@@ -463,11 +464,14 @@ export default function Home() {
           }
           return image;
         };
-        const images = Array.isArray(row.images) && row.images.length
+        const images = staticProduct?.images || (Array.isArray(row.images) && row.images.length
           ? (row.images as string[]).map(normalizeImage)
-          : staticProduct?.images || ["/file.svg"];
+          : ["/file.svg"]);
         const variants = Array.isArray(row.variants)
-          ? (row.variants as ProductVariant[]).map((variant) => ({ ...variant, image: normalizeImage(variant.image) }))
+          ? (row.variants as ProductVariant[]).map((variant) => ({
+              ...variant,
+              image: staticProduct?.variants?.find((item) => item.id === variant.id)?.image || normalizeImage(variant.image),
+            }))
           : staticProduct?.variants;
 
         return {
