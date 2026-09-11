@@ -290,7 +290,7 @@ const ALL_PRODUCTS: Product[] = [
     name: "F75 HE Magnetic Gaming Keyboard",
     category: "Teclados",
     subtitle: "Hall Effect • Rapid Trigger • 8000 Hz",
-    price: 310000,
+    price: 299990,
     oldPrice: 349990,
     badge: "HALL EFFECT",
     images: [
