@@ -62,7 +62,6 @@ const ALL_PRODUCTS: Product[] = [
     variants: [
       { id: "black", label: "Negro", color: "#17191d", stock: 1, image: "/attack-shark-x3-3.jpg" },
       { id: "white", label: "Blanco", color: "#f4f4f3", stock: 1, image: "/attack-shark-x3-2.jpg" },
-      { id: "red", label: "Rojo", color: "#df2635", stock: 1, image: "/attack-shark-x3-3.jpg" },
     ],
     description:
       "Mouse gamer ultraliviano de alto rendimiento con sensor PixArt PAW3395, conectividad triple y polling de hasta 4K inalámbrico y 8K cableado.",
