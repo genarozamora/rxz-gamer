@@ -53,22 +53,16 @@ const ALL_PRODUCTS: Product[] = [
     name: "X3 Pro 8K Wireless Gaming Mouse",
     category: "Mouse",
     subtitle: "PAW3395 • 26.000 DPI • 4K/8K Hz",
-    price: 64990,
-    oldPrice: 74990,
+    price: 89990,
+    oldPrice: 109990,
     badge: "BEST SELLER",
-    images: [
-      "https://e-topshop.com.ua/image/cache/catalog/mouse/ASX3/Pro/black-800x800.jpeg",
-      "https://attackshark.com/cdn/shop/files/1_4K_logo_d23c047c-0870-4d14-981a-82735559aa68.jpg?v=1712546749&width=2048",
-      "https://m.media-amazon.com/images/I/71aZBHC2tyL._AC_SL1500_.jpg",
-      "https://techdiversitybd.com/wp-content/uploads/2024/04/Attack-Shark-x3-pro.png",
-      "https://http2.mlstatic.com/D_Q_NP_2X_972874-MLB77246414533_062024-E-mouse-game-attack-shark-x3-pro-4k-sfio-8k-cfio-paw3395-59g.webp",
-    ],
+    images: ["/attack-shark-x3-2.jpg", "/attack-shark-x3-3.jpg"],
     fallbackImage: "/attack-shark-x3-2.jpg",
     stock: 3,
     variants: [
-      { id: "black", label: "Negro", color: "#17191d", stock: 1, image: "https://e-topshop.com.ua/image/cache/catalog/mouse/ASX3/Pro/black-800x800.jpeg" },
-      { id: "white", label: "Blanco", color: "#f4f4f3", stock: 1, image: "https://attackshark.com/cdn/shop/files/1_4K_logo_d23c047c-0870-4d14-981a-82735559aa68.jpg?v=1712546749&width=2048" },
-      { id: "red", label: "Rojo", color: "#df2635", stock: 1, image: "https://m.media-amazon.com/images/I/71aZBHC2tyL._AC_SL1500_.jpg" },
+      { id: "black", label: "Negro", color: "#17191d", stock: 1, image: "/attack-shark-x3-3.jpg" },
+      { id: "white", label: "Blanco", color: "#f4f4f3", stock: 1, image: "/attack-shark-x3-2.jpg" },
+      { id: "red", label: "Rojo", color: "#df2635", stock: 1, image: "/attack-shark-x3-3.jpg" },
     ],
     description:
       "Mouse gamer ultraliviano de alto rendimiento con sensor PixArt PAW3395, conectividad triple y polling de hasta 4K inalámbrico y 8K cableado.",
@@ -154,8 +148,8 @@ const ALL_PRODUCTS: Product[] = [
     name: "Nova 2 Lite",
     category: "Controles",
     subtitle: "Hall Effect • 1000 Hz • Multiplataforma",
-    price: 69990,
-    oldPrice: 79990,
+    price: 89990,
+    oldPrice: 109990,
     badge: "MULTIPLATAFORMA",
     images: [
       "/gamesir-nova2-lite.png",
@@ -297,8 +291,8 @@ const ALL_PRODUCTS: Product[] = [
     name: "F75 HE Magnetic Gaming Keyboard",
     category: "Teclados",
     subtitle: "Hall Effect • Rapid Trigger • 8000 Hz",
-    price: 149990,
-    oldPrice: 179990,
+    price: 310000,
+    oldPrice: 349990,
     badge: "HALL EFFECT",
     images: [
       "/aula-f75-he-alibaba-1.jpg",
@@ -348,8 +342,8 @@ const ALL_PRODUCTS: Product[] = [
     name: "D10 Wireless Gaming Controller",
     category: "Controles",
     subtitle: "TMR • 1000 Hz • Base de carga incluida",
-    price: 89990,
-    oldPrice: 109990,
+    price: 109990,
+    oldPrice: 129990,
     badge: "COMBO COMPLETO",
     images: [
       "/easysmx-d10-official-1.png",
@@ -799,6 +793,20 @@ export default function Home() {
               </span>
           </div>
         </div>
+      </section>
+
+      <section className="reelExperience" aria-labelledby="reel-experience-title">
+        <div className="reelIntro">
+          <span>LA EXPERIENCIA RXZ</span>
+          <h2 id="reel-experience-title">Elegí tu próximo upgrade.</h2>
+          <p>Información directa, comparaciones claras y tecnología que realmente suma a tu setup.</p>
+        </div>
+        <div className="reelCards">
+          <a className="reelCard reelCardGreen" href="#productos"><small>01 · DESCUBRÍ</small><strong>TODO EMPIEZA CON EL SETUP.</strong><span>Explorá periféricos seleccionados por rendimiento.</span><b>VER CATÁLOGO →</b></a>
+          <a className="reelCard reelCardBlue" href="#productos"><small>02 · COMPARÁ</small><strong>DATOS REALES. DECISIÓN SIMPLE.</strong><span>Revisá características, variantes, stock y precio.</span><b>COMPARAR OPCIONES →</b></a>
+          <a className="reelCard reelCardDark" href="#beneficios"><small>03 · ELEGÍ</small><strong>TU SETUP. TU NIVEL.</strong><span>Compra segura, atención directa y envíos nacionales.</span><b>CONOCER RXZ →</b></a>
+        </div>
+        <div className="performanceTicker" aria-label="Características de RXZ Gamer"><div><span>GAMING</span><i>✦</i><span>PERFORMANCE</span><i>✦</i><span>TECNOLOGÍA</span><i>✦</i><span>GAMING</span><i>✦</i><span>PERFORMANCE</span><i>✦</i><span>TECNOLOGÍA</span><i>✦</i></div></div>
       </section>
 
       <section id="productos" className="products">
@@ -1556,6 +1564,29 @@ export default function Home() {
         .trust b { font-size: 13px; }
         .trust small { color: #7e8ca1; }
 
+        .reelExperience { max-width: 1450px; margin: 0 auto; padding: 35px 5% 80px; overflow: hidden; }
+        .reelIntro { display: grid; grid-template-columns: .75fr 1.35fr 1fr; align-items: end; gap: 30px; margin-bottom: 30px; }
+        .reelIntro > span { color: #22c55e; font-size: 11px; font-weight: 950; letter-spacing: 3px; }
+        .reelIntro h2 { margin: 0; font-size: clamp(34px,4.4vw,65px); line-height: .95; letter-spacing: -2.5px; }
+        .reelIntro p { margin: 0; color: #8f9db1; line-height: 1.6; }
+        .reelCards { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+        .reelCard { min-height: 390px; padding: 30px; border-radius: 24px; text-decoration: none; color: white; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; isolation: isolate; border: 1px solid rgba(255,255,255,.1); transition: transform .35s ease,border-color .35s ease,box-shadow .35s ease; }
+        .reelCard::before { content: ""; position: absolute; inset: -35%; z-index: -1; background: conic-gradient(from 180deg,transparent,rgba(255,255,255,.13),transparent 35%); animation: reelSweep 8s linear infinite; }
+        .reelCard::after { content: ""; position: absolute; width: 220px; height: 220px; border: 1px solid rgba(255,255,255,.2); border-radius: 50%; top: 35px; right: -60px; box-shadow: 0 0 80px currentColor; opacity: .35; z-index: -1; }
+        .reelCard:hover { transform: translateY(-9px) scale(1.01); border-color: rgba(80,255,177,.55); box-shadow: 0 30px 70px rgba(0,0,0,.38); }
+        .reelCard small { color: #b8c6d8; font-weight: 900; letter-spacing: 2px; }
+        .reelCard strong { max-width: 390px; margin: 18px 0 13px; font-size: clamp(25px,2.4vw,39px); line-height: .95; letter-spacing: -1px; }
+        .reelCard span { max-width: 360px; color: #c4cedb; line-height: 1.55; }
+        .reelCard b { margin-top: 28px; color: #50ffb1; font-size: 12px; letter-spacing: 1.5px; }
+        .reelCardGreen { background: radial-gradient(circle at 85% 15%,rgba(34,197,94,.38),transparent 35%),linear-gradient(145deg,#071c17,#07100e 65%); color: #6cffae; }
+        .reelCardBlue { background: radial-gradient(circle at 85% 15%,rgba(34,211,238,.36),transparent 35%),linear-gradient(145deg,#071622,#050a11 65%); color: #38d9ff; }
+        .reelCardDark { background: radial-gradient(circle at 85% 15%,rgba(168,85,247,.3),transparent 35%),linear-gradient(145deg,#161021,#07090e 65%); color: #a855f7; }
+        .performanceTicker { margin-top: 18px; border-block: 1px solid rgba(80,255,177,.18); overflow: hidden; color: #dfffee; }
+        .performanceTicker div { width: max-content; display: flex; gap: 28px; padding: 17px 0; font-size: 13px; font-weight: 950; letter-spacing: 3px; animation: tickerMove 18s linear infinite; }
+        .performanceTicker i { color: #22c55e; font-style: normal; }
+        @keyframes reelSweep { to { transform: rotate(360deg); } }
+        @keyframes tickerMove { to { transform: translateX(-50%); } }
+
         .products {
           max-width: 1450px;
           margin: auto;
@@ -2220,6 +2251,10 @@ export default function Home() {
         .buyNowBtn:hover:not(:disabled) { background:rgba(34,197,94,.1); }
 
         @media(max-width:900px) {
+          .reelExperience { padding: 20px 16px 60px; }
+          .reelIntro { grid-template-columns: 1fr; gap: 12px; }
+          .reelCards { grid-template-columns: 1fr; }
+          .reelCard { min-height: 330px; padding: 24px; }
           .recentGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
           .menuBtn { display: block; margin-left: auto; }
           nav {
