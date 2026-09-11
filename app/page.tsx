@@ -44,7 +44,6 @@ type CartItem = Product & {
   variantStock?: number;
 };
 
-const ALIAS = "genaroperaltaz";
 
 const ALL_PRODUCTS: Product[] = [
   {
@@ -974,7 +973,7 @@ export default function Home() {
             <b>03</b>
             <h3>Pagá</h3>
             <p>
-              Transferí al alias <strong>{ALIAS}</strong>.
+              Transferí al alias que te mostraremos al confirmar tu pedido.
             </p>
           </div>
           <div>
