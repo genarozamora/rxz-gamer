@@ -339,7 +339,7 @@ const ALL_PRODUCTS: Product[] = [
     brand: "EASYSMX",
     name: "D10 Wireless Gaming Controller",
     category: "Controles",
-    subtitle: "TMR • 1000 Hz",
+    subtitle: "TMR • 1000 Hz • Gatillos Hall Effect",
     price: 109990,
     oldPrice: 129990,
     badge: "COMBO COMPLETO",
