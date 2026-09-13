@@ -143,7 +143,7 @@ const ALL_PRODUCTS: Product[] = [
   {
     id: 3,
     brand: "GAMESIR",
-    name: "Nova 2 Lite",
+    name: "Nova 2 Lite Wireless Gaming Controller",
     category: "Controles",
     subtitle: "Hall Effect • 1000 Hz • Multiplataforma",
     price: 89990,
@@ -479,7 +479,10 @@ export default function Home() {
           : staticProduct?.variants;
 
         return {
-        id, brand: row.brand, name: row.name, category: row.category,
+        id,
+        brand: row.brand,
+        name: staticProduct?.brand === "GAMESIR" ? staticProduct.name : row.name,
+        category: row.category,
         subtitle: typeof row.subtitle === "string" && row.subtitle.trim()
           ? row.subtitle.trim()
           : staticProduct?.subtitle || "",
@@ -878,13 +881,13 @@ export default function Home() {
 
                 <div className="cardBody">
                   <div className="brand">{product.brand}</div>
-                  <h3>
-                    {product.name}
+                  <div className="productCardTitle">
+                    <h3>{product.name}</h3>
                     <span className={product.stock <= 0 ? "stock stockInline outOfStock" : "stock stockInline"}>
                       <span className="stockDot" />
                       {product.stock <= 0 ? "0 unidades" : "En stock · Entrega inmediata"}
                     </span>
-                  </h3>
+                  </div>
                   <p>{product.subtitle}</p>
 
                   {product.oldPrice && (
@@ -1712,10 +1715,15 @@ export default function Home() {
           letter-spacing: 2px;
         }
         .card h3 {
-          height: 100px;
           margin: 8px 0;
           font-size: 23px;
           line-height: 1.35;
+        }
+        .productCardTitle {
+          display: flex;
+          height: 112px;
+          flex-direction: column;
+          align-items: flex-start;
         }
         .cardBody > p {
           color: #8897ab;
@@ -1733,7 +1741,7 @@ export default function Home() {
         }
         .stockInline {
           display: inline-flex;
-          margin: 0 0 0 10px;
+          margin: auto 0 0 10px;
           padding: 5px 8px;
           border: 1px solid rgba(34,197,94,.45);
           border-radius: 999px;
@@ -2341,6 +2349,8 @@ export default function Home() {
             height: auto;
           }
           .card h3 { min-height: 0; }
+          .productCardTitle { height: auto; min-height: 0; }
+          .stockInline { margin: 8px 0 0; }
           .cardBody > p { min-height: 0; }
           .recentGrid { grid-template-columns:1fr; }
           .recentSection { padding-bottom:60px; }
