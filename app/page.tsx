@@ -458,7 +458,10 @@ export default function Home() {
       if (!data?.length) return;
       const managed = data.map((row) => {
         const id = Number(row.id);
-        const staticProduct = PRODUCTS.find((product) => product.id === id);
+        const staticProduct = PRODUCTS.find((product) =>
+          product.brand.toLowerCase() === String(row.brand).trim().toLowerCase()
+          && product.name.toLowerCase() === String(row.name).trim().toLowerCase()
+        ) || PRODUCTS.find((product) => product.id === id);
         const normalizeImage = (image: string) => {
           if (id === 6 && image.includes("aulajapan.com/cdn/shop/files/1_343970a8")) {
             return "/aula-f75-he-alibaba-1.jpg";
@@ -477,7 +480,9 @@ export default function Home() {
 
         return {
         id, brand: row.brand, name: row.name, category: row.category,
-        subtitle: row.subtitle || staticProduct?.subtitle || "",
+        subtitle: typeof row.subtitle === "string" && row.subtitle.trim()
+          ? row.subtitle.trim()
+          : staticProduct?.subtitle || "",
         description: row.description || staticProduct?.description || "",
         price: Number(row.price), oldPrice: row.old_price ? Number(row.old_price) : undefined,
         stock: Number(row.stock), badge: row.badge || undefined,
@@ -1644,6 +1649,8 @@ export default function Home() {
         }
         .card {
           overflow: hidden;
+          display: flex;
+          flex-direction: column;
           border: 1px solid rgba(72,85,105,.45);
           border-radius: 18px;
           background: linear-gradient(180deg,rgba(17,24,39,.95),rgba(6,10,17,.98));
@@ -1692,14 +1699,23 @@ export default function Home() {
           font-size: 11px;
           font-weight: 800;
         }
-        .cardBody { padding: 24px; }
+        .cardBody {
+          display: flex;
+          flex: 1;
+          flex-direction: column;
+          padding: 24px;
+        }
         .brand {
           color: #22c55e;
           font-size: 11px;
           font-weight: 950;
           letter-spacing: 2px;
         }
-        .card h3 { margin: 8px 0; font-size: 23px; }
+        .card h3 {
+          min-height: 86px;
+          margin: 8px 0;
+          font-size: 23px;
+        }
         .cardBody > p {
           color: #8897ab;
           min-height: 40px;
@@ -1771,7 +1787,7 @@ export default function Home() {
           font-weight: 900;
         }
         .details {
-          margin-top: 22px;
+          margin-top: auto;
           border: 1px solid #344154;
           background: #131d2c;
           color: white;
