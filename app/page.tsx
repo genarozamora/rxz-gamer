@@ -879,9 +879,7 @@ export default function Home() {
                     <span className="stockDot" />
                     {product.stock <= 0
                       ? "0 unidades"
-                      : product.stock > 5
-                      ? "Stock disponible"
-                      : `Últimas ${product.stock} unidades`}
+                      : "En stock · Entrega inmediata"}
                   </div>
 
                   {product.oldPrice && (
@@ -1136,9 +1134,7 @@ export default function Home() {
                   <span className="stockDot" />
                   {(selectedVariant ? selectedVariant.stock : selected.stock) <= 0
                     ? "0 unidades"
-                    : (selectedVariant ? selectedVariant.stock : selected.stock) > 5
-                    ? "Stock disponible"
-                    : `${selectedVariant ? "Disponible" : "Últimas"} ${selectedVariant ? selectedVariant.stock : selected.stock} ${(selectedVariant ? selectedVariant.stock : selected.stock) === 1 ? "unidad" : "unidades"}`}
+                    : "En stock · Entrega inmediata"}
                 </div>
 
                 {selected.oldPrice && (

@@ -87,7 +87,7 @@ export default function ProductPage() {
             <div className="mt-6 text-4xl font-black text-emerald-400">{money(product.price)}</div>
             <p className="mt-2 text-sm text-slate-400">Precio final en pesos argentinos · Transferencia</p>
             <div className={`mt-5 rounded-xl border p-4 text-sm font-bold ${product.stock <= 0 ? "border-red-400/30 bg-red-400/10 text-red-400" : "border-emerald-400/20 bg-emerald-400/5 text-emerald-100"}`}>
-              {product.stock <= 0 ? "0 unidades · Producto sin stock" : `${product.stock > 5 ? "Stock disponible" : `Últimas ${product.stock} unidades`} · Envíos nacionales por OCA`}
+              {product.stock <= 0 ? "0 unidades · Producto sin stock" : "En stock · Entrega inmediata · Envíos nacionales por OCA"}
             </div>
             {product.stock <= 0 ? (
               <button disabled className="mt-6 block w-full cursor-not-allowed rounded-xl bg-slate-700 p-4 text-center font-black text-slate-400">SIN STOCK</button>
