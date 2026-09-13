@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { PRODUCTS } from "@/app/page";
+import { batterySummary, PRODUCTS } from "@/app/page";
 import type { Product } from "@/app/page";
 import { supabase } from "@/lib/supabase";
 
@@ -82,6 +82,7 @@ export default function ProductPage() {
             <p className="text-xs font-black tracking-[.22em] text-emerald-400">{product.brand}</p>
             <h1 className="mt-2 text-4xl font-black">{product.name}</h1>
             <p className="mt-4 leading-7 text-slate-300">{product.description}</p>
+            <div className="mt-5 rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm text-emerald-50"><strong className="block text-xs text-emerald-400">🔋 BATERÍA Y AUTONOMÍA</strong><span className="mt-1 block">{batterySummary(product)}</span></div>
             {included && <div className="mt-5 rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm leading-6 text-emerald-50"><strong className="block text-emerald-400">TODO LO QUE RECIBÍS</strong>{included}</div>}
             {product.variants?.length ? <div className="mt-5"><strong className="text-sm">Color</strong><div className="mt-2 flex flex-wrap gap-2">{product.variants.map((variant) => <button key={variant.id} disabled={variant.stock <= 0} onClick={() => { setVariantId(variant.id); const index = product.images.indexOf(variant.image); if (index >= 0) setImageIndex(index); }} className={`flex min-w-40 items-center gap-3 rounded-xl border p-2 pr-4 text-left text-sm ${selectedVariant?.id === variant.id ? "border-emerald-400 bg-emerald-400/10" : "border-white/15 bg-[#101c29]"} disabled:opacity-40`}><span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white p-1"><img src={variant.image} alt={`Vista previa ${product.name} ${variant.label}`} className="h-full w-full object-contain" /></span><span><span className="block font-bold">{variant.label}</span><small className="text-slate-400">{variant.stock} u.</small></span></button>)}</div></div> : null}
             <div className="mt-6 text-4xl font-black text-emerald-400">{money(product.price)}</div>

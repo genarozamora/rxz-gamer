@@ -339,7 +339,7 @@ const ALL_PRODUCTS: Product[] = [
     brand: "EASYSMX",
     name: "D10 Wireless Gaming Controller",
     category: "Controles",
-    subtitle: "TMR • 1000 Hz • Base de carga incluida",
+    subtitle: "TMR • 1000 Hz",
     price: 109990,
     oldPrice: 129990,
     badge: "COMBO COMPLETO",
@@ -393,6 +393,15 @@ function money(value: number) {
     currency: "ARS",
     maximumFractionDigits: 0,
   }).format(value);
+}
+
+export function batterySummary(product: Pick<Product, "brand" | "name">) {
+  const identity = `${product.brand} ${product.name}`.toLowerCase();
+  if (identity.includes("attack shark") && identity.includes("x3")) return "Hasta 200 horas por carga";
+  if (identity.includes("gamesir") && identity.includes("nova 2 lite")) return "Aprox. 10–15 horas por carga · 600 mAh";
+  if (identity.includes("easysmx") && identity.includes("d10")) return "Aprox. 15–25 horas por carga · 1000 mAh";
+  if (identity.includes("aula") && identity.includes("f75 he")) return "Aprox. 25–50 horas por carga · 4000 mAh";
+  return "Autonomía aproximada según capacidad";
 }
 
 function SafeImage({
@@ -892,6 +901,7 @@ export default function Home() {
                     </span>
                   </div>
                   <p>{product.subtitle}</p>
+                  <div className="batteryLine">🔋 {batterySummary(product)}</div>
 
                   {product.oldPrice && (
                     <div className="old">{money(product.oldPrice)}</div>
@@ -1103,6 +1113,7 @@ export default function Home() {
                 </div>
                 <h2>{selected.name}</h2>
                 <p className="description">{selected.description}</p>
+                <div className="batteryFeature"><strong>🔋 BATERÍA Y AUTONOMÍA</strong>{batterySummary(selected)}</div>
 
                 {selected.specs.find((spec) => spec.label === "Incluye") && (
                   <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm leading-6 text-emerald-50">
@@ -1734,6 +1745,14 @@ export default function Home() {
           min-height: 48px;
           line-height: 1.5;
         }
+        .batteryLine {
+          display: flex;
+          height: 30px;
+          align-items: center;
+          color: #a7f3d0;
+          font-size: 11px;
+          font-weight: 800;
+        }
         .stock, .modalStock {
           display: flex;
           align-items: center;
@@ -1760,6 +1779,21 @@ export default function Home() {
         .stockInline .stockDot {
           width: 6px;
           height: 6px;
+        }
+        .batteryFeature {
+          margin: 14px 0;
+          padding: 12px 14px;
+          border: 1px solid rgba(34,197,94,.2);
+          border-radius: 12px;
+          background: rgba(34,197,94,.05);
+          color: #d1fae5;
+          font-size: 13px;
+        }
+        .batteryFeature strong {
+          display: block;
+          margin-bottom: 4px;
+          color: #4ade80;
+          font-size: 11px;
         }
         .stockDot {
           width: 7px;
@@ -2355,6 +2389,7 @@ export default function Home() {
           .productCardTitle { height: auto; min-height: 0; }
           .stockInline { margin: 8px 0 0; }
           .cardBody > p { min-height: 0; }
+          .batteryLine { height: auto; margin-top: 8px; }
           .recentGrid { grid-template-columns:1fr; }
           .recentSection { padding-bottom:60px; }
           .productTopline { align-items:flex-start; flex-direction:column; }
