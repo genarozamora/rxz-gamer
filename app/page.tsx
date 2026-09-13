@@ -481,7 +481,10 @@ export default function Home() {
         return {
         id,
         brand: row.brand,
-        name: staticProduct?.brand === "GAMESIR" ? staticProduct.name : row.name,
+        name: String(row.brand).trim().toUpperCase() === "GAMESIR"
+          && String(row.name).toLowerCase().includes("nova 2 lite")
+          ? "Nova 2 Lite Wireless Gaming Controller"
+          : row.name,
         category: row.category,
         subtitle: typeof row.subtitle === "string" && row.subtitle.trim()
           ? row.subtitle.trim()
