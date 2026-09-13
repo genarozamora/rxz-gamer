@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
+import { getPackagePreview } from "@/lib/package-preview";
 
 type Spec = {
   label: string;
@@ -597,6 +598,7 @@ export default function Home() {
   const recentProducts = recentIds
     .map((id) => catalogProducts.find((product) => product.id === id))
     .filter((product): product is Product => Boolean(product));
+  const selectedPackagePreview = selected ? getPackagePreview(selected) : null;
 
   function track(eventName: string, productId?: number) {
     void supabase.from("store_events").insert({ event_name: eventName, product_id: productId ? String(productId) : null });
@@ -863,6 +865,7 @@ export default function Home() {
             const discount = product.oldPrice
               ? Math.round((1 - product.price / product.oldPrice) * 100)
               : 0;
+            const packagePreview = getPackagePreview(product);
 
             return (
               <article className="card" key={product.id}>
@@ -886,7 +889,21 @@ export default function Home() {
                     alt={`${product.brand} ${product.name}`}
                   />
 
-                  <span className="photoCount">
+                  {packagePreview && (
+                    <div className="packagePreview" aria-label={packagePreview.caption}>
+                      <SafeImage
+                        src={packagePreview.image}
+                        fallback={product.fallbackImage}
+                        alt={packagePreview.alt}
+                      />
+                      <span>
+                        <b>TODO LO QUE INCLUYE</b>
+                        {packagePreview.caption}
+                      </span>
+                    </div>
+                  )}
+
+                  <span className={`photoCount ${packagePreview ? "withPackagePreview" : ""}`}>
                     📷 {product.images.length} fotos
                   </span>
                 </div>
@@ -1068,6 +1085,20 @@ export default function Home() {
                     fallback={selected.fallbackImage}
                     alt={`${selected.name} imagen ${selectedImage + 1}`}
                   />
+
+                  {selectedImage === 0 && selectedPackagePreview && (
+                    <div className="packagePreview modalPackagePreview">
+                      <SafeImage
+                        src={selectedPackagePreview.image}
+                        fallback={selected.fallbackImage}
+                        alt={selectedPackagePreview.alt}
+                      />
+                      <span>
+                        <b>TODO LO QUE INCLUYE</b>
+                        {selectedPackagePreview.caption}
+                      </span>
+                    </div>
+                  )}
 
                   <button
                     className="galleryArrow right"
@@ -1696,7 +1727,45 @@ export default function Home() {
           object-fit: contain;
           transition: .3s;
         }
+        .packagePreview {
+          position: absolute;
+          z-index: 3;
+          left: 14px;
+          right: 14px;
+          bottom: 14px;
+          height: 88px;
+          display: grid;
+          grid-template-columns: 82px minmax(0,1fr);
+          align-items: center;
+          gap: 10px;
+          padding: 7px;
+          border: 1px solid rgba(34,197,94,.62);
+          border-radius: 12px;
+          background: rgba(3,8,14,.94);
+          box-shadow: 0 12px 32px rgba(0,0,0,.48);
+          backdrop-filter: blur(10px);
+        }
+        .packagePreview > img {
+          width: 82px;
+          height: 72px;
+          object-fit: cover;
+          border-radius: 8px;
+          background: white;
+        }
+        .packagePreview > span {
+          color: #dbe6f4;
+          font-size: 10px;
+          line-height: 1.35;
+        }
+        .packagePreview b {
+          display: block;
+          margin-bottom: 4px;
+          color: #4ade80;
+          font-size: 10px;
+          letter-spacing: .8px;
+        }
         .card:hover .imageBox img { transform: scale(1.05); }
+        .card:hover .packagePreview img { transform: none; }
         .badge, .discount {
           position: absolute;
           z-index: 2;
@@ -1726,6 +1795,7 @@ export default function Home() {
           flex-direction: column;
           padding: 24px;
         }
+        .photoCount.withPackagePreview { bottom: 110px; }
         .brand {
           color: #22c55e;
           font-size: 11px;
@@ -2029,6 +2099,20 @@ export default function Home() {
           font-size: 11px;
           font-weight: 900;
         }
+        .modalPackagePreview {
+          left: 18px;
+          right: auto;
+          bottom: 16px;
+          width: min(440px,calc(100% - 90px));
+          height: 105px;
+          grid-template-columns: 112px minmax(0,1fr);
+        }
+        .modalPackagePreview > img {
+          width: 112px;
+          height: 89px;
+        }
+        .modalPackagePreview > span,
+        .modalPackagePreview b { font-size: 12px; }
         .thumbnails {
           display: grid;
           grid-template-columns: repeat(4,1fr);
@@ -2399,6 +2483,17 @@ export default function Home() {
             padding: 18px;
           }
           .galleryMain > img { height: 270px; }
+          .modalPackagePreview {
+            width: calc(100% - 72px);
+            height: 82px;
+            grid-template-columns: 76px minmax(0,1fr);
+          }
+          .modalPackagePreview > img {
+            width: 76px;
+            height: 66px;
+          }
+          .modalPackagePreview > span,
+          .modalPackagePreview b { font-size: 9px; }
           .galleryArrow {
             width: 38px;
             height: 38px;

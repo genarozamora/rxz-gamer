@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { batterySummary, PRODUCTS } from "@/app/page";
 import type { Product } from "@/app/page";
 import { supabase } from "@/lib/supabase";
+import { getPackagePreview } from "@/lib/package-preview";
 
 const money = (value: number) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(value);
 type Review = { id: string; rating: number; comment: string; created_at: string };
@@ -57,6 +58,7 @@ export default function ProductPage() {
     brand: { "@type": "Brand", name: product.brand },
     offers: { "@type": "Offer", priceCurrency: "ARS", price: product.price, availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock" },
   };
+  const packagePreview = getPackagePreview(product);
 
   return (
     <main className="min-h-screen bg-[#03070c] px-5 py-10 text-white">
@@ -73,10 +75,11 @@ export default function ProductPage() {
         <Link href="/" className="text-sm font-bold text-emerald-400 no-underline">← VOLVER A PRODUCTOS</Link>
         <div className="mt-7 grid gap-8 rounded-3xl border border-white/10 bg-[#09131e] p-5 shadow-2xl md:grid-cols-2 md:p-9">
           <div>
-          <div className="flex min-h-[360px] items-center justify-center overflow-hidden rounded-2xl bg-white p-6">
-            <img src={product.images[imageIndex] || selectedVariant?.image || product.images[0]} alt={`${product.brand} ${product.name} imagen ${imageIndex + 1}`} className="max-h-[420px] max-w-full object-contain" />
-          </div>
-          <div className="mt-3 grid grid-cols-4 gap-2">{product.images.map((image, index) => <button key={`${image}-${index}`} onClick={() => setImageIndex(index)} className={`h-20 overflow-hidden rounded-xl border bg-white p-1 ${imageIndex === index ? "border-emerald-400" : "border-white/10"}`}><img src={image} alt={`Miniatura ${index + 1} de ${product.name}`} className="h-full w-full object-contain" /></button>)}</div>
+            <div className={`relative flex min-h-[360px] items-center justify-center overflow-hidden rounded-2xl bg-white p-6 ${imageIndex === 0 && packagePreview ? "pb-32" : ""}`}>
+              <img src={product.images[imageIndex] || selectedVariant?.image || product.images[0]} alt={`${product.brand} ${product.name} imagen ${imageIndex + 1}`} className="max-h-[420px] max-w-full object-contain" />
+              {imageIndex === 0 && packagePreview && <div className="absolute inset-x-4 bottom-4 grid grid-cols-[96px_1fr] items-center gap-3 rounded-xl border border-emerald-400/60 bg-[#03080eef] p-2 text-left shadow-2xl"><img src={packagePreview.image} alt={packagePreview.alt} className="h-20 w-24 rounded-lg bg-white object-cover" /><span className="text-xs leading-5 text-slate-200"><b className="block text-emerald-400">TODO LO QUE INCLUYE</b>{packagePreview.caption}</span></div>}
+            </div>
+            <div className="mt-3 grid grid-cols-4 gap-2">{product.images.map((image, index) => <button key={`${image}-${index}`} onClick={() => setImageIndex(index)} className={`h-20 overflow-hidden rounded-xl border bg-white p-1 ${imageIndex === index ? "border-emerald-400" : "border-white/10"}`}><img src={image} alt={`Miniatura ${index + 1} de ${product.name}`} className="h-full w-full object-contain" /></button>)}</div>
           </div>
           <div>
             <p className="text-xs font-black tracking-[.22em] text-emerald-400">{product.brand}</p>
