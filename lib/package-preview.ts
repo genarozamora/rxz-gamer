@@ -28,14 +28,6 @@ export function getPackagePreview(product: ProductIdentity): PackagePreview | nu
     };
   }
 
-  if (identity.includes("aula") && identity.includes("f75 he")) {
-    return {
-      image: "/aula-f75-included.jpg",
-      alt: "AULA F75 Black Contour con los accesorios incluidos",
-      caption: "Teclado + cable + receptor + extractor + manual",
-    };
-  }
-
   if (
     identity.includes("attack shark") &&
     (identity.includes("x3 pro") || identity.includes("x3 wireless"))
