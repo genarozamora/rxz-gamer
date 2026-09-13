@@ -872,15 +872,14 @@ export default function Home() {
 
                 <div className="cardBody">
                   <div className="brand">{product.brand}</div>
-                  <h3>{product.name}</h3>
+                  <h3>
+                    {product.name}
+                    <span className={product.stock <= 0 ? "stock stockInline outOfStock" : "stock stockInline"}>
+                      <span className="stockDot" />
+                      {product.stock <= 0 ? "0 unidades" : "En stock · Entrega inmediata"}
+                    </span>
+                  </h3>
                   <p>{product.subtitle}</p>
-
-                  <div className={product.stock <= 0 ? "stock outOfStock" : "stock"}>
-                    <span className="stockDot" />
-                    {product.stock <= 0
-                      ? "0 unidades"
-                      : "En stock · Entrega inmediata"}
-                  </div>
 
                   {product.oldPrice && (
                     <div className="old">{money(product.oldPrice)}</div>
@@ -1712,6 +1711,19 @@ export default function Home() {
           color: #a7b3c5;
           font-size: 12px;
           margin: 18px 0;
+        }
+        .stockInline {
+          display: inline-flex;
+          margin: 0 0 0 9px;
+          font-size: 9px;
+          font-weight: 750;
+          letter-spacing: .1px;
+          vertical-align: middle;
+          white-space: nowrap;
+        }
+        .stockInline .stockDot {
+          width: 6px;
+          height: 6px;
         }
         .stockDot {
           width: 7px;
