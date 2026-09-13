@@ -477,7 +477,8 @@ export default function Home() {
 
         return {
         id, brand: row.brand, name: row.name, category: row.category,
-        subtitle: row.subtitle || "", description: row.description || "",
+        subtitle: row.subtitle || staticProduct?.subtitle || "",
+        description: row.description || staticProduct?.description || "",
         price: Number(row.price), oldPrice: row.old_price ? Number(row.old_price) : undefined,
         stock: Number(row.stock), badge: row.badge || undefined,
         images,
