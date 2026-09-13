@@ -901,7 +901,6 @@ export default function Home() {
                     </span>
                   </div>
                   <p>{product.subtitle}</p>
-                  <div className="batteryLine">🔋 {batterySummary(product)}</div>
 
                   {product.oldPrice && (
                     <div className="old">{money(product.oldPrice)}</div>
@@ -1113,7 +1112,6 @@ export default function Home() {
                 </div>
                 <h2>{selected.name}</h2>
                 <p className="description">{selected.description}</p>
-                <div className="batteryFeature"><strong>🔋 BATERÍA Y AUTONOMÍA</strong>{batterySummary(selected)}</div>
 
                 {selected.specs.find((spec) => spec.label === "Incluye") && (
                   <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm leading-6 text-emerald-50">
@@ -1214,6 +1212,12 @@ export default function Home() {
                       <strong>{spec.value}</strong>
                     </div>
                   ))}
+                  {!selected.specs.some((spec) => spec.label.toLowerCase().includes("autonom")) && (
+                    <div className="specRow">
+                      <span>Autonomía estimada</span>
+                      <strong>{batterySummary(selected)}</strong>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1745,14 +1749,6 @@ export default function Home() {
           min-height: 48px;
           line-height: 1.5;
         }
-        .batteryLine {
-          display: flex;
-          height: 30px;
-          align-items: center;
-          color: #a7f3d0;
-          font-size: 11px;
-          font-weight: 800;
-        }
         .stock, .modalStock {
           display: flex;
           align-items: center;
@@ -1779,21 +1775,6 @@ export default function Home() {
         .stockInline .stockDot {
           width: 6px;
           height: 6px;
-        }
-        .batteryFeature {
-          margin: 14px 0;
-          padding: 12px 14px;
-          border: 1px solid rgba(34,197,94,.2);
-          border-radius: 12px;
-          background: rgba(34,197,94,.05);
-          color: #d1fae5;
-          font-size: 13px;
-        }
-        .batteryFeature strong {
-          display: block;
-          margin-bottom: 4px;
-          color: #4ade80;
-          font-size: 11px;
         }
         .stockDot {
           width: 7px;
@@ -2389,7 +2370,6 @@ export default function Home() {
           .productCardTitle { height: auto; min-height: 0; }
           .stockInline { margin: 8px 0 0; }
           .cardBody > p { min-height: 0; }
-          .batteryLine { height: auto; margin-top: 8px; }
           .recentGrid { grid-template-columns:1fr; }
           .recentSection { padding-bottom:60px; }
           .productTopline { align-items:flex-start; flex-direction:column; }
