@@ -1712,13 +1712,15 @@ export default function Home() {
           letter-spacing: 2px;
         }
         .card h3 {
-          min-height: 86px;
+          height: 100px;
           margin: 8px 0;
           font-size: 23px;
+          line-height: 1.35;
         }
         .cardBody > p {
           color: #8897ab;
-          min-height: 40px;
+          height: 48px;
+          min-height: 48px;
           line-height: 1.5;
         }
         .stock, .modalStock {
@@ -1773,13 +1775,19 @@ export default function Home() {
           text-decoration: line-through;
           font-size: 13px;
         }
+        .cardBody > .old { height: 18px; }
         .price {
           color: #22c55e;
           font-size: 29px;
           font-weight: 950;
-          margin: 3px 0;
+          height: 42px;
+          margin: 3px 0 0;
         }
-        .transfer { color: #77869b; }
+        .transfer {
+          display: block;
+          height: 22px;
+          color: #77869b;
+        }
         .details, .buy {
           width: 100%;
           padding: 13px;
@@ -1788,12 +1796,14 @@ export default function Home() {
         }
         .details {
           margin-top: auto;
+          min-height: 76px;
           border: 1px solid #344154;
           background: #131d2c;
           color: white;
         }
         .buy {
           margin-top: 9px;
+          min-height: 52px;
           border: 0;
           background: #22c55e;
           color: #031008;
@@ -2323,6 +2333,15 @@ export default function Home() {
         }
 
         @media(max-width:550px) {
+          .card h3,
+          .cardBody > p,
+          .cardBody > .old,
+          .price,
+          .transfer {
+            height: auto;
+          }
+          .card h3 { min-height: 0; }
+          .cardBody > p { min-height: 0; }
           .recentGrid { grid-template-columns:1fr; }
           .recentSection { padding-bottom:60px; }
           .productTopline { align-items:flex-start; flex-direction:column; }
