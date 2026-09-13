@@ -1714,12 +1714,18 @@ export default function Home() {
         }
         .stockInline {
           display: inline-flex;
-          margin: 0 0 0 9px;
-          font-size: 9px;
-          font-weight: 750;
-          letter-spacing: .1px;
+          margin: 0 0 0 10px;
+          padding: 5px 8px;
+          border: 1px solid rgba(34,197,94,.45);
+          border-radius: 999px;
+          background: rgba(34,197,94,.11);
+          color: #4ade80;
+          font-size: 11px;
+          font-weight: 900;
+          letter-spacing: .15px;
           vertical-align: middle;
           white-space: nowrap;
+          box-shadow: 0 0 16px rgba(34,197,94,.12);
         }
         .stockInline .stockDot {
           width: 6px;
@@ -1735,6 +1741,11 @@ export default function Home() {
         .outOfStock {
           color: #f87171;
           font-weight: 800;
+        }
+        .stockInline.outOfStock {
+          border-color: rgba(248,113,113,.45);
+          background: rgba(239,68,68,.11);
+          box-shadow: 0 0 16px rgba(239,68,68,.12);
         }
         .outOfStock .stockDot {
           background: #ef4444;
