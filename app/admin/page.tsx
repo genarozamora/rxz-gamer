@@ -151,9 +151,10 @@ export default function AdminPage() {
         setPushStatus("idle");
       }
       setMessage(permission === "granted" ? "Notificaciones activadas en este dispositivo." : permission === "denied" ? "Las notificaciones están bloqueadas en este navegador." : "No se activaron las notificaciones.");
-    } catch {
+    } catch (error) {
       setPushStatus("error");
-      setMessage("No se pudieron activar las notificaciones en este dispositivo.");
+      const detail = error instanceof Error ? error.message : "Error desconocido";
+      setMessage(`No se pudieron activar las notificaciones: ${detail}`);
     }
   }
 
