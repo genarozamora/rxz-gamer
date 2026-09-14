@@ -78,7 +78,20 @@ export default function AdminPage() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("/admin-notifications-sw.js")
           .then((registration) => registration.pushManager.getSubscription())
-          .then((subscription) => setPushStatus(subscription ? "active" : "idle"))
+          .then(async (subscription) => {
+            if (!subscription) {
+              setPushStatus("idle");
+              return;
+            }
+            const { data } = await supabase.auth.getSession();
+            const response = await fetch("/api/admin/push-subscriptions", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.session?.access_token || ""}` },
+              body: JSON.stringify(subscription.toJSON()),
+            });
+            if (!response.ok) throw new Error("No se pudo sincronizar");
+            setPushStatus("active");
+          })
           .catch(() => setPushStatus("error"));
       } else {
         setPushStatus("error");
