@@ -11,7 +11,13 @@ export function adminClient() {
 export async function authenticatedUser(request: Request) {
   const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   if (!token) return null;
-  const db = adminClient();
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) return null;
+  const db = createClient(url, key, {
+    auth: { persistSession: false },
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
   const { data } = await db.auth.getUser(token);
   return data.user || null;
 }
