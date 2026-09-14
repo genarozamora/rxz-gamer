@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { batterySummary, PRODUCTS } from "@/app/page";
-import type { Product, ProductVariant } from "@/app/page";
+import { PRODUCTS } from "@/app/page";
+import type { Product } from "@/app/page";
 import { supabase } from "@/lib/supabase";
 import { getPackagePreview } from "@/lib/package-preview";
+import { mergeVerifiedProduct } from "@/lib/verified-product";
 
 const money = (value: number) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(value);
 type Review = { id: string; rating: number; comment: string; created_at: string };
@@ -26,25 +27,7 @@ export default function ProductPage() {
     supabase.from("products").select("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants").eq("id", id).eq("active", true).maybeSingle().then(({ data }) => {
       if (!data) return;
       const curated = PRODUCTS.find((item) => item.id === Number(data.id));
-      const images = curated?.images || (Array.isArray(data.images) && data.images.length ? data.images as string[] : ["/file.svg"]);
-      const variants = Array.isArray(data.variants)
-        ? (data.variants as ProductVariant[]).map((variant) => ({
-            ...variant,
-            image: curated?.variants?.find((item) => item.id === variant.id)?.image || variant.image,
-          }))
-        : curated?.variants;
-      // Keep live prices and inventory, but use the same reviewed photos as the storefront.
-      setProduct({
-        id: Number(data.id), brand: data.brand,
-        name: String(data.brand).toUpperCase() === "GAMESIR" && String(data.name).toLowerCase().includes("nova 2 lite") ? "Nova 2 Lite Wireless Gaming Controller" : data.name,
-        category: data.category, subtitle: data.subtitle || curated?.subtitle || "",
-        description: data.description || "", price: Number(data.price),
-        oldPrice: data.old_price ? Number(data.old_price) : undefined,
-        stock: Number(data.stock), badge: data.badge || undefined,
-        images, fallbackImage: curated?.fallbackImage || images[0],
-        features: Array.isArray(data.features) ? data.features as string[] : [],
-        specs: Array.isArray(data.specs) ? data.specs : [], variants,
-      });
+      setProduct(mergeVerifiedProduct(data, curated));
     });
   }, [id]);
 
@@ -65,7 +48,7 @@ export default function ProductPage() {
     return <main className="grid min-h-screen place-items-center bg-[#03070c] p-5 text-white"><div className="text-center"><h1 className="text-3xl font-black">Producto no encontrado</h1><Link href="/" className="mt-5 inline-block text-emerald-400">Volver a la tienda</Link></div></main>;
   }
 
-  const selectedVariant = product.variants?.find((variant) => variant.id === variantId) || product.variants?.find((variant) => variant.stock > 0) || product.variants?.[0];
+  const selectedVariant = product.variants?.find((variant) => variant.id === variantId);
   const included = product.specs.find((spec) => spec.label === "Incluye")?.value;
 
   const schema = {
@@ -121,7 +104,7 @@ export default function ProductPage() {
         </div>
         <div className="mt-7 grid gap-6 md:grid-cols-2">
           <section className="rounded-2xl border border-white/10 bg-[#09131e] p-6"><h2 className="text-xl font-black">Características</h2><ul className="mt-5 space-y-3 text-slate-300">{product.features.map((feature) => <li key={feature}>✓ {feature}</li>)}</ul></section>
-          <section className="rounded-2xl border border-white/10 bg-[#09131e] p-6"><h2 className="text-xl font-black">Especificaciones</h2><dl className="mt-5 divide-y divide-white/10">{product.specs.map((spec) => <div key={spec.label} className="flex justify-between gap-5 py-3"><dt className="text-slate-400">{spec.label}</dt><dd className="text-right font-bold">{spec.value}</dd></div>)}{!product.specs.some((spec) => spec.label.toLowerCase().includes("autonom")) && <div className="flex justify-between gap-5 py-3"><dt className="text-slate-400">Autonomía estimada</dt><dd className="text-right font-bold">{batterySummary(product)}</dd></div>}</dl></section>
+          <section className="rounded-2xl border border-white/10 bg-[#09131e] p-6"><h2 className="text-xl font-black">Especificaciones</h2><dl className="mt-5 divide-y divide-white/10">{product.specs.map((spec) => <div key={spec.label} className="flex justify-between gap-5 py-3"><dt className="text-slate-400">{spec.label}</dt><dd className="text-right font-bold">{spec.value}</dd></div>)}</dl></section>
         </div>
         <section className="mt-7 rounded-2xl border border-white/10 bg-[#09131e] p-6">
           <h2 className="text-xl font-black">Opiniones verificadas</h2>

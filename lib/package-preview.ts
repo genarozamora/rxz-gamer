@@ -14,13 +14,8 @@ export function getPackagePreview(product: ProductIdentity): PackagePreview | nu
 
   // D10 already shows the manufacturer's complete package as its main image.
 
-  if (identity.includes("gamesir") && identity.includes("nova 2")) {
-    return {
-      image: "/gamesir-nova2-lite-2.jpg",
-      alt: "GameSir Nova 2 Lite blanco y negro con el receptor USB compacto",
-      caption: "Incluye base de carga y receptor USB",
-    };
-  }
+  // The GameSir gallery shows the compatible charging base and compact
+  // receiver separately. There is no verified photo of the combined RXZ bundle.
 
   // X3 package photos show different dongles and optional grips. Do not claim
   // an exact bundle photo until the receiver in this shipment is confirmed.

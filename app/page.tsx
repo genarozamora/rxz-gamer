@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { getPackagePreview } from "@/lib/package-preview";
+import { mergeVerifiedProduct } from "@/lib/verified-product";
 
 type Spec = {
   label: string;
@@ -52,49 +53,39 @@ const ALL_PRODUCTS: Product[] = [
     brand: "ATTACK SHARK",
     name: "X3 Pro 8K Wireless Gaming Mouse",
     category: "Mouse",
-    subtitle: "PAW3395 • 26.000 DPI • 4K/8K Hz",
+    subtitle: "PAW3395 • 26.000 DPI • 8K por cable",
     price: 89990,
     oldPrice: 109990,
     badge: "BEST SELLER",
     images: [
-      "/attack-shark-x3-2.jpg",
-      "/attack-shark-x3-3.jpg",
       "/attack-shark-x3-colors.webp",
+      "/attack-shark-x3-pro-white-real.jpg",
+      "/attack-shark-x3-pro-black-real.jpg",
     ],
-    fallbackImage: "/attack-shark-x3-2.jpg",
+    fallbackImage: "/attack-shark-x3-pro-white-real.jpg",
     stock: 3,
     variants: [
-      { id: "black", label: "Negro", color: "#17191d", stock: 1, image: "/attack-shark-x3-3.jpg" },
-      { id: "white", label: "Blanco", color: "#f4f4f3", stock: 2, image: "/attack-shark-x3-2.jpg" },
+      { id: "black", label: "Negro", color: "#17191d", stock: 1, image: "/attack-shark-x3-pro-black-real.jpg" },
+      { id: "white", label: "Blanco", color: "#f4f4f3", stock: 2, image: "/attack-shark-x3-pro-white-real.jpg" },
     ],
     description:
-      "Mouse gamer ultraliviano de alto rendimiento con sensor PixArt PAW3395, conectividad triple y polling de hasta 4K inalámbrico y 8K cableado.",
+      "Mouse gamer Attack Shark X3 Pro con sensor PixArt PAW3395, hasta 26.000 DPI, conexión triple y polling de hasta 8000 Hz por cable.",
     features: [
       "Sensor PixArt PAW3395",
       "Hasta 26.000 DPI programables",
-      "Polling rate de hasta 4000 Hz inalámbrico y 8000 Hz cableado",
-      "Peso aproximado de 59 g",
-      "Conexión Bluetooth 5.2, 2.4 GHz y USB-C",
-      "Switches Kailh con vida útil de hasta 80 millones de clics",
-      "Patines PTFE",
-      "Software de configuración y memoria interna",
+      "Polling rate de hasta 8000 Hz por cable",
+      "Bluetooth 5.2/5.4 de doble canal según empaque",
+      "Conexión inalámbrica 2.4 GHz y cable USB-C",
+      "Batería recargable y software de configuración",
     ],
     specs: [
-      { label: "Modelo", value: "X3 Pro 8K" },
+      { label: "Modelo", value: "X3 Pro (PAW3395)" },
       { label: "Sensor", value: "PixArt PAW3395" },
       { label: "DPI máximo", value: "26.000 DPI" },
-      { label: "Polling rate", value: "Hasta 4000 Hz inalámbrico / 8000 Hz cableado" },
-      { label: "Velocidad máxima", value: "650 IPS" },
-      { label: "Aceleración máxima", value: "50 G" },
-      { label: "Peso", value: "59 g ± 3 g" },
-      { label: "Conectividad", value: "Bluetooth 5.2 / 2.4 GHz / USB-C" },
-      { label: "Batería", value: "300 mAh" },
-      { label: "Autonomía declarada", value: "Hasta 200 horas" },
-      { label: "Switches", value: "Kailh Black Mamba" },
-      { label: "Durabilidad switches", value: "Hasta 80 millones de clics" },
-      { label: "Dimensiones", value: "118,5 × 61 × 39,7 mm" },
-      { label: "Pies", value: "PTFE" },
-      { label: "Incluye", value: "Mouse, receptor inalámbrico, cable USB-C y manual" },
+      { label: "Polling rate por cable", value: "Hasta 8000 Hz" },
+      { label: "Conectividad", value: "Bluetooth 5.2/5.4 (según empaque) / 2.4 GHz / USB-C" },
+      { label: "Batería", value: "Recargable" },
+      { label: "Incluye", value: "Mouse, receptor inalámbrico y cable USB-C" },
     ],
   },
   {
@@ -185,18 +176,15 @@ const ALL_PRODUCTS: Product[] = [
       { label: "Conectividad", value: "Bluetooth / 2.4 GHz / USB-C" },
       { label: "Plataformas", value: "PC / Steam / Android / iOS / Switch" },
       { label: "Joysticks", value: "Hall Effect" },
-      { label: "Resolución sticks", value: "12-bit" },
       { label: "Gatillos", value: "Hall Effect con 2 posiciones" },
       { label: "D-pad", value: "Mecánico circular" },
       { label: "Botones traseros", value: "2 remapeables" },
       { label: "Polling cable", value: "Hasta 1000 Hz" },
       { label: "Polling 2.4 GHz", value: "Hasta 1000 Hz" },
-      { label: "Polling Bluetooth", value: "Hasta 125 Hz" },
       { label: "Vibración", value: "2 motores asimétricos" },
       { label: "Batería", value: "600 mAh" },
-      { label: "Peso aproximado", value: "225 g" },
       { label: "Software", value: "GameSir Connect" },
-      { label: "Incluye", value: "Control, base de carga RGB, receptor USB 2.4 GHz, cable USB-C y manual" },
+      { label: "Incluye", value: "Combo RXZ: control, base de carga RGB y receptor USB 2.4 GHz" },
     ],
   },
 
@@ -315,7 +303,7 @@ const ALL_PRODUCTS: Product[] = [
       "Switches magnéticos Hall Effect",
       "Rapid Trigger con actuación configurable",
       "Polling rate de hasta 8000 Hz por cable",
-      "Conectividad 2.4 GHz, Bluetooth 5.0 y USB-C",
+      "Conectividad 2.4 GHz, Bluetooth y USB-C",
       "Batería recargable de 4000 mAh",
       "Iluminación RGB",
       "Perilla multifunción",
@@ -329,12 +317,15 @@ const ALL_PRODUCTS: Product[] = [
       { label: "Rapid Trigger", value: "Sí" },
       { label: "Actuación", value: "Configurable" },
       { label: "Polling rate cableado", value: "Hasta 8000 Hz" },
-      { label: "Conectividad", value: "2.4 GHz / Bluetooth 5.0 / USB-C" },
+      { label: "Polling rate 2.4 GHz", value: "Hasta 1000 Hz" },
+      { label: "Polling rate Bluetooth", value: "Hasta 125 Hz" },
+      { label: "Conectividad", value: "2.4 GHz / Bluetooth / USB-C" },
       { label: "Batería", value: "4000 mAh" },
+      { label: "Autonomía declarada", value: "Aprox. 23 h con iluminación predeterminada / 40 h con luces apagadas (manual AULA)" },
       { label: "RGB", value: "Sí" },
       { label: "Perilla", value: "Multifunción" },
       { label: "Hot-swap", value: "Switches magnéticos compatibles" },
-      { label: "Incluye", value: "Teclado, receptor USB 2.4 GHz, cable USB-C, extractor y manual" },
+      { label: "Incluye", value: "Teclado, receptor USB 2.4 GHz y cable USB-C" },
     ],
   },
   {
@@ -398,15 +389,6 @@ function money(value: number) {
     currency: "ARS",
     maximumFractionDigits: 0,
   }).format(value);
-}
-
-export function batterySummary(product: Pick<Product, "brand" | "name">) {
-  const identity = `${product.brand} ${product.name}`.toLowerCase();
-  if (identity.includes("attack shark") && identity.includes("x3")) return "Hasta 200 horas por carga";
-  if (identity.includes("gamesir") && identity.includes("nova 2 lite")) return "Aprox. 10–15 horas por carga · 600 mAh";
-  if (identity.includes("easysmx") && identity.includes("d10")) return "Aprox. 15–25 horas por carga · 1000 mAh";
-  if (identity.includes("aula") && identity.includes("f75 he")) return "Aprox. 25–50 horas por carga · 4000 mAh";
-  return "Autonomía aproximada según capacidad";
 }
 
 function SafeImage({
@@ -476,42 +458,7 @@ export default function Home() {
           product.brand.toLowerCase() === String(row.brand).trim().toLowerCase()
           && product.name.toLowerCase() === String(row.name).trim().toLowerCase()
         ) || PRODUCTS.find((product) => product.id === id);
-        const normalizeImage = (image: string) => {
-          if (id === 6 && image.includes("aulajapan.com/cdn/shop/files/1_343970a8")) {
-            return "/aula-f75-he-black-contour-official.jpg";
-          }
-          return image;
-        };
-        const images = staticProduct?.images || (Array.isArray(row.images) && row.images.length
-          ? (row.images as string[]).map(normalizeImage)
-          : ["/file.svg"]);
-        const variants = Array.isArray(row.variants)
-          ? (row.variants as ProductVariant[]).map((variant) => ({
-              ...variant,
-              image: staticProduct?.variants?.find((item) => item.id === variant.id)?.image || normalizeImage(variant.image),
-            }))
-          : staticProduct?.variants;
-
-        return {
-        id,
-        brand: row.brand,
-        name: String(row.brand).trim().toUpperCase() === "GAMESIR"
-          && String(row.name).toLowerCase().includes("nova 2 lite")
-          ? "Nova 2 Lite Wireless Gaming Controller"
-          : row.name,
-        category: row.category,
-        subtitle: typeof row.subtitle === "string" && row.subtitle.trim()
-          ? row.subtitle.trim()
-          : staticProduct?.subtitle || "",
-        description: row.description || staticProduct?.description || "",
-        price: Number(row.price), oldPrice: row.old_price ? Number(row.old_price) : undefined,
-        stock: Number(row.stock), badge: row.badge || undefined,
-        images,
-        fallbackImage: staticProduct?.fallbackImage || images[0] || "/file.svg",
-        features: Array.isArray(row.features) ? row.features as string[] : [],
-        specs: Array.isArray(row.specs) ? row.specs as Spec[] : [],
-        variants,
-      };
+        return mergeVerifiedProduct(row, staticProduct);
       });
       const managedIds = new Set(managed.map((item) => item.id));
       setCatalogProducts([...managed, ...PRODUCTS.filter((item) => !managedIds.has(item.id))]);
@@ -1247,12 +1194,6 @@ export default function Home() {
                       <strong>{spec.value}</strong>
                     </div>
                   ))}
-                  {!selected.specs.some((spec) => spec.label.toLowerCase().includes("autonom")) && (
-                    <div className="specRow">
-                      <span>Autonomía estimada</span>
-                      <strong>{batterySummary(selected)}</strong>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
