@@ -280,6 +280,9 @@ export default function CheckoutPage() {
           <input
             style={styles.input}
             placeholder="Nombre y apellido"
+            aria-label="Nombre y apellido"
+            autoComplete="name"
+            required
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
           />
@@ -287,6 +290,10 @@ export default function CheckoutPage() {
           <input
             style={styles.input}
             placeholder="Teléfono"
+            aria-label="Teléfono"
+            autoComplete="tel"
+            inputMode="tel"
+            required
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
           />
@@ -294,6 +301,9 @@ export default function CheckoutPage() {
           <input
             style={styles.input}
             placeholder="Dirección"
+            aria-label="Dirección de entrega"
+            autoComplete="street-address"
+            required
             value={address}
             onChange={(e) => setAddress(e.target.value)}
           />
@@ -301,12 +311,17 @@ export default function CheckoutPage() {
           <input
             style={styles.input}
             placeholder="Ciudad"
+            aria-label="Ciudad"
+            autoComplete="address-level2"
+            required
             value={city}
             onChange={(e) => setCity(e.target.value)}
           />
 
           <select
             style={styles.input}
+            aria-label="Provincia"
+            autoComplete="address-level1"
             value={province}
             onChange={(e) => setProvince(e.target.value)}
           >
@@ -316,6 +331,10 @@ export default function CheckoutPage() {
           <input
             style={styles.input}
             placeholder="Código postal"
+            aria-label="Código postal"
+            autoComplete="postal-code"
+            inputMode="numeric"
+            required
             value={postalCode}
             onChange={(e) => setPostalCode(e.target.value)}
           />

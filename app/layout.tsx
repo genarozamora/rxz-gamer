@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://rxz-gamer-tflb.vercel.app"),
   title: {
     default: "RXZ Gamer | Periféricos y Tecnología Gamer",
     template: "%s | RXZ Gamer",
@@ -33,10 +34,10 @@ export const metadata: Metadata = {
     "joystick gamer",
     "Attack Shark",
     "Attack Shark X3",
-    "MCHOSE",
-    "MCHOSE Ace 60 Pro",
     "GameSir",
     "GameSir Nova 2 Lite",
+    "EasySMX D10",
+    "AULA F75 HE",
   ],
 
   authors: [{ name: "RXZ Gamer" }],
@@ -56,6 +57,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "es_AR",
     siteName: "RXZ Gamer",
+    url: "/",
     title: "RXZ Gamer | Periféricos y Tecnología Gamer",
     description:
       "Mouse, teclados, controles y periféricos gamer. Envíos a todo el país.",
@@ -66,6 +68,11 @@ export const metadata: Metadata = {
     title: "RXZ Gamer | Periféricos y Tecnología Gamer",
     description:
       "Mouse, teclados, controles y periféricos gamer. Envíos a todo el país.",
+  },
+
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
   },
 };
 
