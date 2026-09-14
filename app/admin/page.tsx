@@ -68,11 +68,22 @@ export default function AdminPage() {
   const [supportLoading, setSupportLoading] = useState(false);
   const [supportSending, setSupportSending] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | "unsupported">("unsupported");
+  const [pushStatus, setPushStatus] = useState<"idle" | "checking" | "subscribing" | "active" | "error">("checking");
   const [seenOrderIds, setSeenOrderIds] = useState<string[]>([]);
 
   useEffect(() => {
     checkAdmin();
-    if ("Notification" in window) setNotificationPermission(Notification.permission);
+    if ("Notification" in window) {
+      setNotificationPermission(Notification.permission);
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/admin-notifications-sw.js")
+          .then((registration) => registration.pushManager.getSubscription())
+          .then((subscription) => setPushStatus(subscription ? "active" : "idle"))
+          .catch(() => setPushStatus("error"));
+      } else {
+        setPushStatus("error");
+      }
+    }
     try { setSeenOrderIds(JSON.parse(localStorage.getItem("rxz-admin-seen-orders") || "[]")); } catch { setSeenOrderIds([]); }
   }, []);
 
@@ -106,6 +117,7 @@ export default function AdminPage() {
       return;
     }
     try {
+      setPushStatus("subscribing");
       const registration = await navigator.serviceWorker.register("/admin-notifications-sw.js");
       const permission = await Notification.requestPermission();
       setNotificationPermission(permission);
@@ -121,9 +133,13 @@ export default function AdminPage() {
         const { data } = await supabase.auth.getSession();
         const response = await fetch("/api/admin/push-subscriptions", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.session?.access_token || ""}` }, body: JSON.stringify(subscription.toJSON()) });
         if (!response.ok) throw new Error("No se pudo registrar");
+        setPushStatus("active");
+      } else {
+        setPushStatus("idle");
       }
       setMessage(permission === "granted" ? "Notificaciones activadas en este dispositivo." : permission === "denied" ? "Las notificaciones están bloqueadas en este navegador." : "No se activaron las notificaciones.");
     } catch {
+      setPushStatus("error");
       setMessage("No se pudieron activar las notificaciones en este dispositivo.");
     }
   }
@@ -537,11 +553,11 @@ export default function AdminPage() {
           <div>
             <strong>Avisos de pedidos</strong>
             <div style={styles.notificationText}>
-              {notificationPermission === "granted" ? "Activos en este dispositivo" : notificationPermission === "denied" ? "Bloqueados por el navegador" : notificationPermission === "unsupported" ? "No disponibles en este navegador" : "Todavía no activados"}
+              {pushStatus === "active" ? "Activos en este dispositivo" : notificationPermission === "denied" ? "Bloqueados por el navegador" : notificationPermission === "unsupported" ? "No disponibles en este navegador" : pushStatus === "subscribing" || pushStatus === "checking" ? "Comprobando activación..." : pushStatus === "error" ? "Falta completar la activación" : "Todavía no activados"}
             </div>
           </div>
-          <button style={styles.secondaryButton} onClick={enableNotifications} disabled={notificationPermission === "granted"}>
-            {notificationPermission === "granted" ? "ACTIVADAS" : "ACTIVAR NOTIFICACIONES"}
+          <button style={styles.secondaryButton} onClick={enableNotifications} disabled={pushStatus === "active" || pushStatus === "subscribing" || pushStatus === "checking"}>
+            {pushStatus === "active" ? "ACTIVADAS" : pushStatus === "subscribing" || pushStatus === "checking" ? "COMPROBANDO..." : notificationPermission === "granted" || pushStatus === "error" ? "REINTENTAR ACTIVACIÓN" : "ACTIVAR NOTIFICACIONES"}
           </button>
         </div>
 
