@@ -151,6 +151,11 @@ export default function CheckoutPage() {
       const created = order as { order_id: string; order_number: string; total: number };
       setCreatedOrder({ id: created.order_id, order_number: created.order_number, total: Number(created.total) });
 
+      void supabase.auth.getSession().then(({ data }) => data.session && fetch("/api/orders/notify", {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.session.access_token}` },
+        body: JSON.stringify({ orderId: created.order_id }),
+      }));
+
       void supabase.from("store_events").insert({
         event_name: "purchase",
         user_id: user.id,

@@ -8,3 +8,10 @@ self.addEventListener("notificationclick", (event) => {
     })
   );
 });
+self.addEventListener("push", (event) => {
+  const data = event.data?.json() || {};
+  event.waitUntil(self.registration.showNotification(data.title || "RXZ Gamer", {
+    body: data.body || "Recibiste un pedido nuevo.", icon: "/icon-192.png", badge: "/icon-192.png",
+    tag: data.tag || "rxz-new-order", data: { url: data.url || "/admin" }
+  }));
+});

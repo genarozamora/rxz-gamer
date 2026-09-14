@@ -106,9 +106,22 @@ export default function AdminPage() {
       return;
     }
     try {
-      await navigator.serviceWorker.register("/admin-notifications-sw.js");
+      const registration = await navigator.serviceWorker.register("/admin-notifications-sw.js");
       const permission = await Notification.requestPermission();
       setNotificationPermission(permission);
+      if (permission === "granted") {
+        const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+        if (!publicKey) {
+          setMessage("Avisos activados mientras el panel esté abierto. Falta configurar el envío con el navegador cerrado.");
+          return;
+        }
+        const padding = "=".repeat((4 - publicKey.length % 4) % 4);
+        const bytes = Uint8Array.from(atob((publicKey + padding).replace(/-/g, "+").replace(/_/g, "/")), (char) => char.charCodeAt(0));
+        const subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: bytes });
+        const { data } = await supabase.auth.getSession();
+        const response = await fetch("/api/admin/push-subscriptions", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.session?.access_token || ""}` }, body: JSON.stringify(subscription.toJSON()) });
+        if (!response.ok) throw new Error("No se pudo registrar");
+      }
       setMessage(permission === "granted" ? "Notificaciones activadas en este dispositivo." : permission === "denied" ? "Las notificaciones están bloqueadas en este navegador." : "No se activaron las notificaciones.");
     } catch {
       setMessage("No se pudieron activar las notificaciones en este dispositivo.");
