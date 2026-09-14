@@ -67,10 +67,59 @@ export default function AdminPage() {
   const [supportDraft, setSupportDraft] = useState("");
   const [supportLoading, setSupportLoading] = useState(false);
   const [supportSending, setSupportSending] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | "unsupported">("unsupported");
+  const [seenOrderIds, setSeenOrderIds] = useState<string[]>([]);
 
   useEffect(() => {
     checkAdmin();
+    if ("Notification" in window) setNotificationPermission(Notification.permission);
+    try { setSeenOrderIds(JSON.parse(localStorage.getItem("rxz-admin-seen-orders") || "[]")); } catch { setSeenOrderIds([]); }
   }, []);
+
+  useEffect(() => {
+    if (!authorized) return;
+    const channel = supabase
+      .channel("admin-new-orders")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" }, (payload) => {
+        const order = payload.new as Order;
+        setOrders((current) => current.some((item) => item.id === order.id) ? current : [order, ...current]);
+        if ("Notification" in window && Notification.permission === "granted") {
+          navigator.serviceWorker?.ready.then((registration) => registration.showNotification("Nuevo pedido en RXZ Gamer", {
+            body: `${order.order_number} · $${Number(order.total).toLocaleString("es-AR")}`,
+            icon: "/icon-192.png",
+            badge: "/icon-192.png",
+            tag: `rxz-order-${order.id}`,
+            data: { url: "/admin" },
+          })).catch(() => undefined);
+        }
+      })
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [authorized]);
+
+  const newOrders = orders.filter((order) => !seenOrderIds.includes(order.id));
+
+  async function enableNotifications() {
+    if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+      setNotificationPermission("unsupported");
+      setMessage("Este navegador no admite notificaciones web.");
+      return;
+    }
+    try {
+      await navigator.serviceWorker.register("/admin-notifications-sw.js");
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+      setMessage(permission === "granted" ? "Notificaciones activadas en este dispositivo." : permission === "denied" ? "Las notificaciones están bloqueadas en este navegador." : "No se activaron las notificaciones.");
+    } catch {
+      setMessage("No se pudieron activar las notificaciones en este dispositivo.");
+    }
+  }
+
+  function markOrdersSeen() {
+    const ids = orders.map((order) => order.id);
+    setSeenOrderIds(ids);
+    localStorage.setItem("rxz-admin-seen-orders", JSON.stringify(ids));
+  }
 
   async function checkAdmin() {
     setLoading(true);
@@ -199,7 +248,13 @@ export default function AdminPage() {
     if (error) {
       setMessage(error.message);
     } else {
-      setOrders(data || []);
+      const loadedOrders = (data || []) as Order[];
+      setOrders(loadedOrders);
+      if (localStorage.getItem("rxz-admin-seen-orders") === null) {
+        const initialIds = loadedOrders.map((order) => order.id);
+        setSeenOrderIds(initialIds);
+        localStorage.setItem("rxz-admin-seen-orders", JSON.stringify(initialIds));
+      }
     }
 
     setLoading(false);
@@ -464,6 +519,25 @@ export default function AdminPage() {
         </div>
 
         {message && <div style={styles.message}>{message}</div>}
+
+        <div style={styles.notificationPanel}>
+          <div>
+            <strong>Avisos de pedidos</strong>
+            <div style={styles.notificationText}>
+              {notificationPermission === "granted" ? "Activos en este dispositivo" : notificationPermission === "denied" ? "Bloqueados por el navegador" : notificationPermission === "unsupported" ? "No disponibles en este navegador" : "Todavía no activados"}
+            </div>
+          </div>
+          <button style={styles.secondaryButton} onClick={enableNotifications} disabled={notificationPermission === "granted"}>
+            {notificationPermission === "granted" ? "ACTIVADAS" : "ACTIVAR NOTIFICACIONES"}
+          </button>
+        </div>
+
+        {newOrders.length > 0 && (
+          <div style={styles.newOrdersPanel}>
+            <div><strong>{newOrders.length} pedido{newOrders.length === 1 ? "" : "s"} nuevo{newOrders.length === 1 ? "" : "s"}</strong><div style={styles.notificationText}>{newOrders.slice(0, 3).map((order) => `${order.order_number} · $${Number(order.total).toLocaleString("es-AR")}`).join("  •  ")}</div></div>
+            <button style={styles.seenButton} onClick={markOrdersSeen}>MARCAR COMO VISTOS</button>
+          </div>
+        )}
 
         <div style={styles.summary}>
           <div style={styles.summaryCard}>
@@ -1206,6 +1280,33 @@ const styles: Record<string, React.CSSProperties> = {
     background: "#111827",
     border: "1px solid #374151",
   },
+
+  notificationPanel: {
+    marginTop: 20,
+    padding: 16,
+    borderRadius: 12,
+    border: "1px solid rgba(52,211,153,.35)",
+    background: "rgba(6,78,59,.18)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 14,
+    flexWrap: "wrap",
+  },
+  newOrdersPanel: {
+    marginTop: 14,
+    padding: 16,
+    borderRadius: 12,
+    border: "1px solid rgba(245,158,11,.5)",
+    background: "rgba(120,53,15,.24)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 14,
+    flexWrap: "wrap",
+  },
+  notificationText: { marginTop: 5, color: "#cbd5e1", fontSize: 13 },
+  seenButton: { padding: "10px 15px", borderRadius: 10, border: "none", background: "#f59e0b", color: "#111827", fontWeight: 900, cursor: "pointer" },
 
   secondaryButton: {
     padding: "10px 15px",
