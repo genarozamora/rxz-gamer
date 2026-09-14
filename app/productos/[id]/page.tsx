@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { batterySummary, PRODUCTS } from "@/app/page";
-import type { Product } from "@/app/page";
+import type { Product, ProductVariant } from "@/app/page";
 import { supabase } from "@/lib/supabase";
 import { getPackagePreview } from "@/lib/package-preview";
 
@@ -25,7 +25,26 @@ export default function ProductPage() {
   useEffect(() => {
     supabase.from("products").select("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants").eq("id", id).eq("active", true).maybeSingle().then(({ data }) => {
       if (!data) return;
-      setProduct({ id: Number(data.id), brand: data.brand, name: String(data.brand).toUpperCase() === "GAMESIR" && String(data.name).toLowerCase().includes("nova 2 lite") ? "Nova 2 Lite Wireless Gaming Controller" : data.name, category: data.category, subtitle: data.subtitle || "", description: data.description || "", price: Number(data.price), oldPrice: data.old_price ? Number(data.old_price) : undefined, stock: Number(data.stock), badge: data.badge || undefined, images: Array.isArray(data.images) && data.images.length ? data.images as string[] : ["/file.svg"], fallbackImage: Array.isArray(data.images) && data.images[0] ? String(data.images[0]) : "/file.svg", features: Array.isArray(data.features) ? data.features as string[] : [], specs: Array.isArray(data.specs) ? data.specs : [], variants: Array.isArray(data.variants) ? data.variants : undefined });
+      const curated = PRODUCTS.find((item) => item.id === Number(data.id));
+      const images = curated?.images || (Array.isArray(data.images) && data.images.length ? data.images as string[] : ["/file.svg"]);
+      const variants = Array.isArray(data.variants)
+        ? (data.variants as ProductVariant[]).map((variant) => ({
+            ...variant,
+            image: curated?.variants?.find((item) => item.id === variant.id)?.image || variant.image,
+          }))
+        : curated?.variants;
+      // Keep live prices and inventory, but use the same reviewed photos as the storefront.
+      setProduct({
+        id: Number(data.id), brand: data.brand,
+        name: String(data.brand).toUpperCase() === "GAMESIR" && String(data.name).toLowerCase().includes("nova 2 lite") ? "Nova 2 Lite Wireless Gaming Controller" : data.name,
+        category: data.category, subtitle: data.subtitle || curated?.subtitle || "",
+        description: data.description || "", price: Number(data.price),
+        oldPrice: data.old_price ? Number(data.old_price) : undefined,
+        stock: Number(data.stock), badge: data.badge || undefined,
+        images, fallbackImage: curated?.fallbackImage || images[0],
+        features: Array.isArray(data.features) ? data.features as string[] : [],
+        specs: Array.isArray(data.specs) ? data.specs : [], variants,
+      });
     });
   }, [id]);
 
@@ -76,7 +95,7 @@ export default function ProductPage() {
         <div className="mt-7 grid gap-8 rounded-3xl border border-white/10 bg-[#09131e] p-5 shadow-2xl md:grid-cols-2 md:p-9">
           <div>
             <div className={`relative flex min-h-[360px] items-center justify-center overflow-hidden rounded-2xl bg-white p-6 ${imageIndex === 0 && packagePreview ? "pb-32" : ""}`}>
-              <img src={product.images[imageIndex] || selectedVariant?.image || product.images[0]} alt={`${product.brand} ${product.name} imagen ${imageIndex + 1}`} className="max-h-[420px] max-w-full object-contain" />
+              <img src={product.images[imageIndex] || selectedVariant?.image || product.images[0]} alt={`${product.brand} ${product.name} imagen ${imageIndex + 1}`} className="max-h-[420px] max-w-full object-contain" onError={(event) => { if (event.currentTarget.getAttribute("src") !== product.fallbackImage) event.currentTarget.src = product.fallbackImage; }} />
               {imageIndex === 0 && packagePreview && <div className="absolute inset-x-4 bottom-4 grid grid-cols-[96px_1fr] items-center gap-3 rounded-xl border border-emerald-400/60 bg-[#03080eef] p-2 text-left shadow-2xl"><img src={packagePreview.image} alt={packagePreview.alt} className="h-20 w-24 rounded-lg bg-white object-cover" /><span className="text-xs leading-5 text-slate-200"><b className="block text-emerald-400">TODO LO QUE INCLUYE</b>{packagePreview.caption}</span></div>}
             </div>
             <div className="mt-3 grid grid-cols-4 gap-2">{product.images.map((image, index) => <button key={`${image}-${index}`} onClick={() => setImageIndex(index)} className={`h-20 overflow-hidden rounded-xl border bg-white p-1 ${imageIndex === index ? "border-emerald-400" : "border-white/10"}`}><img src={image} alt={`Miniatura ${index + 1} de ${product.name}`} className="h-full w-full object-contain" /></button>)}</div>

@@ -59,8 +59,6 @@ const ALL_PRODUCTS: Product[] = [
     images: [
       "/attack-shark-x3-2.jpg",
       "/attack-shark-x3-3.jpg",
-      "/attack-shark-x3-white-receiver.webp",
-      "/attack-shark-x3-black-receiver.webp",
       "/attack-shark-x3-colors.webp",
     ],
     fallbackImage: "/attack-shark-x3-2.jpg",
@@ -161,8 +159,6 @@ const ALL_PRODUCTS: Product[] = [
       "/gamesir-nova2-lite-2.jpg",
       "/gamesir-nova2-lite-3.jpg",
       "/gamesir-nova2-lite-angle-4.jpg",
-      "/gamesir-nova2-lite-angle-5.jpg",
-      "/gamesir-nova2-accessories.jpg",
     ],
     fallbackImage: "/gamesir-nova2-lite.png",
     stock: 2,
@@ -301,17 +297,16 @@ const ALL_PRODUCTS: Product[] = [
     oldPrice: 349990,
     badge: "HALL EFFECT",
     images: [
-      "/aula-f75-he-alibaba-1.jpg",
+      "/aula-f75-he-black-contour-official.jpg",
+      "/aula-f75-he-gradient-gray-official.jpg",
       "/aula-f75-he-alibaba-2.jpg",
       "/aula-f75-he-alibaba-3.jpg",
-      "/aula-f75-he-gradient-official.avif",
-      "/aula-f75-he-black-rgb.avif",
     ],
-    fallbackImage: "/aula-f75-he-alibaba-1.jpg",
+    fallbackImage: "/aula-f75-he-black-contour-official.jpg",
     stock: 4,
     variants: [
-      { id: "black-contour", label: "Black Contour", color: "#14181d", stock: 3, image: "/aula-f75-he-alibaba-3.jpg" },
-      { id: "gradient-gray", label: "Gradient Gray", color: "#9ca3af", stock: 1, image: "/aula-f75-he-alibaba-1.jpg" },
+      { id: "black-contour", label: "Black Contour", color: "#14181d", stock: 3, image: "/aula-f75-he-black-contour-official.jpg" },
+      { id: "gradient-gray", label: "Gradient Gray", color: "#9ca3af", stock: 1, image: "/aula-f75-he-gradient-gray-official.jpg" },
     ],
     description:
       "Teclado gamer 75% con switches magnéticos Hall Effect, Rapid Trigger, actuación configurable y conectividad tri-mode.",
@@ -352,10 +347,10 @@ const ALL_PRODUCTS: Product[] = [
     oldPrice: 129990,
     badge: "COMBO COMPLETO",
     images: [
+      "/easysmx-d10-official-4.jpg",
       "/easysmx-d10-official-1.png",
       "/easysmx-d10-official-2.jpg",
       "/easysmx-d10-official-3.jpg",
-      "/easysmx-d10-official-4.jpg",
       "/easysmx-d10-trigger.webp",
       "/easysmx-d10-compatibility.webp",
     ],
@@ -483,7 +478,7 @@ export default function Home() {
         ) || PRODUCTS.find((product) => product.id === id);
         const normalizeImage = (image: string) => {
           if (id === 6 && image.includes("aulajapan.com/cdn/shop/files/1_343970a8")) {
-            return "/aula-f75-he-alibaba-1.jpg";
+            return "/aula-f75-he-black-contour-official.jpg";
           }
           return image;
         };
