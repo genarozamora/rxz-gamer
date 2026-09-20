@@ -273,7 +273,13 @@ export default function CheckoutPage() {
     <main style={styles.page}>
       <div style={styles.container}>
         <div style={styles.card}>
+          <div style={styles.checkoutSteps} aria-label="Progreso de compra">
+            <span style={styles.activeStep}>1 · Datos</span>
+            <span>2 · Confirmación</span>
+            <span>3 · Pago</span>
+          </div>
           <h1 style={styles.title}>Finalizar compra</h1>
+          <p style={styles.intro}>Completá tus datos para reservar el stock. Vas a ver el alias recién después de confirmar el pedido.</p>
 
           <h2>Datos de envío</h2>
 
@@ -385,6 +391,13 @@ export default function CheckoutPage() {
                 El costo y plazo del envío se confirman según el código postal antes del despacho. Nunca se cobrará un importe adicional sin informártelo.
               </div>
 
+              <div style={styles.assuranceBox}>
+                <strong>Compra acompañada por RXZ</strong>
+                <span>🔒 Tus datos se usan únicamente para gestionar el pedido.</span>
+                <span>📦 Revisás productos, colores y total antes de confirmar.</span>
+                <span>💬 Podés consultar a soporte durante todo el proceso.</span>
+              </div>
+
               <label style={styles.termsRow}>
                 <input type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} />
                 <span>Acepto los <a href="/legal/terminos" target="_blank">términos</a>, la <a href="/legal/privacidad" target="_blank">privacidad</a> y las condiciones de <a href="/legal/envios" target="_blank">envío</a>.</span>
@@ -429,6 +442,36 @@ const styles: Record<string, React.CSSProperties> = {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
     gap: 20,
+  },
+  checkoutSteps: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: 6,
+    marginBottom: 24,
+    color: "#64748b",
+    fontSize: 12,
+    fontWeight: 800,
+  },
+  activeStep: {
+    color: "#34d399",
+  },
+  intro: {
+    color: "#a7b2c4",
+    lineHeight: 1.6,
+    marginTop: -8,
+    marginBottom: 24,
+  },
+  assuranceBox: {
+    display: "grid",
+    gap: 9,
+    marginTop: 18,
+    padding: 16,
+    border: "1px solid rgba(52, 211, 153, .25)",
+    borderRadius: 12,
+    background: "rgba(6, 78, 59, .12)",
+    color: "#cbd5e1",
+    fontSize: 13,
+    lineHeight: 1.45,
   },
 
   card: {

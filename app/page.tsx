@@ -698,6 +698,7 @@ export default function Home() {
           <a href="#inicio">Inicio</a>
           <a href="#productos">Productos</a>
           <a href="#beneficios">Envíos</a>
+          <a href="#preguntas">Preguntas</a>
           <a href="#contacto">Contacto</a>
           <a href={userEmail ? "/ayuda" : "/login?next=/ayuda"}>Ayuda</a>
 
@@ -969,6 +970,36 @@ export default function Home() {
             <h3>Recibí</h3>
             <p>Coordinamos tu envío por OCA.</p>
           </div>
+        </div>
+      </section>
+
+      <section id="preguntas" className="faqSection" aria-labelledby="faq-title">
+        <div className="faqIntro">
+          <span>TODO CLARO ANTES DE COMPRAR</span>
+          <h2 id="faq-title">Preguntas frecuentes</h2>
+          <p>La información importante sobre pago, envío, stock y garantía en un solo lugar.</p>
+        </div>
+        <div className="faqList">
+          <details>
+            <summary>¿Los productos están disponibles para entrega inmediata?</summary>
+            <p>Sí. Los productos publicados como “En stock” están disponibles. El stock se descuenta al confirmar cada pedido.</p>
+          </details>
+          <details>
+            <summary>¿Cómo se calcula el envío?</summary>
+            <p>Enviamos mediante OCA desde Villa Allende, Córdoba. El costo y el plazo se confirman según el código postal antes del despacho.</p>
+          </details>
+          <details>
+            <summary>¿Cuándo veo los datos para pagar?</summary>
+            <p>El alias se muestra únicamente después de confirmar el pedido. Luego podés adjuntar el comprobante desde tu cuenta.</p>
+          </details>
+          <details>
+            <summary>¿Puedo elegir el color?</summary>
+            <p>Sí. Antes de agregar un producto al carrito tenés que abrir su ficha y seleccionar una variante con stock.</p>
+          </details>
+          <details>
+            <summary>¿Qué pasa si necesito ayuda o un cambio?</summary>
+            <p>Podés hablar con soporte desde el botón de chat. También podés consultar las políticas de cambios, garantías y arrepentimiento al pie de la página.</p>
+          </details>
         </div>
       </section>
 
@@ -1308,6 +1339,12 @@ export default function Home() {
                   </div>
 
                   <small>El costo del envío se coordina según destino.</small>
+                </div>
+
+                <div className="cartAssurance" aria-label="Información de compra segura">
+                  <span>🔒 Pedido protegido</span>
+                  <span>📦 Stock confirmado</span>
+                  <span>💬 Soporte directo</span>
                 </div>
 
                 <button className="buy checkout" onClick={goToCheckout}>
@@ -2310,6 +2347,8 @@ export default function Home() {
           color: #7e8ca1;
         }
         .checkout { font-size: 14px; padding: 16px; }
+        .cartAssurance { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin:12px 0; }
+        .cartAssurance span { padding:9px 6px; border:1px solid #1d3445; border-radius:9px; background:#09131e; color:#b8c5d4; text-align:center; font-size:10px; font-weight:700; }
         .continue {
           width: 100%;
           margin-top: 10px;
@@ -2320,6 +2359,19 @@ export default function Home() {
           border-radius: 8px;
           font-weight: 800;
         }
+        .faqSection { position:relative; z-index:2; max-width:1180px; margin:100px auto; padding:0 24px; display:grid; grid-template-columns:.8fr 1.2fr; gap:60px; align-items:start; }
+        .faqIntro { position:sticky; top:110px; }
+        .faqIntro > span { color:#19d47f; font-size:12px; font-weight:900; letter-spacing:3px; }
+        .faqIntro h2 { margin:12px 0; font-size:clamp(34px,4vw,54px); line-height:1; }
+        .faqIntro p { color:#9daabc; line-height:1.7; max-width:440px; }
+        .faqList { display:grid; gap:12px; }
+        .faqList details { border:1px solid #1b3040; border-radius:16px; background:linear-gradient(145deg,#0b1521,#07101a); overflow:hidden; }
+        .faqList summary { padding:20px 22px; cursor:pointer; font-weight:800; list-style:none; display:flex; align-items:center; justify-content:space-between; gap:18px; }
+        .faqList summary::-webkit-details-marker { display:none; }
+        .faqList summary::after { content:"+"; color:#19d47f; font-size:24px; line-height:1; }
+        .faqList details[open] summary::after { content:"−"; }
+        .faqList details[open] summary { color:#45e99d; }
+        .faqList p { margin:0; padding:0 22px 22px; color:#aab5c5; line-height:1.65; }
 
         @keyframes move1 {
           to { transform: translate(300px,180px); }
@@ -2352,6 +2404,9 @@ export default function Home() {
         .buyNowBtn:hover:not(:disabled) { background:rgba(34,197,94,.1); }
 
         @media(max-width:900px) {
+          .faqSection { grid-template-columns:1fr; gap:25px; margin:70px auto; }
+          .faqIntro { position:static; }
+          .cartAssurance { grid-template-columns:1fr; }
           .reelExperience { padding: 20px 16px 60px; }
           .reelIntro { grid-template-columns: 1fr; gap: 12px; }
           .reelCards { grid-template-columns: 1fr; }
