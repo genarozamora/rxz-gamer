@@ -674,7 +674,7 @@ export default function Home() {
   }
 
   return (
-    <main>
+    <main id="contenido-principal">
       <div className="background">
         <div className="grid" />
         <div className="glow glow1" />
