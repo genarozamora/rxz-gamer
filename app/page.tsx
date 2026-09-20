@@ -697,6 +697,7 @@ export default function Home() {
         <nav className={menuOpen ? "navOpen" : ""} onClick={() => setMenuOpen(false)}>
           <a href="#inicio">Inicio</a>
           <a href="#productos">Productos</a>
+          <a href="#comparar">Comparar</a>
           <a href="#beneficios">Envíos</a>
           <a href="#preguntas">Preguntas</a>
           <a href="#contacto">Contacto</a>
@@ -912,6 +913,39 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      <section id="comparar" className="compareSection" aria-labelledby="compare-title">
+        <div className="compareHead">
+          <div>
+            <span>COMPARÁ SIN COMPLICARTE</span>
+            <h2 id="compare-title">Encontrá el ideal para vos</h2>
+          </div>
+          <p>Las diferencias más importantes de cada producto, juntas y fáciles de revisar.</p>
+        </div>
+        <div className="compareGrid">
+          {PRODUCTS.map((product) => {
+            const included = product.specs.find((spec) => spec.label === "Incluye")?.value;
+            return (
+              <article className="compareCard" key={product.id}>
+                <div className="compareProduct">
+                  <SafeImage src={product.images[0]} fallback={product.fallbackImage} alt={product.name} />
+                  <span><small>{product.brand}</small><strong>{product.name}</strong></span>
+                </div>
+                <dl>
+                  <div><dt>Tipo</dt><dd>{product.category}</dd></div>
+                  <div><dt>Lo principal</dt><dd>{product.subtitle}</dd></div>
+                  <div><dt>Variantes</dt><dd>{product.variants?.map((variant) => variant.label).join(" · ") || "Única"}</dd></div>
+                  <div><dt>Incluye</dt><dd>{included || "Ver ficha técnica"}</dd></div>
+                </dl>
+                <div className="compareBottom">
+                  <strong>{money(product.price)}</strong>
+                  <button onClick={() => openProduct(product)}>VER PRODUCTO</button>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
 
       <section id="beneficios" className="benefits">
         <div>
@@ -2360,6 +2394,26 @@ export default function Home() {
           font-weight: 800;
         }
         .faqSection { position:relative; z-index:2; max-width:1180px; margin:100px auto; padding:0 24px; display:grid; grid-template-columns:.8fr 1.2fr; gap:60px; align-items:start; }
+        .compareSection { position:relative; z-index:2; max-width:1500px; margin:20px auto 100px; padding:0 5%; }
+        .compareHead { display:flex; align-items:end; justify-content:space-between; gap:30px; margin-bottom:28px; }
+        .compareHead span { color:#19d47f; font-size:12px; font-weight:900; letter-spacing:3px; }
+        .compareHead h2 { margin:10px 0 0; font-size:clamp(30px,4vw,48px); }
+        .compareHead p { max-width:470px; margin:0; color:#94a3b8; line-height:1.6; }
+        .compareGrid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+        .compareCard { min-width:0; display:flex; flex-direction:column; padding:16px; border:1px solid #203244; border-radius:18px; background:linear-gradient(145deg,rgba(13,25,38,.97),rgba(6,14,23,.97)); box-shadow:0 18px 45px rgba(0,0,0,.16); }
+        .compareProduct { display:flex; align-items:center; gap:12px; min-height:76px; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,.08); }
+        .compareProduct img { width:66px; height:66px; flex:0 0 auto; border-radius:11px; background:white; object-fit:contain; padding:4px; }
+        .compareProduct span { min-width:0; }
+        .compareProduct small { display:block; margin-bottom:5px; color:#25db89; font-size:10px; font-weight:900; letter-spacing:1px; }
+        .compareProduct strong { display:block; font-size:14px; line-height:1.35; }
+        .compareCard dl { margin:8px 0 18px; }
+        .compareCard dl > div { display:grid; gap:5px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.06); }
+        .compareCard dt { color:#718096; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; }
+        .compareCard dd { margin:0; color:#cbd5e1; font-size:12px; line-height:1.5; }
+        .compareBottom { margin-top:auto; display:grid; gap:10px; }
+        .compareBottom > strong { color:#21d477; font-size:22px; }
+        .compareBottom button { width:100%; padding:11px; border:1px solid #2d4d40; border-radius:9px; background:#0b241c; color:#7ef0b4; font-weight:900; font-size:11px; }
+        .compareBottom button:hover { background:#19d47f; color:#031008; }
         .faqIntro { position:sticky; top:110px; }
         .faqIntro > span { color:#19d47f; font-size:12px; font-weight:900; letter-spacing:3px; }
         .faqIntro h2 { margin:12px 0; font-size:clamp(34px,4vw,54px); line-height:1; }
@@ -2404,6 +2458,8 @@ export default function Home() {
         .buyNowBtn:hover:not(:disabled) { background:rgba(34,197,94,.1); }
 
         @media(max-width:900px) {
+          .compareHead { align-items:start; flex-direction:column; gap:12px; }
+          .compareGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
           .faqSection { grid-template-columns:1fr; gap:25px; margin:70px auto; }
           .faqIntro { position:static; }
           .cartAssurance { grid-template-columns:1fr; }
@@ -2445,6 +2501,7 @@ export default function Home() {
         }
 
         @media(max-width:550px) {
+          .compareGrid { grid-template-columns:1fr; }
           .card h3,
           .cardBody > p,
           .cardBody > .old,
