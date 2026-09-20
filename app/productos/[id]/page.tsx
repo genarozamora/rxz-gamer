@@ -56,9 +56,19 @@ export default function ProductPage() {
     "@type": "Product",
     name: `${product.brand} ${product.name}`,
     description: product.description,
-    image: product.images,
+    image: product.images.map((image) => new URL(image, "https://rxz-gamer-tflb.vercel.app").toString()),
+    url: `https://rxz-gamer-tflb.vercel.app/productos/${product.id}`,
+    sku: `RXZ-${product.id}`,
     brand: { "@type": "Brand", name: product.brand },
-    offers: { "@type": "Offer", priceCurrency: "ARS", price: product.price, availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock" },
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "ARS",
+      price: product.price,
+      availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      itemCondition: "https://schema.org/NewCondition",
+      url: `https://rxz-gamer-tflb.vercel.app/productos/${product.id}`,
+      seller: { "@type": "Organization", name: "RXZ Gamer" },
+    },
   };
   const packagePreview = getPackagePreview(product);
 
@@ -81,14 +91,14 @@ export default function ProductPage() {
               <img src={product.images[imageIndex] || selectedVariant?.image || product.images[0]} alt={`${product.brand} ${product.name} imagen ${imageIndex + 1}`} className="max-h-[420px] max-w-full object-contain" onError={(event) => { if (event.currentTarget.getAttribute("src") !== product.fallbackImage) event.currentTarget.src = product.fallbackImage; }} />
               {imageIndex === 0 && packagePreview && <div className="absolute inset-x-4 bottom-4 grid grid-cols-[96px_1fr] items-center gap-3 rounded-xl border border-emerald-400/60 bg-[#03080eef] p-2 text-left shadow-2xl"><img src={packagePreview.image} alt={packagePreview.alt} className="h-20 w-24 rounded-lg bg-white object-cover" /><span className="text-xs leading-5 text-slate-200"><b className="block text-emerald-400">TODO LO QUE INCLUYE</b>{packagePreview.caption}</span></div>}
             </div>
-            <div className="mt-3 grid grid-cols-4 gap-2">{product.images.map((image, index) => <button key={`${image}-${index}`} onClick={() => setImageIndex(index)} className={`h-20 overflow-hidden rounded-xl border bg-white p-1 ${imageIndex === index ? "border-emerald-400" : "border-white/10"}`}><img src={image} alt={`Miniatura ${index + 1} de ${product.name}`} className="h-full w-full object-contain" /></button>)}</div>
+            <div className="mt-3 grid grid-cols-4 gap-2">{product.images.map((image, index) => <button key={`${image}-${index}`} onClick={() => setImageIndex(index)} aria-label={`Ver imagen ${index + 1} de ${product.name}`} aria-pressed={imageIndex === index} className={`h-20 overflow-hidden rounded-xl border bg-white p-1 ${imageIndex === index ? "border-emerald-400" : "border-white/10"}`}><img src={image} alt={`Miniatura ${index + 1} de ${product.name}`} className="h-full w-full object-contain" /></button>)}</div>
           </div>
           <div>
             <p className="text-xs font-black tracking-[.22em] text-emerald-400">{product.brand}</p>
             <h1 className="mt-2 text-4xl font-black">{product.name}</h1>
             <p className="mt-4 leading-7 text-slate-300">{product.description}</p>
             {included && <div className="mt-5 rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm leading-6 text-emerald-50"><strong className="block text-emerald-400">TODO LO QUE RECIBÍS</strong>{included}</div>}
-            {product.variants?.length ? <div className="mt-5"><strong className="text-sm">Color</strong><div className="mt-2 flex flex-wrap gap-2">{product.variants.map((variant) => <button key={variant.id} disabled={variant.stock <= 0} onClick={() => { setVariantId(variant.id); const index = product.images.indexOf(variant.image); if (index >= 0) setImageIndex(index); }} className={`flex min-w-40 items-center gap-3 rounded-xl border p-2 pr-4 text-left text-sm ${selectedVariant?.id === variant.id ? "border-emerald-400 bg-emerald-400/10" : "border-white/15 bg-[#101c29]"} disabled:opacity-40`}><span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white p-1"><img src={variant.image} alt={`Vista previa ${product.name} ${variant.label}`} className="h-full w-full object-contain" /></span><span><span className="block font-bold">{variant.label}</span><small className="text-slate-400">{variant.stock} u.</small></span></button>)}</div></div> : null}
+            {product.variants?.length ? <div className="mt-5"><strong className="text-sm">Color</strong><div className="mt-2 flex flex-wrap gap-2">{product.variants.map((variant) => <button key={variant.id} disabled={variant.stock <= 0} aria-pressed={selectedVariant?.id === variant.id} onClick={() => { setVariantId(variant.id); const index = product.images.indexOf(variant.image); if (index >= 0) setImageIndex(index); }} className={`flex min-w-40 items-center gap-3 rounded-xl border p-2 pr-4 text-left text-sm ${selectedVariant?.id === variant.id ? "border-emerald-400 bg-emerald-400/10" : "border-white/15 bg-[#101c29]"} disabled:opacity-40`}><span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white p-1"><img src={variant.image} alt={`Vista previa ${product.name} ${variant.label}`} className="h-full w-full object-contain" /></span><span><span className="block font-bold">{variant.label}</span><small className="text-slate-400">{variant.stock} u.</small></span></button>)}</div></div> : null}
             <div className="mt-6 text-4xl font-black text-emerald-400">{money(product.price)}</div>
             <p className="mt-2 text-sm text-slate-400">Precio final en pesos argentinos · Transferencia</p>
             <div className={`mt-5 rounded-xl border p-4 text-sm font-bold ${product.stock <= 0 ? "border-red-400/30 bg-red-400/10 text-red-400" : "border-emerald-400/20 bg-emerald-400/5 text-emerald-100"}`}>

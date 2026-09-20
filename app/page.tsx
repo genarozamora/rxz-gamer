@@ -1083,7 +1083,7 @@ export default function Home() {
             ← VOLVER AL MENÚ
           </button>
           <div className="modal productModal" onClick={(e) => e.stopPropagation()}>
-            <button className="close" onClick={() => setSelected(null)}>
+            <button className="close" onClick={() => setSelected(null)} aria-label="Cerrar detalle del producto">
               ×
             </button>
 
@@ -1138,6 +1138,7 @@ export default function Home() {
                       className={selectedImage === index ? "thumb activeThumb" : "thumb"}
                       onClick={() => setSelectedImage(index)}
                       aria-label={`Ver imagen ${index + 1}`}
+                      aria-pressed={selectedImage === index}
                     >
                       <SafeImage
                         src={image}
@@ -1309,7 +1310,7 @@ export default function Home() {
                 <h2>Tu carrito</h2>
               </div>
 
-              <button className="closeNormal" onClick={() => setCartOpen(false)}>
+              <button className="closeNormal" onClick={() => setCartOpen(false)} aria-label="Cerrar carrito">
                 ×
               </button>
             </div>

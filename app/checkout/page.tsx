@@ -400,7 +400,7 @@ export default function CheckoutPage() {
 
               <label style={styles.termsRow}>
                 <input type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} />
-                <span>Acepto los <a href="/legal/terminos" target="_blank">términos</a>, la <a href="/legal/privacidad" target="_blank">privacidad</a> y las condiciones de <a href="/legal/envios" target="_blank">envío</a>.</span>
+                <span>Acepto los <a href="/legal/terminos" target="_blank" rel="noopener noreferrer">términos</a>, la <a href="/legal/privacidad" target="_blank" rel="noopener noreferrer">privacidad</a> y las condiciones de <a href="/legal/envios" target="_blank" rel="noopener noreferrer">envío</a>.</span>
               </label>
 
               <button
