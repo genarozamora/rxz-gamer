@@ -691,11 +691,11 @@ export default function Home() {
           RXZ <span>GAMER</span>
         </a>
 
-        <button className="menuBtn" onClick={() => setMenuOpen((open) => !open)} aria-label="Abrir menú">
+        <button className="menuBtn" onClick={() => setMenuOpen((open) => !open)} aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"} aria-expanded={menuOpen} aria-controls="navegacion-principal">
           {menuOpen ? "✕" : "☰"}
         </button>
 
-        <nav className={menuOpen ? "navOpen" : ""} onClick={() => setMenuOpen(false)}>
+        <nav id="navegacion-principal" className={menuOpen ? "navOpen" : ""} onClick={() => setMenuOpen(false)}>
           <a href="#inicio">Inicio</a>
           <a href="#productos">Productos</a>
           <a href="#comparar">Comparar</a>
