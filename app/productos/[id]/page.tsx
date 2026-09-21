@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { PRODUCTS } from "@/app/page";
 import type { Product } from "@/app/page";
@@ -14,14 +14,16 @@ type Review = { id: string; rating: number; comment: string; created_at: string 
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const [product, setProduct] = useState<Product | undefined>(() => PRODUCTS.find((item) => String(item.id) === id));
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [reviewOrder, setReviewOrder] = useState("");
+  const [reviewOrder] = useState(() => typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("reviewOrder") || "");
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [reviewMessage, setReviewMessage] = useState("");
   const [variantId, setVariantId] = useState("");
   const [imageIndex, setImageIndex] = useState(0);
+  const [cartMessage, setCartMessage] = useState("");
 
   useEffect(() => {
     supabase.from("products").select("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants").eq("id", id).eq("active", true).maybeSingle().then(({ data }) => {
@@ -32,7 +34,6 @@ export default function ProductPage() {
   }, [id]);
 
   useEffect(() => {
-    setReviewOrder(new URLSearchParams(window.location.search).get("reviewOrder") || "");
     supabase.from("product_reviews").select("id,rating,comment,created_at").eq("product_id", id).eq("approved", true).order("created_at", { ascending: false }).then(({ data }) => setReviews((data || []) as Review[]));
   }, [id]);
 
@@ -42,6 +43,47 @@ export default function ProductPage() {
     const { error } = await supabase.from("product_reviews").insert({ product_id: id, user_id: user.id, order_id: reviewOrder, rating, comment: comment.trim() });
     if (error) setReviewMessage("No pudimos guardar la reseña. Verificá que el pedido esté entregado y corresponda a este producto.");
     else { setReviewMessage("Gracias. Tu reseña quedó pendiente de aprobación."); setComment(""); }
+  }
+
+  function addToCart() {
+    if (!product) return;
+    const variant = product.variants?.find((item) => item.id === variantId);
+    if (product.variants?.length && !variant) {
+      setCartMessage("Elegí un color antes de agregar el producto.");
+      return;
+    }
+
+    const availableStock = variant?.stock ?? product.stock;
+    if (availableStock <= 0) {
+      setCartMessage("Esta variante no tiene stock disponible.");
+      return;
+    }
+
+    const cartKey = `${product.id}:${variant?.id || "default"}`;
+    try {
+      const parsed = JSON.parse(localStorage.getItem("rxz-cart") || "[]") as Array<Product & { quantity: number; cartKey: string; variantId?: string; variantLabel?: string; variantStock?: number }>;
+      const cart = Array.isArray(parsed) ? parsed : [];
+      const existing = cart.find((item) => item.cartKey === cartKey);
+      if (existing && existing.quantity >= availableStock) {
+        setCartMessage("Ya alcanzaste el stock disponible de esta variante.");
+        return;
+      }
+      const nextCart = existing
+        ? cart.map((item) => item.cartKey === cartKey ? { ...item, quantity: item.quantity + 1 } : item)
+        : [...cart, {
+            ...product,
+            quantity: 1,
+            cartKey,
+            variantId: variant?.id,
+            variantLabel: variant?.label,
+            variantStock: availableStock,
+            images: variant ? [variant.image, ...product.images.filter((image) => image !== variant.image)] : product.images,
+          }];
+      localStorage.setItem("rxz-cart", JSON.stringify(nextCart));
+      router.push("/?cart=open");
+    } catch {
+      setCartMessage("No pudimos actualizar el carrito. Intentá nuevamente.");
+    }
   }
 
   if (!product) {
@@ -104,10 +146,13 @@ export default function ProductPage() {
             <div className={`mt-5 rounded-xl border p-4 text-sm font-bold ${product.stock <= 0 ? "border-red-400/30 bg-red-400/10 text-red-400" : "border-emerald-400/20 bg-emerald-400/5 text-emerald-100"}`}>
               {product.stock <= 0 ? "0 unidades · Producto sin stock" : "En stock · Entrega inmediata · Envíos nacionales por OCA"}
             </div>
+            {cartMessage && <p role="alert" className="mt-4 text-sm font-bold text-amber-300">{cartMessage}</p>}
             {product.stock <= 0 ? (
               <button disabled className="mt-6 block w-full cursor-not-allowed rounded-xl bg-slate-700 p-4 text-center font-black text-slate-400">SIN STOCK</button>
             ) : (
-              <Link href="/" className="mt-6 block rounded-xl bg-emerald-500 p-4 text-center font-black text-[#031008] no-underline">AGREGAR DESDE LA TIENDA</Link>
+              <button onClick={addToCart} disabled={Boolean(product.variants?.length && !selectedVariant)} className="mt-6 block w-full rounded-xl bg-emerald-500 p-4 text-center font-black text-[#031008] disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400">
+                {product.variants?.length && !selectedVariant ? "ELEGÍ UN COLOR" : "AGREGAR AL CARRITO"}
+              </button>
             )}
             <Link href="/ayuda" className="mt-3 block rounded-xl border border-white/15 p-4 text-center font-bold text-white no-underline">CONSULTAR A SOPORTE</Link>
           </div>

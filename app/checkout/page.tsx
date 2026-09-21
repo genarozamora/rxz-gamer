@@ -165,8 +165,8 @@ export default function CheckoutPage() {
       localStorage.removeItem("rxz-cart");
 
       setCart([]);
-    } catch (error: any) {
-      setMessage(error?.message || "Ocurrió un error al crear el pedido.");
+    } catch (error: unknown) {
+      setMessage(error instanceof Error ? error.message : "Ocurrió un error al crear el pedido.");
     } finally {
       setCreating(false);
     }

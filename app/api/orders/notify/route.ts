@@ -16,7 +16,10 @@ export async function POST(request: Request) {
     const payload = JSON.stringify({ title: "Nuevo pedido en RXZ Gamer", body: `${order.order_number} · $${Number(order.total).toLocaleString("es-AR")}`, tag: `rxz-order-${order.id}`, url: "/admin" });
     await Promise.allSettled((subscriptions || []).map(async (sub) => {
       try { await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, payload); }
-      catch (error: any) { if (error?.statusCode === 404 || error?.statusCode === 410) await db.from("admin_push_subscriptions").delete().eq("id", sub.id); }
+      catch (error: unknown) {
+        const statusCode = typeof error === "object" && error !== null && "statusCode" in error ? Number(error.statusCode) : 0;
+        if (statusCode === 404 || statusCode === 410) await db.from("admin_push_subscriptions").delete().eq("id", sub.id);
+      }
     }));
     return Response.json({ ok: true });
   } catch { return Response.json({ error: "Push no configurado" }, { status: 503 }); }

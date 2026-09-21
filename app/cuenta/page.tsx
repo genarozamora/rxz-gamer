@@ -282,9 +282,9 @@ export default function CuentaPage() {
       );
 
       await loadAccount();
-    } catch (error: any) {
+    } catch (error: unknown) {
       setMessage(
-        error?.message || "Ocurrió un error al subir el comprobante."
+        error instanceof Error ? error.message : "Ocurrió un error al subir el comprobante."
       );
     } finally {
       setUploadingOrderId(null);

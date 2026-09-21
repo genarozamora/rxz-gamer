@@ -23,7 +23,7 @@ export default function ProductsAdminPage() {
     if (error) setMessage(error.message); else setProducts((data || []) as ProductRow[]);
   }
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => { queueMicrotask(() => void load()); }, []);
 
   async function save(event: FormEvent) {
     event.preventDefault(); setMessage("");

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 type Order = {
@@ -55,6 +56,7 @@ function statusLabel(status: string) {
 }
 
 export default function AdminPage() {
+  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
@@ -71,33 +73,64 @@ export default function AdminPage() {
   const [pushStatus, setPushStatus] = useState<"idle" | "checking" | "subscribing" | "active" | "error">("checking");
   const [seenOrderIds, setSeenOrderIds] = useState<string[]>([]);
 
-  useEffect(() => {
-    checkAdmin();
-    if ("Notification" in window) {
-      setNotificationPermission(Notification.permission);
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("/admin-notifications-sw.js")
-          .then((registration) => registration.pushManager.getSubscription())
-          .then(async (subscription) => {
-            if (!subscription) {
-              setPushStatus("idle");
-              return;
-            }
-            const { data } = await supabase.auth.getSession();
-            const response = await fetch("/api/admin/push-subscriptions", {
-              method: "POST",
-              headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.session?.access_token || ""}` },
-              body: JSON.stringify(subscription.toJSON()),
-            });
-            if (!response.ok) throw new Error("No se pudo sincronizar");
-            setPushStatus("active");
-          })
-          .catch(() => setPushStatus("error"));
-      } else {
-        setPushStatus("error");
-      }
+  async function checkAdmin() {
+    setLoading(true);
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      router.replace("/login");
+      return;
     }
-    try { setSeenOrderIds(JSON.parse(localStorage.getItem("rxz-admin-seen-orders") || "[]")); } catch { setSeenOrderIds([]); }
+
+    const { data: staff, error } = await supabase
+      .from("support_staff")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (error || !staff) {
+      setAuthorized(false);
+      setLoading(false);
+      return;
+    }
+
+    setAuthorized(true);
+    setAdminUserId(user.id);
+    await Promise.all([loadOrders(), loadSupportConversations()]);
+  }
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      void checkAdmin();
+      if ("Notification" in window) {
+        setNotificationPermission(Notification.permission);
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.register("/admin-notifications-sw.js")
+            .then((registration) => registration.pushManager.getSubscription())
+            .then(async (subscription) => {
+              if (!subscription) {
+                setPushStatus("idle");
+                return;
+              }
+              const { data } = await supabase.auth.getSession();
+              const response = await fetch("/api/admin/push-subscriptions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.session?.access_token || ""}` },
+                body: JSON.stringify(subscription.toJSON()),
+              });
+              if (!response.ok) throw new Error("No se pudo sincronizar");
+              setPushStatus("active");
+            })
+            .catch(() => setPushStatus("error"));
+        } else {
+          setPushStatus("error");
+        }
+      }
+      try { setSeenOrderIds(JSON.parse(localStorage.getItem("rxz-admin-seen-orders") || "[]")); } catch { setSeenOrderIds([]); }
+    });
   }, []);
 
   useEffect(() => {
@@ -162,35 +195,6 @@ export default function AdminPage() {
     const ids = orders.map((order) => order.id);
     setSeenOrderIds(ids);
     localStorage.setItem("rxz-admin-seen-orders", JSON.stringify(ids));
-  }
-
-  async function checkAdmin() {
-    setLoading(true);
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      window.location.href = "/login";
-      return;
-    }
-
-    const { data: staff, error } = await supabase
-      .from("support_staff")
-      .select("user_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (error || !staff) {
-      setAuthorized(false);
-      setLoading(false);
-      return;
-    }
-
-    setAuthorized(true);
-    setAdminUserId(user.id);
-    await Promise.all([loadOrders(), loadSupportConversations()]);
   }
 
   async function loadSupportConversations() {

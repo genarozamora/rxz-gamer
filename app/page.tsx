@@ -446,6 +446,7 @@ export default function Home() {
         const savedRecent = localStorage.getItem("rxz-recent");
         if (savedFavorites) setFavoriteIds(JSON.parse(savedFavorites));
         if (savedRecent) setRecentIds(JSON.parse(savedRecent));
+        if (new URLSearchParams(window.location.search).get("cart") === "open") setCartOpen(true);
       } catch {}
       setLoaded(true);
     });
@@ -923,7 +924,7 @@ export default function Home() {
           <p>Las diferencias más importantes de cada producto, juntas y fáciles de revisar.</p>
         </div>
         <div className="compareGrid">
-          {PRODUCTS.map((product) => {
+          {catalogProducts.map((product) => {
             const included = product.specs.find((spec) => spec.label === "Incluye")?.value;
             return (
               <article className="compareCard" key={product.id}>
