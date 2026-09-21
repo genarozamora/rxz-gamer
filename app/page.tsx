@@ -510,6 +510,22 @@ export default function Home() {
   }, [recentIds, loaded]);
 
   useEffect(() => {
+    if (!loaded) return;
+    const params = new URLSearchParams(window.location.search);
+    const campaign = Object.fromEntries(
+      ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"]
+        .map((key) => [key, params.get(key)?.slice(0, 120) || ""])
+        .filter(([, value]) => value)
+    );
+    if (!Object.keys(campaign).length) return;
+    localStorage.setItem("rxz-campaign", JSON.stringify({ ...campaign, captured_at: new Date().toISOString() }));
+    const visitKey = `rxz-campaign-visit:${window.location.search}`;
+    if (sessionStorage.getItem(visitKey)) return;
+    sessionStorage.setItem(visitKey, "1");
+    void supabase.from("store_events").insert({ event_name: "campaign_visit", product_id: null, metadata: campaign });
+  }, [loaded]);
+
+  useEffect(() => {
     if (!selected && !cartOpen) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -555,7 +571,16 @@ export default function Home() {
   const selectedPackagePreview = selected ? getPackagePreview(selected) : null;
 
   function track(eventName: string, productId?: number) {
-    void supabase.from("store_events").insert({ event_name: eventName, product_id: productId ? String(productId) : null });
+    let campaign: Record<string, string> | null = null;
+    try {
+      const saved = localStorage.getItem("rxz-campaign");
+      campaign = saved ? JSON.parse(saved) as Record<string, string> : null;
+    } catch {}
+    void supabase.from("store_events").insert({
+      event_name: eventName,
+      product_id: productId ? String(productId) : null,
+      metadata: campaign ? { campaign } : {},
+    });
   }
 
   function openProduct(product: Product) {
@@ -576,7 +601,7 @@ export default function Home() {
   }
 
   async function shareProduct(product: Product) {
-    const url = `${window.location.origin}/productos/${product.id}`;
+    const url = `${window.location.origin}/productos/${product.id}?utm_source=share&utm_medium=organic&utm_campaign=product_recommendation`;
     try {
       if (navigator.share) {
         await navigator.share({ title: `${product.brand} ${product.name}`, text: product.subtitle, url });
@@ -584,8 +609,35 @@ export default function Home() {
         await navigator.clipboard.writeText(url);
         setToast("Enlace del producto copiado");
       }
+      track("share_product", product.id);
     } catch (error) {
       if ((error as DOMException).name !== "AbortError") setToast("No se pudo compartir el producto");
+    }
+  }
+
+  async function shareStore() {
+    const url = `${window.location.origin}/?utm_source=share&utm_medium=organic&utm_campaign=store_recommendation`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "RXZ Gamer", text: "Periféricos gamer con stock y entrega inmediata.", url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        setToast("Enlace de la tienda copiado");
+      }
+      track("share_store");
+    } catch (error) {
+      if ((error as DOMException).name !== "AbortError") setToast("No se pudo compartir la tienda");
+    }
+  }
+
+  async function copyStoreLink() {
+    const url = `${window.location.origin}/?utm_source=copy_link&utm_medium=organic&utm_campaign=store_recommendation`;
+    try {
+      await navigator.clipboard.writeText(url);
+      track("copy_store_link");
+      setToast("Enlace de la tienda copiado");
+    } catch {
+      setToast("No se pudo copiar el enlace");
     }
   }
 
@@ -915,6 +967,17 @@ export default function Home() {
         </section>
       )}
 
+      {loaded && totalItems > 0 && !cartOpen && (
+        <section className="savedCart" aria-label="Compra guardada">
+          <div>
+            <span>🛒 TU COMPRA SIGUE GUARDADA</span>
+            <strong>{totalItems} {totalItems === 1 ? "producto" : "productos"} · {money(total)}</strong>
+            <p>Podés continuar exactamente donde la dejaste.</p>
+          </div>
+          <button onClick={() => { setCartOpen(true); track("resume_cart"); }}>CONTINUAR COMPRA</button>
+        </section>
+      )}
+
       <section id="comparar" className="compareSection" aria-labelledby="compare-title">
         <div className="compareHead">
           <div>
@@ -1035,6 +1098,24 @@ export default function Home() {
             <summary>¿Qué pasa si necesito ayuda o un cambio?</summary>
             <p>Podés hablar con soporte desde el botón de chat. También podés consultar las políticas de cambios, garantías y arrepentimiento al pie de la página.</p>
           </details>
+        </div>
+      </section>
+
+      <section className="shareSection" aria-labelledby="share-title">
+        <div>
+          <span>COMPARTÍ RXZ GAMER</span>
+          <h2 id="share-title">¿Conocés a alguien que está mejorando su setup?</h2>
+          <p>Mandale el catálogo o compartí la tienda. El enlace abre directamente en RXZ Gamer y no incluye datos personales.</p>
+        </div>
+        <div className="shareButtons">
+          <button onClick={() => void shareStore()}>↗ COMPARTIR TIENDA</button>
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent("Mirá estos periféricos gamer de RXZ Gamer: https://rxz-gamer-tflb.vercel.app/?utm_source=whatsapp&utm_medium=organic&utm_campaign=store_recommendation")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => track("share_store_whatsapp")}
+          >WHATSAPP</a>
+          <button className="secondaryShare" onClick={() => void copyStoreLink()}>COPIAR ENLACE</button>
         </div>
       </section>
 
@@ -2450,6 +2531,19 @@ export default function Home() {
         .recentCard small { color:#22c55e; font-weight:900; font-size:10px; letter-spacing:1px; }
         .recentCard strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .recentCard b { color:#cbd5e1; font-size:14px; }
+        .savedCart { position:relative; z-index:2; max-width:1320px; margin:0 auto 80px; padding:24px 28px; display:flex; align-items:center; justify-content:space-between; gap:24px; border:1px solid rgba(34,197,94,.35); border-radius:18px; background:linear-gradient(120deg,rgba(12,43,32,.94),rgba(7,20,28,.96)); box-shadow:0 24px 70px rgba(0,0,0,.22); }
+        .savedCart span { display:block; margin-bottom:7px; color:#5ff0aa; font-size:11px; font-weight:950; letter-spacing:1.8px; }
+        .savedCart strong { display:block; font-size:24px; }
+        .savedCart p { margin:6px 0 0; color:#9db0bd; }
+        .savedCart button { flex:0 0 auto; padding:15px 22px; border:0; border-radius:10px; background:#22c55e; color:#031008; font-weight:950; }
+        .shareSection { position:relative; z-index:2; max-width:1250px; margin:100px auto; padding:38px; display:grid; grid-template-columns:1.25fr .75fr; gap:38px; align-items:center; border:1px solid #1f3941; border-radius:22px; background:radial-gradient(circle at top left,rgba(34,197,94,.13),transparent 48%),#09131e; }
+        .shareSection > div > span { color:#32df8a; font-size:11px; font-weight:950; letter-spacing:2.5px; }
+        .shareSection h2 { margin:11px 0; font-size:clamp(28px,3.5vw,43px); line-height:1.08; }
+        .shareSection p { max-width:690px; margin:0; color:#9babbc; line-height:1.7; }
+        .shareButtons { display:grid; gap:10px; }
+        .shareButtons button, .shareButtons a { display:block; width:100%; padding:14px 16px; border:1px solid #22c55e; border-radius:10px; background:#22c55e; color:#031008; text-align:center; text-decoration:none; font-size:12px; font-weight:950; }
+        .shareButtons .secondaryShare { border-color:#354457; background:#111c2b; color:#d7e1ee; }
+        .shareButtons button:hover, .shareButtons a:hover { filter:brightness(1.08); transform:translateY(-1px); }
         .productTopline { display:flex; align-items:center; justify-content:space-between; gap:15px; }
         .productActions { display:flex; gap:8px; }
         .productActions button { border:1px solid #344154; border-radius:9px; background:#111c2d; color:#dce6f4; padding:8px 10px; font-size:12px; font-weight:800; }
@@ -2470,6 +2564,8 @@ export default function Home() {
           .reelCards { grid-template-columns: 1fr; }
           .reelCard { min-height: 330px; padding: 24px; }
           .recentGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+          .savedCart { margin:0 5% 70px; }
+          .shareSection { margin:70px 5%; grid-template-columns:1fr; }
           .menuBtn { display: block; margin-left: auto; }
           nav {
             display: none;
@@ -2517,6 +2613,9 @@ export default function Home() {
           .cardBody > p { min-height: 0; }
           .recentGrid { grid-template-columns:1fr; }
           .recentSection { padding-bottom:60px; }
+          .savedCart { align-items:stretch; flex-direction:column; margin:0 15px 55px; padding:21px; }
+          .savedCart button { width:100%; }
+          .shareSection { margin:55px 15px; padding:25px 20px; }
           .productTopline { align-items:flex-start; flex-direction:column; }
           .productActions { width:100%; }
           .productActions button { flex:1; }

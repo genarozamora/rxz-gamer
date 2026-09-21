@@ -17,6 +17,7 @@ const pages = {
     sections: [
       ["Datos que utilizamos", "Tratamos los datos necesarios para crear la cuenta, gestionar pedidos, coordinar entregas, verificar pagos y responder consultas."],
       ["Finalidad", "La información se utiliza exclusivamente para prestar el servicio, prevenir fraudes, cumplir obligaciones aplicables y mejorar la experiencia de compra."],
+      ["Medición de campañas", "Cuando ingresás desde una campaña o un enlace compartido, podemos registrar parámetros de atribución como fuente, medio y campaña para medir resultados. No guardamos en esos parámetros contraseñas ni datos bancarios."],
       ["Proveedores", "Podemos compartir los datos indispensables con servicios de alojamiento, base de datos y transporte que intervienen en la operación."],
       ["Seguridad y conservación", "Aplicamos controles de acceso y conservamos la información durante el tiempo necesario para gestionar la relación comercial y cumplir obligaciones."],
       ["Tus derechos", "Podés solicitar acceso, corrección o eliminación de tus datos desde Ayuda. Algunas constancias pueden conservarse cuando exista una obligación legal."],
