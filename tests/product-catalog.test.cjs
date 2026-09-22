@@ -64,6 +64,13 @@ test('model-specific corrections and stock variants', () => {
   assert.ok(!source.includes('batterySummary'));
 });
 
+test('managed visibility is authoritative once the catalogue exists', () => {
+  assert.match(source, /select\("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants,active"\)/);
+  assert.match(source, /data\.filter\(\(row\) => row\.active\)\.map/);
+  assert.match(source, /setCatalogProducts\(managed\)/);
+  assert.ok(!source.includes('setCatalogProducts([...managed'));
+});
+
 test('all active gallery, variant and fallback images exist and decode', async () => {
   for (const product of products) {
     assert.equal(new Set(product.images).size, product.images.length);

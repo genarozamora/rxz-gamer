@@ -427,6 +427,7 @@ export default function Home() {
   const [selectedVariantId, setSelectedVariantId] = useState("");
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Todos");
+  const [sort, setSort] = useState("featured");
   const [toast, setToast] = useState("");
   const [loaded, setLoaded] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -454,9 +455,9 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    supabase.from("products").select("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants").eq("active", true).then(({ data }) => {
+    supabase.from("products").select("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants,active").then(({ data }) => {
       if (!data?.length) return;
-      const managed = data.map((row) => {
+      const managed = data.filter((row) => row.active).map((row) => {
         const id = Number(row.id);
         const staticProduct = PRODUCTS.find((product) =>
           product.brand.toLowerCase() === String(row.brand).trim().toLowerCase()
@@ -464,8 +465,7 @@ export default function Home() {
         ) || PRODUCTS.find((product) => product.id === id);
         return mergeVerifiedProduct(row, staticProduct);
       });
-      const managedIds = new Set(managed.map((item) => item.id));
-      setCatalogProducts([...managed, ...PRODUCTS.filter((item) => !managedIds.has(item.id))]);
+      setCatalogProducts(managed);
     });
   }, []);
 
@@ -557,13 +557,19 @@ export default function Home() {
   );
 
   const filtered = useMemo(() => {
-    return catalogProducts.filter((p) => {
+    const matches = catalogProducts.filter((p) => {
       const categoryOK = category === "Todos"
         || (category === "Favoritos" ? favoriteIds.includes(p.id) : p.category === category);
       const text = `${p.brand} ${p.name} ${p.subtitle}`.toLowerCase();
       return categoryOK && text.includes(search.toLowerCase());
     });
-  }, [search, category, catalogProducts, favoriteIds]);
+    return [...matches].sort((a, b) => {
+      if (sort === "price-asc") return a.price - b.price;
+      if (sort === "price-desc") return b.price - a.price;
+      if (sort === "name") return `${a.brand} ${a.name}`.localeCompare(`${b.brand} ${b.name}`, "es");
+      return 0;
+    });
+  }, [search, category, sort, catalogProducts, favoriteIds]);
 
   const totalItems = cart.reduce((a, b) => a + b.quantity, 0);
   const total = cart.reduce((a, b) => a + b.price * b.quantity, 0);
@@ -928,11 +934,20 @@ export default function Home() {
           <span>
             {filtered.length} {filtered.length === 1 ? "producto disponible" : "productos disponibles"}
           </span>
-          {(search || category !== "Todos") && (
-            <button onClick={() => { setSearch(""); setCategory("Todos"); }}>
-              LIMPIAR FILTROS
-            </button>
-          )}
+          <div className="catalogControls">
+            <label htmlFor="catalog-sort">Ordenar:</label>
+            <select id="catalog-sort" value={sort} onChange={(event) => setSort(event.target.value)}>
+              <option value="featured">Destacados</option>
+              <option value="price-asc">Menor precio</option>
+              <option value="price-desc">Mayor precio</option>
+              <option value="name">Nombre A–Z</option>
+            </select>
+            {(search || category !== "Todos" || sort !== "featured") && (
+              <button onClick={() => { setSearch(""); setCategory("Todos"); setSort("featured"); }}>
+                LIMPIAR FILTROS
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="productGrid">
@@ -1585,7 +1600,7 @@ export default function Home() {
           color: white;
           font-family: Arial, Helvetica, sans-serif;
         }
-        button, input { font: inherit; }
+        button, input, select { font: inherit; }
         button { cursor: pointer; }
         button:disabled { cursor: not-allowed; opacity: .45; }
         .srOnly {
@@ -1924,6 +1939,17 @@ export default function Home() {
           font-size: 10px;
           font-weight: 900;
           letter-spacing: .7px;
+        }
+        .catalogControls { display: flex; align-items: center; gap: 9px; }
+        .catalogControls label { color: #718096; font-size: 11px; }
+        .catalogControls select {
+          padding: 8px 30px 8px 10px;
+          border: 1px solid #29364a;
+          border-radius: 9px;
+          background: #0b1521;
+          color: #dbe5f2;
+          font-size: 11px;
+          font-weight: 800;
         }
         .productGrid {
           display: grid;
@@ -2786,6 +2812,9 @@ export default function Home() {
             height: auto;
           }
           .card h3 { min-height: 0; }
+          .catalogStatus { align-items: flex-start; flex-direction: column; margin-top: -28px; }
+          .catalogControls { width: 100%; flex-wrap: wrap; }
+          .catalogControls select { flex: 1; min-width: 150px; }
           .productCardTitle { height: auto; min-height: 0; }
           .stockInline { margin: 8px 0 0; }
           .cardBody > p { min-height: 0; }
