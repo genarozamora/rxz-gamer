@@ -1,10 +1,16 @@
+self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const target = event.notification.data?.url || "/admin";
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
       const existing = windows.find((client) => new URL(client.url).pathname.startsWith("/admin"));
-      return existing ? existing.focus() : clients.openWindow(target);
+      if (existing) {
+        existing.navigate(target);
+        return existing.focus();
+      }
+      return clients.openWindow(target);
     })
   );
 });

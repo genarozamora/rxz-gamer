@@ -21,6 +21,7 @@ type Order = {
   receipt_path: string | null;
   payment_rejection_reason: string | null;
   created_at: string;
+  order_items: { product_id: string; product_name: string; quantity: number; variant_label: string | null }[];
 };
 
 type SupportConversation = {
@@ -72,6 +73,7 @@ export default function AdminPage() {
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | "unsupported">("unsupported");
   const [pushStatus, setPushStatus] = useState<"idle" | "checking" | "subscribing" | "active" | "error">("checking");
   const [seenOrderIds, setSeenOrderIds] = useState<string[]>([]);
+  const [testingNotification, setTestingNotification] = useState(false);
 
   async function checkAdmin() {
     setLoading(true);
@@ -175,6 +177,8 @@ export default function AdminPage() {
         }
         const padding = "=".repeat((4 - publicKey.length % 4) % 4);
         const bytes = Uint8Array.from(atob((publicKey + padding).replace(/-/g, "+").replace(/_/g, "/")), (char) => char.charCodeAt(0));
+        const previousSubscription = await registration.pushManager.getSubscription();
+        if (previousSubscription) await previousSubscription.unsubscribe();
         const subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: bytes });
         const { data } = await supabase.auth.getSession();
         const response = await fetch("/api/admin/push-subscriptions", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.session?.access_token || ""}` }, body: JSON.stringify(subscription.toJSON()) });
@@ -188,6 +192,28 @@ export default function AdminPage() {
       setPushStatus("error");
       const detail = error instanceof Error ? error.message : "Error desconocido";
       setMessage(`No se pudieron activar las notificaciones: ${detail}`);
+    }
+  }
+
+  async function testNotification() {
+    setTestingNotification(true);
+    setMessage("");
+    try {
+      if (!("Notification" in window) || Notification.permission !== "granted") {
+        throw new Error("Primero activá las notificaciones en este dispositivo.");
+      }
+      const { data } = await supabase.auth.getSession();
+      const response = await fetch("/api/admin/notifications/test", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${data.session?.access_token || ""}` },
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || "No se pudo entregar el aviso.");
+      setMessage("Notificación real enviada desde el servidor. El sistema de avisos está funcionando.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "No se pudo mostrar la notificación de prueba.");
+    } finally {
+      setTestingNotification(false);
     }
   }
 
@@ -289,7 +315,7 @@ export default function AdminPage() {
   async function loadOrders() {
     const { data, error } = await supabase
       .from("orders")
-      .select("*")
+      .select("*, order_items(product_id,product_name,quantity,variant_label)")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -541,6 +567,7 @@ export default function AdminPage() {
           </div>
 
           <div style={styles.headerButtons}>
+            <button style={styles.secondaryButton} onClick={() => document.getElementById("pedidos")?.scrollIntoView({ behavior: "smooth" })}>Pedidos</button>
             <button style={styles.secondaryButton} onClick={() => (window.location.href = "/admin/productos")}>Catálogo</button>
             <button style={styles.secondaryButton} onClick={() => (window.location.href = "/admin/metricas")}>Métricas</button>
             <button style={styles.secondaryButton} onClick={() => (window.location.href = "/admin/devoluciones")}>Devoluciones</button>
@@ -574,8 +601,11 @@ export default function AdminPage() {
               {pushStatus === "active" ? "Activos en este dispositivo" : notificationPermission === "denied" ? "Bloqueados por el navegador" : notificationPermission === "unsupported" ? "No disponibles en este navegador" : pushStatus === "subscribing" || pushStatus === "checking" ? "Comprobando activación..." : pushStatus === "error" ? "Falta completar la activación" : "Todavía no activados"}
             </div>
           </div>
-          <button style={styles.secondaryButton} onClick={enableNotifications} disabled={pushStatus === "active" || pushStatus === "subscribing" || pushStatus === "checking"}>
-            {pushStatus === "active" ? "ACTIVADAS" : pushStatus === "subscribing" || pushStatus === "checking" ? "COMPROBANDO..." : notificationPermission === "granted" || pushStatus === "error" ? "REINTENTAR ACTIVACIÓN" : "ACTIVAR NOTIFICACIONES"}
+          <button style={styles.secondaryButton} onClick={enableNotifications} disabled={pushStatus === "subscribing" || pushStatus === "checking"}>
+            {pushStatus === "active" ? "RECONFIGURAR" : pushStatus === "subscribing" || pushStatus === "checking" ? "COMPROBANDO..." : notificationPermission === "granted" || pushStatus === "error" ? "REINTENTAR ACTIVACIÓN" : "ACTIVAR NOTIFICACIONES"}
+          </button>
+          <button style={styles.secondaryButton} onClick={testNotification} disabled={testingNotification || notificationPermission !== "granted"}>
+            {testingNotification ? "PROBANDO..." : "PROBAR AVISO"}
           </button>
         </div>
 
@@ -763,7 +793,7 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <h2 style={{ marginTop: 34 }}>Pedidos</h2>
+        <h2 id="pedidos" style={{ marginTop: 34, scrollMarginTop: 28 }}>Pedidos</h2>
 
         {orders.length === 0 ? (
           <div style={styles.card}>
@@ -793,6 +823,15 @@ export default function AdminPage() {
 
                 <div style={styles.total}>
                   ${Number(order.total).toLocaleString("es-AR")}
+                </div>
+
+                <div style={styles.addressBox}>
+                  <span style={styles.label}>Productos del pedido</span>
+                  {order.order_items?.length ? order.order_items.map((item) => (
+                    <strong key={`${order.id}-${item.product_id}-${item.variant_label || "sin-variante"}`} style={{ display: "block", marginTop: 7 }}>
+                      {item.quantity}× {item.product_name}{item.variant_label ? ` · ${item.variant_label}` : ""}
+                    </strong>
+                  )) : <strong>Sin detalle disponible</strong>}
                 </div>
 
                 <div style={styles.detailsGrid}>

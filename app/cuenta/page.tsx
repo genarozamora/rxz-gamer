@@ -330,7 +330,7 @@ export default function CuentaPage() {
 
         {message && <div style={styles.message}>{message}</div>}
 
-        <div style={styles.sectionHeading}>
+        <div id="pedidos" style={{ ...styles.sectionHeading, scrollMarginTop: 24 }}>
           <div>
             <div style={styles.eyebrow}>TUS COMPRAS</div>
             <h2 style={{ margin: "5px 0 0" }}>Reservas y pedidos</h2>

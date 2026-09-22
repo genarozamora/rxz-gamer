@@ -814,6 +814,9 @@ export default function Home() {
           <a href="#preguntas">Preguntas</a>
           <a href="#contacto">Contacto</a>
           <a href={userEmail ? "/ayuda" : "/login?next=/ayuda"}>Ayuda</a>
+          <a href={isAdmin ? "/admin#pedidos" : userEmail ? "/cuenta#pedidos" : "/login?next=/cuenta"}>
+            Pedidos
+          </a>
 
           {isAdmin && (
             <a className="adminBtn" href="/admin">
@@ -1684,6 +1687,13 @@ export default function Home() {
           font-weight: 950;
           letter-spacing: 1.8px;
           padding: 9px 15px;
+          min-height: 36px;
+          display: grid;
+          place-items: center;
+          line-height: 18px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
         header {
           min-height: 76px;
@@ -2840,7 +2850,7 @@ export default function Home() {
           header { padding: 0 16px; }
           .logo { font-size: 20px; }
           .cartBtn span { display: none; }
-          .announcement { font-size: 9px; }
+          .announcement { min-height: 36px; padding: 7px 8px; font-size: 9px; letter-spacing: .8px; }
           .hero { min-height: 650px; }
           .hero h1 { font-size: 52px; }
           .trust { margin-top: 45px; }

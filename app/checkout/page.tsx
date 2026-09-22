@@ -23,6 +23,31 @@ type CreatedOrder = {
 const ALIAS = "genaroperaltaz";
 const PROVINCES = ["Buenos Aires", "CABA", "Catamarca", "Chaco", "Chubut", "Córdoba", "Corrientes", "Entre Ríos", "Formosa", "Jujuy", "La Pampa", "La Rioja", "Mendoza", "Misiones", "Neuquén", "Río Negro", "Salta", "San Juan", "San Luis", "Santa Cruz", "Santa Fe", "Santiago del Estero", "Tierra del Fuego", "Tucumán"];
 
+function validFullName(value: string) {
+  const words = value.trim().replace(/\s+/g, " ").split(" ");
+  return words.length >= 2 && words.every((word) => /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ'.-]{2,}$/.test(word));
+}
+
+function validArgentinePhone(value: string) {
+  const digits = value.replace(/\D/g, "").replace(/^00/, "");
+  const national = digits.startsWith("54") ? digits.slice(2).replace(/^9/, "") : digits;
+  if (national.length !== 10 || /^(\d)\1+$/.test(national)) return false;
+  return !["0123456789", "1234567890", "9876543210", "0000000000"].includes(national);
+}
+
+function validAddress(value: string) {
+  const clean = value.trim();
+  return clean.length >= 6 && /[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/.test(clean) && /\d/.test(clean);
+}
+
+function validCity(value: string) {
+  return /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ'. -]{2,80}$/.test(value.trim());
+}
+
+function validPostalCode(value: string) {
+  return /^(?:\d{4}|[A-HJ-NP-Z]\d{4}[A-Z]{3})$/i.test(value.trim());
+}
+
 export default function CheckoutPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -108,8 +133,13 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (!/^\+?[0-9 ()-]{8,20}$/.test(phone.trim())) {
-      setMessage("Ingresá un teléfono válido, incluyendo código de área.");
+    if (!validFullName(fullName)) {
+      setMessage("Ingresá tu nombre y apellido reales, sin números ni caracteres inválidos.");
+      return;
+    }
+
+    if (!validArgentinePhone(phone)) {
+      setMessage("Ingresá un teléfono argentino válido de 10 dígitos, incluyendo código de área.");
       return;
     }
 
@@ -123,8 +153,23 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (!/^[A-Za-z0-9 -]{3,10}$/.test(postalCode.trim())) {
-      setMessage("Ingresá un código postal válido.");
+    if (!validAddress(address)) {
+      setMessage("Ingresá una dirección real con calle y altura.");
+      return;
+    }
+
+    if (!validCity(city)) {
+      setMessage("Ingresá una ciudad válida, sin números.");
+      return;
+    }
+
+    if (!PROVINCES.includes(province)) {
+      setMessage("Seleccioná una provincia válida.");
+      return;
+    }
+
+    if (!validPostalCode(postalCode)) {
+      setMessage("Ingresá un código postal argentino válido: 4 números o CPA completo.");
       return;
     }
 
@@ -310,6 +355,7 @@ export default function CheckoutPage() {
             placeholder="Nombre y apellido"
             aria-label="Nombre y apellido"
             autoComplete="name"
+            maxLength={120}
             required
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
@@ -321,6 +367,7 @@ export default function CheckoutPage() {
             aria-label="Teléfono"
             autoComplete="tel"
             inputMode="tel"
+            maxLength={20}
             required
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
@@ -331,6 +378,7 @@ export default function CheckoutPage() {
             placeholder="Dirección"
             aria-label="Dirección de entrega"
             autoComplete="street-address"
+            maxLength={250}
             required
             value={address}
             onChange={(e) => setAddress(e.target.value)}
@@ -341,6 +389,7 @@ export default function CheckoutPage() {
             placeholder="Ciudad"
             aria-label="Ciudad"
             autoComplete="address-level2"
+            maxLength={80}
             required
             value={city}
             onChange={(e) => setCity(e.target.value)}
@@ -361,7 +410,8 @@ export default function CheckoutPage() {
             placeholder="Código postal"
             aria-label="Código postal"
             autoComplete="postal-code"
-            inputMode="numeric"
+            inputMode="text"
+            maxLength={8}
             required
             value={postalCode}
             onChange={(e) => setPostalCode(e.target.value)}
