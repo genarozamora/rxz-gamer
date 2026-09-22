@@ -792,11 +792,12 @@ export default function Home() {
         <div className="glow glow2" />
       </div>
 
-      <div className="announcement">
-        🚚 ENVÍOS A TODO EL PAÍS · OCA · ATENCIÓN PERSONALIZADA
-      </div>
+      <div className="siteTop">
+        <div className="announcement">
+          🚚 ENVÍOS A TODO EL PAÍS · OCA · ATENCIÓN PERSONALIZADA
+        </div>
 
-      <header>
+        <header>
         <a href="#inicio" className="logo">
           RXZ <span>GAMER</span>
         </a>
@@ -829,7 +830,8 @@ export default function Home() {
             {totalItems > 0 && <b className="counter">{totalItems}</b>}
           </button>
         </nav>
-      </header>
+        </header>
+      </div>
 
       <section id="inicio" className="hero">
         <div className="heroBadge">GAMING · PERFORMANCE · TECNOLOGÍA</div>
@@ -1661,9 +1663,14 @@ export default function Home() {
           top: 350px;
           animation: move2 20s infinite alternate ease-in-out;
         }
-        .announcement, header, section, footer {
+        .siteTop, .announcement, header, section, footer {
           position: relative;
           z-index: 2;
+        }
+        .siteTop {
+          position: sticky;
+          top: 0;
+          z-index: 100;
         }
         .announcement {
           background: #22c55e;
@@ -1681,9 +1688,6 @@ export default function Home() {
           align-items: center;
           justify-content: space-between;
           gap: 30px;
-          position: sticky;
-          top: 0;
-          z-index: 100;
           background: rgba(3,6,11,.84);
           backdrop-filter: blur(24px);
           border-bottom: 1px solid rgba(255,255,255,.08);
@@ -1696,6 +1700,7 @@ export default function Home() {
           letter-spacing: 1px;
         }
         .logo span, .footerLogo span { color: #22c55e; }
+        section[id] { scroll-margin-top: 125px; }
         nav { display: flex; align-items: center; gap: 25px; }
         .menuBtn {
           display: none;
