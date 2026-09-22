@@ -1625,6 +1625,7 @@ export default function Home() {
           position: relative;
           overflow: hidden;
           background: #03060b;
+          padding-top: 112px;
         }
         .background {
           position: fixed;
@@ -1668,8 +1669,11 @@ export default function Home() {
           z-index: 2;
         }
         .siteTop {
-          position: sticky;
+          position: fixed;
           top: 0;
+          left: 0;
+          right: 0;
+          width: 100%;
           z-index: 100;
         }
         .announcement {
