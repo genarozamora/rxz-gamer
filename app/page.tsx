@@ -857,10 +857,14 @@ export default function Home() {
         <div className="tools">
           <div className="search">
             🔎
+            <label className="srOnly" htmlFor="catalog-search">Buscar productos en el catálogo</label>
             <input
+              id="catalog-search"
+              type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar productos..."
+              autoComplete="off"
             />
           </div>
 
@@ -897,7 +901,19 @@ export default function Home() {
 
             return (
               <article className="card" key={product.id}>
-                <div className="imageBox" onClick={() => openProduct(product)}>
+                <div
+                  className="imageBox"
+                  onClick={() => openProduct(product)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      openProduct(product);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Ver detalles de ${product.brand} ${product.name}`}
+                >
                   <button
                     className={favoriteIds.includes(product.id) ? "favoriteBtn isFavorite" : "favoriteBtn"}
                     onClick={(event) => { event.stopPropagation(); toggleFavorite(product.id); }}
@@ -1185,7 +1201,7 @@ export default function Home() {
       </a>
 
       {toast && (
-        <div className="toast">
+        <div className="toast" role="status" aria-live="polite">
           <span>{toast}</span>
           {toast.toLowerCase().includes("carrito") && (
             <button onClick={() => setCartOpen(true)}>VER CARRITO</button>
@@ -1526,6 +1542,21 @@ export default function Home() {
         button, input { font: inherit; }
         button { cursor: pointer; }
         button:disabled { cursor: not-allowed; opacity: .45; }
+        .srOnly {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0,0,0,0);
+          white-space: nowrap;
+          border: 0;
+        }
+        :where(a, button, input, [role="button"]):focus-visible {
+          outline: 3px solid rgba(74,222,128,.95);
+          outline-offset: 3px;
+        }
         main {
           min-height: 100vh;
           position: relative;
@@ -2599,6 +2630,16 @@ export default function Home() {
         }
         @keyframes move2 {
           to { transform: translate(-300px,150px); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          html { scroll-behavior: auto; }
+          *, *::before, *::after {
+            animation-duration: .01ms !important;
+            animation-iteration-count: 1 !important;
+            scroll-behavior: auto !important;
+            transition-duration: .01ms !important;
+          }
         }
 
         .favoriteBtn { position:absolute; top:12px; right:12px; z-index:5; width:42px; height:42px; border:1px solid rgba(255,255,255,.16); border-radius:50%; background:rgba(3,6,11,.78); color:white; font-size:24px; line-height:1; backdrop-filter:blur(10px); transition:.2s; }
