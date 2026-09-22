@@ -552,17 +552,18 @@ export default function Home() {
   const selectedVariant = selected?.variants?.find((variant) => variant.id === selectedVariantId);
 
   const categories = useMemo(
-    () => ["Todos", ...Array.from(new Set(catalogProducts.map((p) => p.category)))],
+    () => ["Todos", ...Array.from(new Set(catalogProducts.map((p) => p.category))), "Favoritos"],
     [catalogProducts]
   );
 
   const filtered = useMemo(() => {
     return catalogProducts.filter((p) => {
-      const categoryOK = category === "Todos" || p.category === category;
+      const categoryOK = category === "Todos"
+        || (category === "Favoritos" ? favoriteIds.includes(p.id) : p.category === category);
       const text = `${p.brand} ${p.name} ${p.subtitle}`.toLowerCase();
       return categoryOK && text.includes(search.toLowerCase());
     });
-  }, [search, category, catalogProducts]);
+  }, [search, category, catalogProducts, favoriteIds]);
 
   const totalItems = cart.reduce((a, b) => a + b.quantity, 0);
   const total = cart.reduce((a, b) => a + b.price * b.quantity, 0);
@@ -870,10 +871,21 @@ export default function Home() {
                 className={category === c ? "active" : ""}
                 onClick={() => setCategory(c)}
               >
-                {c}
+                {c === "Favoritos" ? `♡ Favoritos (${favoriteIds.length})` : c}
               </button>
             ))}
           </div>
+        </div>
+
+        <div className="catalogStatus" aria-live="polite">
+          <span>
+            {filtered.length} {filtered.length === 1 ? "producto disponible" : "productos disponibles"}
+          </span>
+          {(search || category !== "Todos") && (
+            <button onClick={() => { setSearch(""); setCategory("Todos"); }}>
+              LIMPIAR FILTROS
+            </button>
+          )}
         </div>
 
         <div className="productGrid">
@@ -1016,6 +1028,14 @@ export default function Home() {
               </article>
             );
           })}
+          {filtered.length === 0 && (
+            <div className="emptyCatalog">
+              <span>⌕</span>
+              <h3>{category === "Favoritos" ? "Todavía no guardaste productos" : "No encontramos coincidencias"}</h3>
+              <p>{category === "Favoritos" ? "Tocá el corazón de un producto para guardarlo acá." : "Probá con otro nombre o restablecé los filtros."}</p>
+              <button onClick={() => { setSearch(""); setCategory("Todos"); }}>VER TODO EL CATÁLOGO</button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -1160,10 +1180,16 @@ export default function Home() {
         💬
       </a>
 
+      <a className="backToTop" href="#inicio" aria-label="Volver al inicio" title="Volver al inicio">
+        ↑
+      </a>
+
       {toast && (
         <div className="toast">
           <span>{toast}</span>
-          <button onClick={() => setCartOpen(true)}>VER CARRITO</button>
+          {toast.toLowerCase().includes("carrito") && (
+            <button onClick={() => setCartOpen(true)}>VER CARRITO</button>
+          )}
         </div>
       )}
 
@@ -1803,11 +1829,42 @@ export default function Home() {
           color: #031008;
           border-color: #22c55e;
         }
+        .catalogStatus {
+          min-height: 34px;
+          margin: -28px 0 18px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 15px;
+          color: #8492a7;
+          font-size: 12px;
+        }
+        .catalogStatus button {
+          padding: 7px 10px;
+          border: 0;
+          background: transparent;
+          color: #65e9a6;
+          font-size: 10px;
+          font-weight: 900;
+          letter-spacing: .7px;
+        }
         .productGrid {
           display: grid;
           grid-template-columns: repeat(auto-fit,minmax(290px,1fr));
           gap: 25px;
         }
+        .emptyCatalog {
+          grid-column: 1 / -1;
+          padding: 58px 24px;
+          border: 1px dashed #2a3b50;
+          border-radius: 18px;
+          background: rgba(8,17,28,.7);
+          text-align: center;
+        }
+        .emptyCatalog > span { color: #22c55e; font-size: 48px; }
+        .emptyCatalog h3 { margin: 10px 0 8px; font-size: 24px; }
+        .emptyCatalog p { margin: 0; color: #8794a8; }
+        .emptyCatalog button { margin-top: 22px; padding: 12px 17px; border: 1px solid #22c55e; border-radius: 9px; background: #0b241c; color: #86efac; font-weight: 900; }
         .card {
           overflow: hidden;
           display: flex;
@@ -2098,6 +2155,25 @@ export default function Home() {
           font-size: 27px;
           box-shadow: 0 10px 40px rgba(34,197,94,.35);
         }
+        .backToTop {
+          position: fixed;
+          right: 31px;
+          bottom: 94px;
+          z-index: 490;
+          width: 44px;
+          height: 44px;
+          display: grid;
+          place-items: center;
+          border: 1px solid #314158;
+          border-radius: 50%;
+          background: rgba(8,17,28,.94);
+          color: #dce7f3;
+          text-decoration: none;
+          font-size: 20px;
+          box-shadow: 0 12px 32px rgba(0,0,0,.28);
+          backdrop-filter: blur(10px);
+        }
+        .backToTop:hover { border-color: #22c55e; color: #6ee7a7; transform: translateY(-2px); }
         .toast {
           position: fixed;
           z-index: 900;
