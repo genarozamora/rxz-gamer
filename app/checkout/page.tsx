@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { trackMetaEvent } from "@/lib/meta-pixel";
 
 type CartItem = {
   id: number;
@@ -37,6 +38,7 @@ export default function CheckoutPage() {
   const [postalCode, setPostalCode] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [copied, setCopied] = useState("");
+  const trackedCheckout = useRef(false);
 
   useEffect(() => {
     async function load() {
@@ -64,6 +66,18 @@ export default function CheckoutPage() {
 
     load();
   }, []);
+
+  useEffect(() => {
+    if (loading || cart.length === 0 || trackedCheckout.current) return;
+    trackedCheckout.current = true;
+    trackMetaEvent("InitiateCheckout", {
+      content_ids: cart.map((item) => String(item.id)),
+      content_type: "product",
+      currency: "ARS",
+      num_items: cart.reduce((sum, item) => sum + item.quantity, 0),
+      value: cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    });
+  }, [loading, cart]);
 
   const subtotal = useMemo(
     () =>
@@ -160,6 +174,14 @@ export default function CheckoutPage() {
         event_name: "purchase",
         user_id: user.id,
         metadata: { order_id: created.order_id, total: Number(created.total) },
+      });
+
+      trackMetaEvent("Purchase", {
+        content_ids: cart.map((item) => String(item.id)),
+        content_type: "product",
+        currency: "ARS",
+        num_items: cart.reduce((sum, item) => sum + item.quantity, 0),
+        value: Number(created.total),
       });
 
       localStorage.removeItem("rxz-cart");

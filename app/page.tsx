@@ -6,6 +6,7 @@ import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { getPackagePreview } from "@/lib/package-preview";
 import { mergeVerifiedProduct } from "@/lib/verified-product";
+import { trackMetaEvent } from "@/lib/meta-pixel";
 
 type Spec = {
   label: string;
@@ -692,6 +693,13 @@ export default function Home() {
 
     setToast(`✓ ${product.name} agregado al carrito`);
     track("add_to_cart", product.id);
+    trackMetaEvent("AddToCart", {
+      content_ids: [String(product.id)],
+      content_name: `${product.brand} ${product.name}`,
+      content_type: "product",
+      currency: "ARS",
+      value: product.price,
+    });
   }
 
   function changeQuantity(cartKey: string, amount: number) {

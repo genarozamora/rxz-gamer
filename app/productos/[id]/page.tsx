@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PRODUCTS } from "@/app/page";
 import type { Product } from "@/app/page";
 import { supabase } from "@/lib/supabase";
 import { getPackagePreview } from "@/lib/package-preview";
 import { mergeVerifiedProduct } from "@/lib/verified-product";
+import { trackMetaEvent } from "@/lib/meta-pixel";
 
 const money = (value: number) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(value);
 type Review = { id: string; rating: number; comment: string; created_at: string };
@@ -24,6 +25,7 @@ export default function ProductPage() {
   const [variantId, setVariantId] = useState("");
   const [imageIndex, setImageIndex] = useState(0);
   const [cartMessage, setCartMessage] = useState("");
+  const trackedProductId = useRef<number | null>(null);
 
   useEffect(() => {
     supabase.from("products").select("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants").eq("id", id).eq("active", true).maybeSingle().then(({ data }) => {
@@ -36,6 +38,18 @@ export default function ProductPage() {
   useEffect(() => {
     supabase.from("product_reviews").select("id,rating,comment,created_at").eq("product_id", id).eq("approved", true).order("created_at", { ascending: false }).then(({ data }) => setReviews((data || []) as Review[]));
   }, [id]);
+
+  useEffect(() => {
+    if (!product || trackedProductId.current === product.id) return;
+    trackedProductId.current = product.id;
+    trackMetaEvent("ViewContent", {
+      content_ids: [String(product.id)],
+      content_name: `${product.brand} ${product.name}`,
+      content_type: "product",
+      currency: "ARS",
+      value: product.price,
+    });
+  }, [product]);
 
   async function sendReview() {
     const { data: { user } } = await supabase.auth.getUser();
@@ -80,6 +94,13 @@ export default function ProductPage() {
             images: variant ? [variant.image, ...product.images.filter((image) => image !== variant.image)] : product.images,
           }];
       localStorage.setItem("rxz-cart", JSON.stringify(nextCart));
+      trackMetaEvent("AddToCart", {
+        content_ids: [String(product.id)],
+        content_name: `${product.brand} ${product.name}`,
+        content_type: "product",
+        currency: "ARS",
+        value: product.price,
+      });
       router.push("/?cart=open");
     } catch {
       setCartMessage("No pudimos actualizar el carrito. Intentá nuevamente.");

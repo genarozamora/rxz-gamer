@@ -2,6 +2,7 @@
 
 import { Analytics, type BeforeSendEvent } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { MetaPixel } from "./meta-pixel";
 
 const PRIVATE_ROUTES = ["/admin", "/cuenta", "/checkout"];
 
@@ -19,6 +20,7 @@ export function StoreObservability() {
     <>
       <Analytics beforeSend={keepPublicStorePages} />
       <SpeedInsights sampleRate={1} />
+      <MetaPixel />
     </>
   );
 }
