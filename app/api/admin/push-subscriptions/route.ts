@@ -5,7 +5,8 @@ export async function POST(request: Request) {
     const user = await authenticatedUser(request);
     if (!user) return Response.json({ error: "No autorizado" }, { status: 401 });
     const db = adminClient();
-    const { data: staff } = await db.from("support_staff").select("user_id").eq("user_id", user.id).maybeSingle();
+    const { data: staff, error: staffError } = await db.from("support_staff").select("user_id").eq("user_id", user.id).maybeSingle();
+    if (staffError) return Response.json({ error: `Configuración del servidor: ${staffError.message}` }, { status: 503 });
     if (!staff) return Response.json({ error: "Acceso restringido" }, { status: 403 });
     const body = await request.json();
     const endpoint = String(body?.endpoint || "");
