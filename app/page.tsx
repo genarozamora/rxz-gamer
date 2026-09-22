@@ -571,6 +571,47 @@ export default function Home() {
     .map((id) => catalogProducts.find((product) => product.id === id))
     .filter((product): product is Product => Boolean(product));
   const selectedPackagePreview = selected ? getPackagePreview(selected) : null;
+  const catalogSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Catálogo de RXZ Gamer",
+    numberOfItems: catalogProducts.length,
+    itemListElement: catalogProducts.map((product, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      item: {
+        "@type": "Product",
+        name: `${product.brand} ${product.name}`,
+        description: product.description,
+        image: product.images.map((image) => `https://rxz-gamer-tflb.vercel.app${image}`),
+        brand: { "@type": "Brand", name: product.brand },
+        sku: `RXZ-${product.id}`,
+        url: `https://rxz-gamer-tflb.vercel.app/productos/${product.id}`,
+        offers: {
+          "@type": "Offer",
+          priceCurrency: "ARS",
+          price: product.price,
+          availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          itemCondition: "https://schema.org/NewCondition",
+          url: `https://rxz-gamer-tflb.vercel.app/productos/${product.id}`,
+        },
+      },
+    })),
+  };
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      ["¿Los productos están disponibles para entrega inmediata?", "Sí. Los productos publicados como En stock están disponibles. El stock se descuenta al confirmar cada pedido."],
+      ["¿Cómo se calcula el envío?", "Enviamos mediante OCA desde Villa Allende, Córdoba. El costo y el plazo se confirman según el código postal antes del despacho."],
+      ["¿Cuándo veo los datos para pagar?", "El alias se muestra únicamente después de confirmar el pedido. Luego podés adjuntar el comprobante desde tu cuenta."],
+      ["¿Puedo elegir el color?", "Sí. Antes de agregar un producto al carrito tenés que abrir su ficha y seleccionar una variante con stock."],
+    ].map(([name, text]) => ({
+      "@type": "Question",
+      name,
+      acceptedAnswer: { "@type": "Answer", text },
+    })),
+  };
 
   function track(eventName: string, productId?: number) {
     let campaign: Record<string, string> | null = null;
@@ -737,6 +778,8 @@ export default function Home() {
 
   return (
     <main id="contenido-principal">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(catalogSchema).replace(/</g, "\\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema).replace(/</g, "\\u003c") }} />
       <div className="background">
         <div className="grid" />
         <div className="glow glow1" />
@@ -968,6 +1011,9 @@ export default function Home() {
                   )}
 
                   <div className="price">{money(product.price)}</div>
+                  {product.oldPrice && product.oldPrice > product.price && (
+                    <div className="saving">AHORRÁS {money(product.oldPrice - product.price)}</div>
+                  )}
                   <small className="transfer">
                     Precio especial por transferencia
                   </small>
@@ -2075,6 +2121,13 @@ export default function Home() {
           font-weight: 950;
           height: 42px;
           margin: 3px 0 0;
+        }
+        .saving {
+          min-height: 22px;
+          color: #7ef0b4;
+          font-size: 11px;
+          font-weight: 950;
+          letter-spacing: .65px;
         }
         .transfer {
           display: block;
