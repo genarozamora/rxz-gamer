@@ -52,16 +52,6 @@ export function SectionShell({ active, children }: { active: string; children: R
         `}</style>
       </div>
       <div className="h-[169px] lg:h-28" aria-hidden="true" />
-      {active !== "/inicio" && (
-        <div className="relative z-20 mx-auto max-w-[1500px] px-4 pt-5 sm:px-7">
-          <Link
-            href="/inicio"
-            className="inline-flex items-center gap-2 rounded-xl border border-[#22c55e]/35 bg-[#07120d]/90 px-4 py-2.5 text-xs font-black tracking-wide text-[#86efac] shadow-[0_0_22px_rgba(34,197,94,.08)] transition hover:border-[#22c55e] hover:bg-[#22c55e] hover:text-[#031008]"
-          >
-            <span aria-hidden="true">←</span> VOLVER AL INICIO
-          </Link>
-        </div>
-      )}
       <div className="relative z-10">{children}</div>
       <footer className="relative z-10 border-t border-white/10 px-5 py-10 text-center text-sm text-slate-500">
         <Link href="/inicio" className="font-black text-white">RXZ <span className="text-[#22c55e]">GAMER</span></Link>
