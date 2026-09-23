@@ -212,8 +212,8 @@ export default function AyudaPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#050b14] px-4 py-8 text-white sm:px-6">
-      <section className="mx-auto flex min-h-[76vh] max-w-4xl flex-col overflow-hidden rounded-3xl border border-emerald-400/20 bg-[#08121f] shadow-2xl shadow-cyan-950/30">
+    <main className="min-h-screen min-h-[100dvh] bg-[#050b14] px-0 py-0 text-white sm:px-6 sm:py-8">
+      <section className="mx-auto flex h-[100dvh] min-h-0 max-w-4xl flex-col overflow-hidden border border-emerald-400/20 bg-[#08121f] shadow-2xl shadow-cyan-950/30 sm:h-auto sm:min-h-[76vh] sm:rounded-3xl">
         <header className="border-b border-white/10 bg-gradient-to-r from-emerald-500/10 via-cyan-500/10 to-blue-500/10 px-5 py-5 sm:px-7">
           <div className="flex items-center gap-4">
             <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-emerald-400 to-cyan-500 font-black text-[#031018] shadow-lg shadow-emerald-500/20">
@@ -231,7 +231,7 @@ export default function AyudaPage() {
           </div>
         </header>
 
-        <div className="flex-1 space-y-4 overflow-y-auto px-4 py-6 sm:px-7">
+        <div className="min-h-0 flex-1 space-y-4 overscroll-contain overflow-y-auto px-4 py-6 sm:px-7">
           {messages.length === 0 ? (
             <div className="mx-auto mt-8 max-w-md rounded-2xl border border-cyan-400/15 bg-cyan-400/[0.04] p-6 text-center">
               <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full bg-emerald-400/10 text-2xl">
@@ -277,14 +277,14 @@ export default function AyudaPage() {
           <div ref={bottomRef} />
         </div>
 
-        <footer className="border-t border-white/10 bg-[#07101c] p-4 sm:p-6">
+        <footer className="shrink-0 border-t border-white/10 bg-[#07101c] p-3 pb-[max(.75rem,env(safe-area-inset-bottom))] sm:p-6">
           {error && (
             <p className="mb-3 rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
               {error}
             </p>
           )}
 
-          <form onSubmit={sendMessage} className="flex items-end gap-3">
+          <form onSubmit={sendMessage} className="flex items-end gap-2 sm:gap-3">
             <label className="sr-only" htmlFor="support-message">
               Escribí tu mensaje
             </label>
@@ -302,7 +302,7 @@ export default function AyudaPage() {
               maxLength={2000}
               disabled={sending}
               placeholder="Escribí tu consulta…"
-              className="max-h-36 min-h-12 flex-1 resize-none rounded-2xl border border-white/10 bg-[#0d1a29] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-400/10 disabled:opacity-60"
+              className="max-h-36 min-h-12 min-w-0 flex-1 resize-none rounded-2xl border border-white/10 bg-[#0d1a29] px-4 py-3 text-base text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-400/10 disabled:opacity-60 sm:text-sm"
             />
             <button
               type="submit"
@@ -319,7 +319,7 @@ export default function AyudaPage() {
               )}
             </button>
           </form>
-          <p className="mt-2 px-1 text-xs text-slate-500">
+          <p className="mt-2 hidden px-1 text-xs text-slate-500 sm:block">
             Enter para enviar · Shift + Enter para una nueva línea
           </p>
         </footer>

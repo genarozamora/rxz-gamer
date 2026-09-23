@@ -694,8 +694,8 @@ export default function AdminPage() {
           </button>
         </div>
 
-        <div style={styles.supportLayout}>
-          <div style={styles.conversationList}>
+        <div className="adminSupportLayout" style={styles.supportLayout}>
+          <div className="adminConversationList" style={styles.conversationList}>
             {supportLoading && conversations.length === 0 ? (
               <div style={styles.emptySupport}>Cargando consultas...</div>
             ) : conversations.length === 0 ? (
@@ -734,12 +734,12 @@ export default function AdminPage() {
             )}
           </div>
 
-          <div style={styles.supportChat}>
+          <div className="adminSupportChat" style={styles.supportChat}>
             {!selectedConversation ? (
               <div style={styles.emptyChat}>Seleccioná una conversación.</div>
             ) : (
               <>
-                <div style={styles.supportChatHeader}>
+                <div className="adminSupportHeader" style={styles.supportChatHeader}>
                   <div>
                     <strong>{selectedConversation.subject}</strong>
                     <div style={styles.conversationUser}>
@@ -754,7 +754,7 @@ export default function AdminPage() {
                   </button>
                 </div>
 
-                <div style={styles.supportMessageArea}>
+                <div className="adminSupportMessages" style={styles.supportMessageArea}>
                   {supportMessages.length === 0 ? (
                     <div style={styles.emptyChat}>Esta conversación no tiene mensajes.</div>
                   ) : (
@@ -787,7 +787,7 @@ export default function AdminPage() {
                   )}
                 </div>
 
-                <div style={styles.supportComposer}>
+                <div className="adminSupportComposer" style={styles.supportComposer}>
                   <textarea
                     value={supportDraft}
                     onChange={(event) => setSupportDraft(event.target.value)}
@@ -800,9 +800,11 @@ export default function AdminPage() {
                     placeholder="Escribí una respuesta..."
                     rows={2}
                     disabled={supportSending || selectedConversation.status === "closed"}
+                    className="adminSupportTextarea"
                     style={styles.supportTextarea}
                   />
                   <button
+                    className="adminSupportSend"
                     style={styles.supportSendButton}
                     disabled={
                       supportSending ||
@@ -997,6 +999,52 @@ export default function AdminPage() {
           </div>
         )}
       </div>
+      <style jsx>{`
+        @media (max-width: 720px) {
+          .adminSupportLayout {
+            grid-template-columns: minmax(0, 1fr) !important;
+            min-height: 0 !important;
+            overflow: visible !important;
+          }
+          .adminConversationList {
+            max-height: 230px !important;
+            border-right: 0 !important;
+            border-bottom: 1px solid rgba(255,255,255,.1) !important;
+          }
+          .adminSupportChat { min-height: 520px !important; }
+          .adminSupportHeader {
+            align-items: flex-start !important;
+            flex-direction: column !important;
+          }
+          .adminSupportHeader button { width: 100%; }
+          .adminSupportMessages {
+            min-height: 280px !important;
+            max-height: 48dvh !important;
+            padding: 12px !important;
+            overscroll-behavior: contain;
+          }
+          .adminSupportComposer {
+            position: sticky;
+            bottom: 0;
+            z-index: 2;
+            flex-direction: column !important;
+            padding: 12px !important;
+            padding-bottom: max(12px, env(safe-area-inset-bottom)) !important;
+            background: #07101c;
+          }
+          .adminSupportTextarea {
+            width: 100% !important;
+            min-height: 52px !important;
+            resize: none !important;
+            font-size: 16px !important;
+          }
+          .adminSupportSend {
+            width: 100% !important;
+            min-height: 48px !important;
+            padding: 12px 16px !important;
+          }
+        }
+      `}</style>
     </main>
   );
 }
