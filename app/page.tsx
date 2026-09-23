@@ -800,35 +800,35 @@ export default function Home() {
         </div>
 
         <header>
-        <Link href="/inicio" className="logo">
+        <a href="#inicio" className="logo">
           RXZ <span>GAMER</span>
-        </Link>
+        </a>
 
         <button className="menuBtn" onClick={() => setMenuOpen((open) => !open)} aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"} aria-expanded={menuOpen} aria-controls="navegacion-principal">
           {menuOpen ? "✕" : "☰"}
         </button>
 
         <nav id="navegacion-principal" className={menuOpen ? "navOpen" : ""} onClick={() => setMenuOpen(false)}>
-          <Link href="/inicio">Inicio</Link>
-          <Link href="/productos">Productos</Link>
-          <Link href="/comparar">Comparar</Link>
-          <Link href="/envios">Envíos</Link>
-          <Link href="/preguntas">Preguntas</Link>
-          <Link href="/contacto">Contacto</Link>
-          <Link href={userEmail ? "/ayuda" : "/login?next=/ayuda"}>Ayuda</Link>
-          <Link href={isAdmin ? "/admin#pedidos" : userEmail ? "/cuenta#pedidos" : "/login?next=/cuenta"}>
+          <a href="#inicio">Inicio</a>
+          <a href="#productos">Productos</a>
+          <a href="#comparar">Comparar</a>
+          <a href="#beneficios">Envíos</a>
+          <a href="#preguntas">Preguntas</a>
+          <a href="#contacto">Contacto</a>
+          <a href={userEmail ? "/ayuda" : "/login?next=/ayuda"}>Ayuda</a>
+          <a href={isAdmin ? "/admin#pedidos" : userEmail ? "/cuenta#pedidos" : "/login?next=/cuenta"}>
             Pedidos
-          </Link>
+          </a>
 
           {isAdmin && (
-            <Link className="adminBtn" href="/admin">
+            <a className="adminBtn" href="/admin">
               Soporte / Admin
-            </Link>
+            </a>
           )}
 
-          <Link className="accountBtn" href={userEmail ? "/cuenta" : "/login"}>
+          <a className="accountBtn" href={userEmail ? "/cuenta" : "/login"}>
             👤 <span>{userEmail ? "Mi cuenta" : "Iniciar sesión"}</span>
-          </Link>
+          </a>
 
           <button className="cartBtn" onClick={() => setCartOpen(true)}>
             🛒 <span>Carrito</span>
@@ -853,13 +853,13 @@ export default function Home() {
         </p>
 
         <div className="heroButtons">
-          <Link href="/productos" className="primary">
+          <a href="#productos" className="primary">
             VER PRODUCTOS
-          </Link>
+          </a>
 
-          <Link className="secondary" href={userEmail ? "/ayuda" : "/login?next=/ayuda"}>
+          <a className="secondary" href={userEmail ? "/ayuda" : "/login?next=/ayuda"}>
             HABLAR CON SOPORTE
-          </Link>
+          </a>
         </div>
 
         <div className="trust">
@@ -896,9 +896,9 @@ export default function Home() {
           <p>Información directa, comparaciones claras y tecnología que realmente suma a tu setup.</p>
         </div>
         <div className="reelCards">
-          <Link className="reelCard reelCardGreen" href="/productos"><small>01 · DESCUBRÍ</small><strong>TODO EMPIEZA CON EL SETUP.</strong><span>Explorá periféricos seleccionados por rendimiento.</span><b>VER CATÁLOGO →</b></Link>
-          <Link className="reelCard reelCardBlue" href="/comparar"><small>02 · COMPARÁ</small><strong>DATOS REALES. DECISIÓN SIMPLE.</strong><span>Revisá características, variantes, stock y precio.</span><b>COMPARAR OPCIONES →</b></Link>
-          <Link className="reelCard reelCardDark" href="/envios"><small>03 · ELEGÍ</small><strong>TU SETUP. TU NIVEL.</strong><span>Compra segura, atención directa y envíos nacionales.</span><b>CONOCER RXZ →</b></Link>
+          <a className="reelCard reelCardGreen" href="#productos"><small>01 · DESCUBRÍ</small><strong>TODO EMPIEZA CON EL SETUP.</strong><span>Explorá periféricos seleccionados por rendimiento.</span><b>VER CATÁLOGO →</b></a>
+          <a className="reelCard reelCardBlue" href="#productos"><small>02 · COMPARÁ</small><strong>DATOS REALES. DECISIÓN SIMPLE.</strong><span>Revisá características, variantes, stock y precio.</span><b>COMPARAR OPCIONES →</b></a>
+          <a className="reelCard reelCardDark" href="#beneficios"><small>03 · ELEGÍ</small><strong>TU SETUP. TU NIVEL.</strong><span>Compra segura, atención directa y envíos nacionales.</span><b>CONOCER RXZ →</b></a>
         </div>
         <div className="performanceTicker" aria-label="Características de RXZ Gamer"><div><span>GAMING</span><i>✦</i><span>PERFORMANCE</span><i>✦</i><span>TECNOLOGÍA</span><i>✦</i><span>GAMING</span><i>✦</i><span>PERFORMANCE</span><i>✦</i><span>TECNOLOGÍA</span><i>✦</i></div></div>
       </section>
@@ -1236,9 +1236,9 @@ export default function Home() {
         <h2>Estamos para ayudarte.</h2>
         <p>Consultanos sobre productos, stock, pagos o envíos.</p>
 
-        <Link href={userEmail ? "/ayuda" : "/login?next=/ayuda"}>
+        <a href={userEmail ? "/ayuda" : "/login?next=/ayuda"}>
           💬 ABRIR CHAT DE SOPORTE
-        </Link>
+        </a>
       </section>
 
       <footer>
@@ -1257,18 +1257,18 @@ export default function Home() {
       </footer>
 
       <nav className="mobileDock" aria-label="Accesos rápidos">
-        <Link href="/productos" aria-label="Ver productos">
+        <a href="#productos" aria-label="Ver productos">
           <span aria-hidden="true">⌕</span>
           Productos
-        </Link>
-        <Link href="/comparar" aria-label="Comparar productos">
+        </a>
+        <a href="#comparar" aria-label="Comparar productos">
           <span aria-hidden="true">⇄</span>
           Comparar
-        </Link>
-        <Link href={userEmail ? "/cuenta#pedidos" : "/login?next=/cuenta"} aria-label="Ver mis pedidos">
+        </a>
+        <a href={userEmail ? "/cuenta#pedidos" : "/login?next=/cuenta"} aria-label="Ver mis pedidos">
           <span aria-hidden="true">▣</span>
           Pedidos
-        </Link>
+        </a>
         <button
           type="button"
           onClick={() => setCartOpen(true)}
@@ -1280,13 +1280,13 @@ export default function Home() {
         </button>
       </nav>
 
-      <Link
+      <a
         className="supportFloat"
         href={userEmail ? "/ayuda" : "/login?next=/ayuda"}
         aria-label="Abrir chat de soporte RXZ Gamer"
       >
         💬
-      </Link>
+      </a>
 
       <a className="backToTop" href="#inicio" aria-label="Volver al inicio" title="Volver al inicio">
         ↑
@@ -1446,16 +1446,16 @@ export default function Home() {
                   <span>💬 Soporte directo</span>
                 </div>
 
-                <Link className="productDetailLink" href={`/productos/${selected.id}`}>
+                <a className="productDetailLink" href={`/productos/${selected.id}`}>
                   VER FICHA COMPLETA
-                </Link>
+                </a>
 
-                <Link
+                <a
                   className="productSupport"
                   href={userEmail ? "/ayuda" : "/login?next=/ayuda"}
                 >
                   CONSULTAR A SOPORTE
-                </Link>
+                </a>
 
 
               </div>
