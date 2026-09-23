@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { SectionShell } from "@/app/components/section-shell";
-
-export default function ContactoPage() { return <SectionShell active="/contacto"><section className="mx-auto grid min-h-[65dvh] max-w-4xl place-items-center px-5 py-14 text-center"><div><span className="text-xs font-black tracking-[.2em] text-emerald-400">SOPORTE RXZ</span><h1 className="mt-3 text-4xl font-black sm:text-6xl">Estamos para ayudarte</h1><p className="mx-auto mt-5 max-w-xl text-lg leading-8 text-slate-400">Consultanos por productos, compatibilidad, stock, pagos, pedidos o envíos desde nuestro chat interno.</p><Link href="/ayuda" className="mt-9 inline-block rounded-xl bg-emerald-400 px-7 py-4 text-sm font-black text-[#031008]">ABRIR CHAT DE SOPORTE</Link></div></section></SectionShell>; }
+import { StoreSectionView } from "@/app/components/store-section-view";
+export default function ContactoPage() { return <SectionShell active="/contacto"><StoreSectionView section="contacto" /></SectionShell>; }
