@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -74,6 +74,19 @@ export default function AdminPage() {
   const [pushStatus, setPushStatus] = useState<"idle" | "checking" | "subscribing" | "active" | "error">("checking");
   const [seenOrderIds, setSeenOrderIds] = useState<string[]>([]);
   const [testingNotification, setTestingNotification] = useState(false);
+  const [liveOrdersStatus, setLiveOrdersStatus] = useState<"connecting" | "active" | "fallback">("connecting");
+  const knownOrderIds = useRef<Set<string> | null>(null);
+
+  function showOrderNotification(order: Order) {
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+    navigator.serviceWorker?.ready.then((registration) => registration.showNotification("Nuevo pedido en RXZ Gamer", {
+      body: `${order.order_number} · $${Number(order.total).toLocaleString("es-AR")}`,
+      icon: "/icon-192.png",
+      badge: "/icon-192.png",
+      tag: `rxz-order-${order.id}`,
+      data: { url: "/admin#pedidos" },
+    })).catch(() => undefined);
+  }
 
   async function checkAdmin() {
     setLoading(true);
@@ -142,18 +155,22 @@ export default function AdminPage() {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" }, (payload) => {
         const order = payload.new as Order;
         setOrders((current) => current.some((item) => item.id === order.id) ? current : [order, ...current]);
-        if ("Notification" in window && Notification.permission === "granted") {
-          navigator.serviceWorker?.ready.then((registration) => registration.showNotification("Nuevo pedido en RXZ Gamer", {
-            body: `${order.order_number} · $${Number(order.total).toLocaleString("es-AR")}`,
-            icon: "/icon-192.png",
-            badge: "/icon-192.png",
-            tag: `rxz-order-${order.id}`,
-            data: { url: "/admin" },
-          })).catch(() => undefined);
-        }
+        knownOrderIds.current?.add(order.id);
+        showOrderNotification(order);
       })
-      .subscribe();
+      .subscribe((status) => setLiveOrdersStatus(status === "SUBSCRIBED" ? "active" : status === "CHANNEL_ERROR" || status === "TIMED_OUT" ? "fallback" : "connecting"));
     return () => { void supabase.removeChannel(channel); };
+  }, [authorized]);
+
+  useEffect(() => {
+    if (!authorized) return;
+    const refresh = () => { if (document.visibilityState === "visible") void loadOrders(); };
+    const timer = window.setInterval(refresh, 30000);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", refresh);
+    };
   }, [authorized]);
 
   const newOrders = orders.filter((order) => !seenOrderIds.includes(order.id));
@@ -322,6 +339,11 @@ export default function AdminPage() {
       setMessage(error.message);
     } else {
       const loadedOrders = (data || []) as Order[];
+      if (knownOrderIds.current) {
+        const freshOrders = loadedOrders.filter((order) => !knownOrderIds.current?.has(order.id));
+        freshOrders.slice(0, 3).forEach(showOrderNotification);
+      }
+      knownOrderIds.current = new Set(loadedOrders.map((order) => order.id));
       setOrders(loadedOrders);
       if (localStorage.getItem("rxz-admin-seen-orders") === null) {
         const initialIds = loadedOrders.map((order) => order.id);
@@ -599,6 +621,9 @@ export default function AdminPage() {
             <strong>Avisos de pedidos</strong>
             <div style={styles.notificationText}>
               {pushStatus === "active" ? "Activos en este dispositivo" : notificationPermission === "denied" ? "Bloqueados por el navegador" : notificationPermission === "unsupported" ? "No disponibles en este navegador" : pushStatus === "subscribing" || pushStatus === "checking" ? "Comprobando activación..." : pushStatus === "error" ? "Falta completar la activación" : "Todavía no activados"}
+            </div>
+            <div style={styles.notificationText}>
+              {liveOrdersStatus === "active" ? "Detección en vivo activa" : liveOrdersStatus === "fallback" ? "Respaldo automático cada 30 segundos" : "Conectando detección de pedidos..."}
             </div>
           </div>
           <button style={styles.secondaryButton} onClick={enableNotifications} disabled={pushStatus === "subscribing" || pushStatus === "checking"}>
