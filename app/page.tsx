@@ -410,6 +410,8 @@ function SafeImage({
       src={src}
       alt={alt}
       className={className}
+      loading="lazy"
+      decoding="async"
       onError={(event) => {
         const img = event.currentTarget;
         if (!img.src.endsWith(fallback)) img.src = fallback;
@@ -1253,6 +1255,30 @@ export default function Home() {
         </div>
         <small>© 2026 RXZ Gamer · Todos los derechos reservados.</small>
       </footer>
+
+      <nav className="mobileDock" aria-label="Accesos rápidos">
+        <a href="#productos" aria-label="Ver productos">
+          <span aria-hidden="true">⌕</span>
+          Productos
+        </a>
+        <a href="#comparar" aria-label="Comparar productos">
+          <span aria-hidden="true">⇄</span>
+          Comparar
+        </a>
+        <a href={userEmail ? "/cuenta#pedidos" : "/login?next=/cuenta"} aria-label="Ver mis pedidos">
+          <span aria-hidden="true">▣</span>
+          Pedidos
+        </a>
+        <button
+          type="button"
+          onClick={() => setCartOpen(true)}
+          aria-label={`Abrir carrito${totalItems ? ` con ${totalItems} ${totalItems === 1 ? "producto" : "productos"}` : ""}`}
+        >
+          <span aria-hidden="true">🛒</span>
+          Carrito
+          {totalItems > 0 && <b>{totalItems}</b>}
+        </button>
+      </nav>
 
       <a
         className="supportFloat"
@@ -2284,6 +2310,7 @@ export default function Home() {
           font-size: 27px;
           box-shadow: 0 10px 40px rgba(34,197,94,.35);
         }
+        .mobileDock { display: none; }
         .backToTop {
           position: fixed;
           right: 31px;
@@ -2777,6 +2804,64 @@ export default function Home() {
         .buyNowBtn:hover:not(:disabled) { background:rgba(34,197,94,.1); }
 
         @media(max-width:900px) {
+          main { padding-bottom: 78px; }
+          .mobileDock {
+            position: fixed;
+            z-index: 850;
+            top: auto;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            display: grid !important;
+            grid-template-columns: repeat(4,minmax(0,1fr));
+            gap: 3px;
+            padding: 7px;
+            border: 1px solid rgba(148,163,184,.24);
+            border-radius: 17px;
+            background: rgba(5,12,20,.96);
+            box-shadow: 0 18px 55px rgba(0,0,0,.58);
+            backdrop-filter: blur(18px);
+          }
+          .mobileDock a,
+          .mobileDock button {
+            position: relative;
+            display: flex !important;
+            min-width: 0;
+            min-height: 52px;
+            padding: 6px 3px !important;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            border: 0;
+            border-radius: 11px;
+            background: transparent;
+            color: #aeb9c8;
+            font: inherit;
+            font-size: 10px;
+            font-weight: 850;
+            line-height: 1;
+            text-decoration: none;
+          }
+          .mobileDock a:active,
+          .mobileDock button:active { background: rgba(34,197,94,.13); color: #72efad; }
+          .mobileDock span { color: #56e89b; font-size: 20px; line-height: 1; }
+          .mobileDock b {
+            position: absolute;
+            top: 2px;
+            left: calc(50% + 8px);
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            display: grid;
+            place-items: center;
+            border-radius: 10px;
+            background: #22c55e;
+            color: #031008;
+            font-size: 10px;
+          }
+          .supportFloat { right: 16px; bottom: 88px; width: 52px; height: 52px; font-size: 23px; }
+          .backToTop { right: 20px; bottom: 148px; }
           .compareHead { align-items:start; flex-direction:column; gap:12px; }
           .compareGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
           .faqSection { grid-template-columns:1fr; gap:25px; margin:70px auto; }
