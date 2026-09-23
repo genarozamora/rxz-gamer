@@ -20,7 +20,7 @@ export function SectionShell({ active, children }: { active: string; children: R
         <div className="absolute -left-40 top-20 h-[520px] w-[520px] rounded-full bg-[#22c55e]/15 blur-[130px]" />
         <div className="absolute -right-44 top-44 h-[560px] w-[560px] rounded-full bg-blue-600/15 blur-[150px]" />
       </div>
-      <div className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-[#030811]/95 backdrop-blur-xl">
+      <div className="sticky top-0 z-50 border-b border-white/10 bg-[#030811]/95 backdrop-blur-xl">
         <div className="bg-[#22c55e] px-3 py-2 text-center text-[10px] font-black tracking-[.18em] text-[#031008] sm:text-xs">
           🚚 ENVÍOS A TODO EL PAÍS · OCA · ATENCIÓN PERSONALIZADA
         </div>
@@ -51,7 +51,6 @@ export function SectionShell({ active, children }: { active: string; children: R
           }
         `}</style>
       </div>
-      <div className="h-[169px] lg:h-28" aria-hidden="true" />
       <div className="relative z-10">{children}</div>
       <footer className="relative z-10 border-t border-white/10 px-5 py-10 text-center text-sm text-slate-500">
         <Link href="/inicio" className="font-black text-white">RXZ <span className="text-[#22c55e]">GAMER</span></Link>
