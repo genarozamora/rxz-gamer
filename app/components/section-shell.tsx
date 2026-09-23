@@ -38,13 +38,18 @@ export function SectionShell({ active, children }: { active: string; children: R
           <Link href="/cuenta#pedidos" className="ml-auto rounded-xl border border-white/15 px-3 py-2 text-xs font-black text-slate-200 lg:ml-2">PEDIDOS</Link>
           <Link href="/?cart=open" className="rounded-xl border border-[#22c55e]/40 bg-[#22c55e]/10 px-3 py-2 text-xs font-black text-[#86efac]">🛒 CARRITO</Link>
         </header>
-        <nav className="flex gap-2 overflow-x-auto border-t border-white/5 px-3 py-2 lg:hidden" aria-label="Secciones">
+        <nav className="sectionMobileNav flex gap-2 overflow-x-auto border-t border-white/5 px-3 py-2 lg:hidden" aria-label="Secciones">
           {links.map(([href, label]) => (
             <Link key={href} href={href} aria-current={active === href ? "page" : undefined} className={`shrink-0 rounded-full px-4 py-2 text-xs font-black ${active === href ? "bg-[#22c55e] text-[#031008]" : "bg-white/5 text-slate-300"}`}>
               {label}
             </Link>
           ))}
         </nav>
+        <style jsx>{`
+          @media (min-width: 1024px) {
+            .sectionMobileNav { display: none !important; }
+          }
+        `}</style>
       </div>
       <div className="relative z-10">{children}</div>
       <footer className="relative z-10 border-t border-white/10 px-5 py-10 text-center text-sm text-slate-500">
