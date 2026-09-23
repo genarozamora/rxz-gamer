@@ -107,12 +107,31 @@ export default function ProductPage() {
     }
   }
 
+  async function shareProduct() {
+    if (!product) return;
+    const url = window.location.href.split("?")[0];
+    const payload = { title: `${product.brand} ${product.name}`, text: `${product.brand} ${product.name} en RXZ Gamer`, url };
+    try {
+      if (navigator.share) await navigator.share(payload);
+      else {
+        await navigator.clipboard.writeText(url);
+        setCartMessage("Enlace del producto copiado.");
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name !== "AbortError") setCartMessage("No pudimos compartir el producto.");
+    }
+  }
+
   if (!product) {
     return <main className="grid min-h-screen place-items-center bg-[#03070c] p-5 text-white"><div className="text-center"><h1 className="text-3xl font-black">Producto no encontrado</h1><Link href="/" className="mt-5 inline-block text-emerald-400">Volver a la tienda</Link></div></main>;
   }
 
   const selectedVariant = product.variants?.find((variant) => variant.id === variantId);
   const included = product.specs.find((spec) => spec.label === "Incluye")?.value;
+  const discount = product.oldPrice && product.oldPrice > product.price
+    ? Math.round((1 - product.price / product.oldPrice) * 100)
+    : 0;
+  const whatsappShareUrl = `https://wa.me/?text=${encodeURIComponent(`${product.brand} ${product.name} en RXZ Gamer: https://rxz-gamer-tflb.vercel.app/productos/${product.id}`)}`;
 
   const schema = {
     "@context": "https://schema.org",
@@ -162,7 +181,8 @@ export default function ProductPage() {
             <p className="mt-4 leading-7 text-slate-300">{product.description}</p>
             {included && <div className="mt-5 rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm leading-6 text-emerald-50"><strong className="block text-emerald-400">TODO LO QUE RECIBÍS</strong>{included}</div>}
             {product.variants?.length ? <div className="mt-5"><strong className="text-sm">Color</strong><div className="mt-2 flex flex-wrap gap-2">{product.variants.map((variant) => <button key={variant.id} disabled={variant.stock <= 0} aria-pressed={selectedVariant?.id === variant.id} onClick={() => { setVariantId(variant.id); const index = product.images.indexOf(variant.image); if (index >= 0) setImageIndex(index); }} className={`flex min-w-40 items-center gap-3 rounded-xl border p-2 pr-4 text-left text-sm ${selectedVariant?.id === variant.id ? "border-emerald-400 bg-emerald-400/10" : "border-white/15 bg-[#101c29]"} disabled:opacity-40`}><span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white p-1"><img src={variant.image} alt={`Vista previa ${product.name} ${variant.label}`} className="h-full w-full object-contain" /></span><span><span className="block font-bold">{variant.label}</span><small className="text-slate-400">{variant.stock} u.</small></span></button>)}</div></div> : null}
-            <div className="mt-6 text-4xl font-black text-emerald-400">{money(product.price)}</div>
+            {product.oldPrice && product.oldPrice > product.price && <div className="mt-6 flex items-center gap-3"><span className="text-lg text-slate-500 line-through">{money(product.oldPrice)}</span><span className="rounded-full bg-red-500/15 px-3 py-1 text-xs font-black text-red-300">AHORRÁS {discount}%</span></div>}
+            <div className={product.oldPrice && product.oldPrice > product.price ? "mt-1 text-4xl font-black text-emerald-400" : "mt-6 text-4xl font-black text-emerald-400"}>{money(product.price)}</div>
             <p className="mt-2 text-sm text-slate-400">Precio final en pesos argentinos · Transferencia</p>
             <div className={`mt-5 rounded-xl border p-4 text-sm font-bold ${product.stock <= 0 ? "border-red-400/30 bg-red-400/10 text-red-400" : "border-emerald-400/20 bg-emerald-400/5 text-emerald-100"}`}>
               {product.stock <= 0 ? "0 unidades · Producto sin stock" : "En stock · Entrega inmediata · Envíos nacionales por OCA"}
@@ -175,7 +195,16 @@ export default function ProductPage() {
                 {product.variants?.length && !selectedVariant ? "ELEGÍ UN COLOR" : "AGREGAR AL CARRITO"}
               </button>
             )}
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <button onClick={() => void shareProduct()} className="rounded-xl border border-white/15 p-3 text-sm font-bold text-white">↗ COMPARTIR</button>
+              <a href={whatsappShareUrl} target="_blank" rel="noopener noreferrer" className="rounded-xl border border-emerald-400/30 bg-emerald-400/5 p-3 text-center text-sm font-bold text-emerald-300 no-underline">WHATSAPP</a>
+            </div>
             <Link href="/ayuda" className="mt-3 block rounded-xl border border-white/15 p-4 text-center font-bold text-white no-underline">CONSULTAR A SOPORTE</Link>
+            <div className="mt-4 grid grid-cols-3 gap-2 text-center text-[11px] font-bold text-slate-300">
+              <span className="rounded-xl border border-white/10 bg-[#06101a] p-3">✓ Stock real</span>
+              <span className="rounded-xl border border-white/10 bg-[#06101a] p-3">✓ Compra protegida</span>
+              <span className="rounded-xl border border-white/10 bg-[#06101a] p-3">✓ Seguimiento OCA</span>
+            </div>
           </div>
         </div>
         <div className="mt-7 grid gap-6 md:grid-cols-2">
