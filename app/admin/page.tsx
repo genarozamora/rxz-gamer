@@ -199,7 +199,8 @@ export default function AdminPage() {
         const subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: bytes });
         const { data } = await supabase.auth.getSession();
         const response = await fetch("/api/admin/push-subscriptions", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.session?.access_token || ""}` }, body: JSON.stringify(subscription.toJSON()) });
-        if (!response.ok) throw new Error("No se pudo registrar");
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || "No se pudo registrar");
         setPushStatus("active");
       } else {
         setPushStatus("idle");

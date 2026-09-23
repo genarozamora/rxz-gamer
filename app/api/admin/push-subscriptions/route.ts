@@ -17,5 +17,12 @@ export async function POST(request: Request) {
     const { error } = await db.from("admin_push_subscriptions").upsert({ user_id: user.id, endpoint, p256dh, auth, user_agent: request.headers.get("user-agent")?.slice(0, 500) || null, updated_at: new Date().toISOString() }, { onConflict: "endpoint" });
     if (error) throw error;
     return Response.json({ ok: true });
-  } catch { return Response.json({ error: "No se pudo guardar la suscripción" }, { status: 500 }); }
+  } catch (error) {
+    const detail = error instanceof Error
+      ? error.message
+      : typeof error === "object" && error !== null && "message" in error
+        ? String(error.message)
+        : "No se pudo guardar la suscripción";
+    return Response.json({ error: detail }, { status: 500 });
+  }
 }
