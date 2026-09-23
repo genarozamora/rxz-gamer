@@ -39,6 +39,7 @@ export default function AyudaPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  const [liveStatus, setLiveStatus] = useState<"connecting" | "active" | "fallback">("connecting");
 
   useEffect(() => {
     let active = true;
@@ -133,9 +134,26 @@ export default function AyudaPage() {
           );
         },
       )
-      .subscribe();
+      .subscribe((status) => {
+        setLiveStatus(status === "SUBSCRIBED" ? "active" : status === "CHANNEL_ERROR" || status === "TIMED_OUT" ? "fallback" : "connecting");
+      });
+
+    const refreshMessages = async () => {
+      if (document.visibilityState !== "visible") return;
+      const { data } = await supabase
+        .from("support_messages")
+        .select("id, conversation_id, sender_id, message, created_at")
+        .eq("conversation_id", conversation.id)
+        .order("created_at", { ascending: true });
+      if (data) setMessages(data as Message[]);
+    };
+    const timer = window.setInterval(() => void refreshMessages(), 15000);
+    const onVisible = () => void refreshMessages();
+    document.addEventListener("visibilitychange", onVisible);
 
     return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
       void supabase.removeChannel(channel);
     };
   }, [conversation]);
@@ -226,6 +244,9 @@ export default function AyudaPage() {
               </div>
               <p className="mt-1 text-sm text-slate-400">
                 Escribinos y el staff te responderá por acá.
+              </p>
+              <p className="mt-1 text-xs font-medium text-emerald-300/80">
+                {liveStatus === "active" ? "● Mensajes en tiempo real" : liveStatus === "fallback" ? "● Actualización automática activa" : "● Conectando…"}
               </p>
             </div>
           </div>
@@ -319,8 +340,9 @@ export default function AyudaPage() {
               )}
             </button>
           </form>
-          <p className="mt-2 hidden px-1 text-xs text-slate-500 sm:block">
-            Enter para enviar · Shift + Enter para una nueva línea
+          <p className="mt-2 flex justify-between gap-3 px-1 text-xs text-slate-500">
+            <span className="hidden sm:inline">Enter para enviar · Shift + Enter para una nueva línea</span>
+            <span className="ml-auto">{draft.length}/2000</span>
           </p>
         </footer>
       </section>

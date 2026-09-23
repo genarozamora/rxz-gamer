@@ -27,6 +27,8 @@ type Order = {
 type SupportConversation = {
   id: string;
   user_id: string;
+  customer_name?: string | null;
+  customer_email?: string | null;
   subject: string;
   status: "open" | "closed";
   created_at: string;
@@ -163,6 +165,34 @@ export default function AdminPage() {
   }, [authorized]);
 
   useEffect(() => {
+    if (!authorized || !selectedConversationId) return;
+    const conversationId = selectedConversationId;
+    const refresh = async () => {
+      if (document.visibilityState !== "visible") return;
+      const { data } = await supabase
+        .from("support_messages")
+        .select("id, conversation_id, sender_id, message, created_at")
+        .eq("conversation_id", conversationId)
+        .order("created_at", { ascending: true });
+      if (data) setSupportMessages(data as SupportMessage[]);
+    };
+    const channel = supabase
+      .channel(`admin-support-${conversationId}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "support_messages", filter: `conversation_id=eq.${conversationId}` }, (payload) => {
+        const incoming = payload.new as SupportMessage;
+        setSupportMessages((current) => current.some((item) => item.id === incoming.id) ? current : [...current, incoming]);
+      })
+      .subscribe();
+    const timer = window.setInterval(() => void refresh(), 15000);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", refresh);
+      void supabase.removeChannel(channel);
+    };
+  }, [authorized, selectedConversationId]);
+
+  useEffect(() => {
     if (!authorized) return;
     const refresh = () => { if (document.visibilityState === "visible") void loadOrders(); };
     const timer = window.setInterval(refresh, 30000);
@@ -244,15 +274,31 @@ export default function AdminPage() {
   async function loadSupportConversations() {
     setSupportLoading(true);
 
-    const { data, error } = await supabase
-      .from("support_conversations")
-      .select("id, user_id, subject, status, created_at, updated_at")
-      .order("updated_at", { ascending: false });
+    const [{ data, error }, { data: customerRows }] = await Promise.all([
+      supabase
+        .from("support_conversations")
+        .select("id, user_id, subject, status, created_at, updated_at")
+        .order("updated_at", { ascending: false }),
+      supabase
+        .from("orders")
+        .select("user_id, customer_name, customer_email, created_at")
+        .not("user_id", "is", null)
+        .order("created_at", { ascending: false }),
+    ]);
 
     if (error) {
       setMessage(`No se pudieron cargar las consultas: ${error.message}`);
     } else {
-      const items = (data || []) as SupportConversation[];
+      const customers = new Map<string, { name: string | null; email: string | null }>();
+      (customerRows || []).forEach((row) => {
+        const userId = String(row.user_id || "");
+        if (userId && !customers.has(userId)) customers.set(userId, { name: row.customer_name, email: row.customer_email });
+      });
+      const items = ((data || []) as SupportConversation[]).map((item) => ({
+        ...item,
+        customer_name: customers.get(item.user_id)?.name || null,
+        customer_email: customers.get(item.user_id)?.email || null,
+      }));
       setConversations(items);
 
       if (items.length > 0 && !selectedConversationId) {
@@ -724,7 +770,7 @@ export default function AdminPage() {
                     </span>
                   </span>
                   <span style={styles.conversationUser}>
-                    Cliente: {conversation.user_id.slice(0, 8)}…
+                    Cliente: {conversation.customer_name || conversation.customer_email || "Usuario registrado"}
                   </span>
                   <span style={styles.conversationDate}>
                     {new Date(conversation.updated_at).toLocaleString("es-AR")}
@@ -743,7 +789,7 @@ export default function AdminPage() {
                   <div>
                     <strong>{selectedConversation.subject}</strong>
                     <div style={styles.conversationUser}>
-                      Usuario: {selectedConversation.user_id}
+                      Cliente: {selectedConversation.customer_name || selectedConversation.customer_email || "Usuario registrado"}
                     </div>
                   </div>
                   <button
@@ -815,6 +861,9 @@ export default function AdminPage() {
                   >
                     {supportSending ? "ENVIANDO..." : "RESPONDER"}
                   </button>
+                  <span style={{ alignSelf: "center", color: "#64748b", fontSize: 11 }}>
+                    {supportDraft.length}/2000
+                  </span>
                 </div>
               </>
             )}
