@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { trackMetaEvent } from "@/lib/meta-pixel";
+import { SHIPPING_ORIGIN, SHIPPING_PROVIDER } from "@/lib/shipping";
 
 type CartItem = {
   id: number;
@@ -460,7 +461,7 @@ export default function CheckoutPage() {
               </div>
 
               <div style={styles.shippingNote}>
-                El costo y plazo del envío se confirman según el código postal antes del despacho. Nunca se cobrará un importe adicional sin informártelo.
+                Envío por {SHIPPING_PROVIDER} desde {SHIPPING_ORIGIN}. El costo y plazo se confirman según el código postal antes del despacho. Nunca se cobrará un importe adicional sin informártelo.
               </div>
 
               <div style={styles.assuranceBox}>

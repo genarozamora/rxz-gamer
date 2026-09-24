@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { SHIPPING_PROVIDER } from "@/lib/shipping";
 
 type Order = {
   id: string;
@@ -496,7 +497,7 @@ export default function AdminPage() {
   async function markShipped(order: Order) {
     const company = window.prompt(
       "Empresa de transporte:",
-      order.shipping_company || "OCA"
+      order.shipping_company || SHIPPING_PROVIDER
     );
 
     if (company === null) return;
