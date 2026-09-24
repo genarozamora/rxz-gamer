@@ -62,15 +62,15 @@ export const metadata: Metadata = {
     title: "RXZ Gamer | Periféricos y Tecnología Gamer",
     description:
       "Mouse, teclados, controles y periféricos gamer. Envíos a todo el país.",
-    images: [{ url: "/rxz-social-preview.png", width: 1536, height: 1024, alt: "RXZ Gamer · Gaming, performance y tecnología" }],
+    images: [{ url: "/icon.png", width: 1024, height: 1024, alt: "Logo RXZ Gamer" }],
   },
 
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "RXZ Gamer | Periféricos y Tecnología Gamer",
     description:
       "Mouse, teclados, controles y periféricos gamer. Envíos a todo el país.",
-    images: ["/rxz-social-preview.png"],
+    images: ["/icon.png"],
   },
 
   manifest: "/manifest.webmanifest",
@@ -88,7 +88,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     name: "RXZ Gamer",
     url: "https://rxz-gamer-tflb.vercel.app",
     logo: "https://rxz-gamer-tflb.vercel.app/icon.png",
-    image: "https://rxz-gamer-tflb.vercel.app/rxz-social-preview.png",
+    image: "https://rxz-gamer-tflb.vercel.app/icon.png",
     description: "Tienda argentina de periféricos y tecnología gamer con envíos nacionales.",
     areaServed: { "@type": "Country", name: "Argentina" },
     paymentAccepted: "Transferencia bancaria",

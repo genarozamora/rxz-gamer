@@ -32,13 +32,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: "RXZ Gamer",
       title,
       description: product.description,
-      images: [{ url: product.image, alt: title }],
+      images: [{ url: "/icon.png", width: 1024, height: 1024, alt: "Logo RXZ Gamer" }],
     },
     twitter: {
-      card: "summary_large_image",
+      card: "summary",
       title,
       description: product.description,
-      images: [product.image],
+      images: ["/icon.png"],
     },
   };
 }
