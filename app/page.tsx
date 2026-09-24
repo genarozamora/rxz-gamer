@@ -47,6 +47,8 @@ type CartItem = Product & {
   variantStock?: number;
 };
 
+const STORE_SHARE_TEXT = "Conocé RXZ Gamer, una tienda argentina de periféricos y tecnología gamer. Encontrá mouse, teclados y controles seleccionados, con stock real, atención personalizada y envíos a todo el país.";
+
 
 const ALL_PRODUCTS: Product[] = [
   {
@@ -653,12 +655,13 @@ export default function Home() {
 
   async function shareProduct(product: Product) {
     const url = `${window.location.origin}/productos/${product.id}?utm_source=share&utm_medium=organic&utm_campaign=product_recommendation`;
+    const text = `Mirá el ${product.brand} ${product.name} en RXZ Gamer, tienda argentina de periféricos gamer. ${product.subtitle}. Stock real y envíos a todo el país.`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: `${product.brand} ${product.name}`, text: product.subtitle, url });
+        await navigator.share({ title: `${product.brand} ${product.name} | RXZ Gamer`, text, url });
       } else {
-        await navigator.clipboard.writeText(url);
-        setToast("Enlace del producto copiado");
+        await navigator.clipboard.writeText(`${text}\n${url}`);
+        setToast("Mensaje del producto copiado");
       }
       track("share_product", product.id);
     } catch (error) {
@@ -670,10 +673,10 @@ export default function Home() {
     const url = `${window.location.origin}/?utm_source=share&utm_medium=organic&utm_campaign=store_recommendation`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: "RXZ Gamer", text: "Periféricos gamer con stock y entrega inmediata.", url });
+        await navigator.share({ title: "RXZ Gamer | Periféricos y tecnología gamer", text: STORE_SHARE_TEXT, url });
       } else {
-        await navigator.clipboard.writeText(url);
-        setToast("Enlace de la tienda copiado");
+        await navigator.clipboard.writeText(`${STORE_SHARE_TEXT}\n${url}`);
+        setToast("Mensaje de la tienda copiado");
       }
       track("share_store");
     } catch (error) {
@@ -684,9 +687,9 @@ export default function Home() {
   async function copyStoreLink() {
     const url = `${window.location.origin}/?utm_source=copy_link&utm_medium=organic&utm_campaign=store_recommendation`;
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(`${STORE_SHARE_TEXT}\n${url}`);
       track("copy_store_link");
-      setToast("Enlace de la tienda copiado");
+      setToast("Mensaje de la tienda copiado");
     } catch {
       setToast("No se pudo copiar el enlace");
     }
@@ -1222,7 +1225,7 @@ export default function Home() {
         <div className="shareButtons">
           <button onClick={() => void shareStore()}>↗ COMPARTIR TIENDA</button>
           <a
-            href={`https://wa.me/?text=${encodeURIComponent("Mirá estos periféricos gamer de RXZ Gamer: https://rxz-gamer-tflb.vercel.app/?utm_source=whatsapp&utm_medium=organic&utm_campaign=store_recommendation")}`}
+            href={`https://wa.me/?text=${encodeURIComponent(`${STORE_SHARE_TEXT}\nhttps://rxz-gamer-tflb.vercel.app/?utm_source=whatsapp&utm_medium=organic&utm_campaign=store_recommendation`)}`}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => track("share_store_whatsapp")}
