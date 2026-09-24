@@ -47,7 +47,7 @@ type CartItem = Product & {
   variantStock?: number;
 };
 
-const STORE_SHARE_TEXT = "Conocé RXZ Gamer, una tienda argentina de periféricos y tecnología gamer. Encontrá mouse, teclados y controles seleccionados, con stock real, atención personalizada y envíos a todo el país.";
+const STORE_SHARE_TEXT = "Somos RXZ Gamer, una tienda de Córdoba especializada en periféricos y tecnología gamer. Vendemos mouse, teclados y controles seleccionados, con stock real, atención personalizada y envíos a todo el país.";
 
 
 const ALL_PRODUCTS: Product[] = [
