@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { SHIPPING_ORIGIN, SHIPPING_PROVIDER } from "@/lib/shipping";
 
 const pages = {
   terminos: {
@@ -36,9 +35,9 @@ const pages = {
   envios: {
     title: "Información sobre envíos",
     sections: [
-      ["Cobertura", `Realizamos envíos mediante ${SHIPPING_PROVIDER} desde ${SHIPPING_ORIGIN} hacia todo el país. La disponibilidad, costo y modalidad dependen del código postal y del producto.`],
+      ["Cobertura", "Realizamos envíos desde Villa Allende, Córdoba, hacia todo el país. La disponibilidad, costo, transporte y modalidad dependen del código postal y del producto."],
       ["Preparación", "El pedido comienza a prepararse después de verificar el pago. Podés seguir cada etapa desde Mi cuenta."],
-      ["Seguimiento", `Cuando entreguemos el paquete a ${SHIPPING_PROVIDER}, mostraremos el código de seguimiento en el detalle del pedido.`],
+      ["Seguimiento", "Cuando entreguemos el paquete al transporte seleccionado, mostraremos la empresa y el código de seguimiento en el detalle del pedido."],
       ["Recepción", "Verificá que los datos de entrega sean correctos. Si advertís daños visibles en el paquete, dejá constancia ante el transportista y contactanos desde Ayuda."],
     ],
   },

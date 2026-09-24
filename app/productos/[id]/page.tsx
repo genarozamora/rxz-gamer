@@ -9,7 +9,6 @@ import { supabase } from "@/lib/supabase";
 import { getPackagePreview } from "@/lib/package-preview";
 import { mergeVerifiedProduct } from "@/lib/verified-product";
 import { trackMetaEvent } from "@/lib/meta-pixel";
-import { SHIPPING_PROVIDER } from "@/lib/shipping";
 
 const money = (value: number) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(value);
 type Review = { id: string; rating: number; comment: string; created_at: string };
@@ -186,7 +185,7 @@ export default function ProductPage() {
             <div className={product.oldPrice && product.oldPrice > product.price ? "mt-1 text-4xl font-black text-emerald-400" : "mt-6 text-4xl font-black text-emerald-400"}>{money(product.price)}</div>
             <p className="mt-2 text-sm text-slate-400">Precio final en pesos argentinos · Transferencia</p>
             <div className={`mt-5 rounded-xl border p-4 text-sm font-bold ${product.stock <= 0 ? "border-red-400/30 bg-red-400/10 text-red-400" : "border-emerald-400/20 bg-emerald-400/5 text-emerald-100"}`}>
-              {product.stock <= 0 ? "0 unidades · Producto sin stock" : `En stock · Entrega inmediata · Envíos nacionales por ${SHIPPING_PROVIDER}`}
+              {product.stock <= 0 ? "0 unidades · Producto sin stock" : "En stock · Entrega inmediata · Envíos a todo el país"}
             </div>
             {cartMessage && <p role="alert" className="mt-4 text-sm font-bold text-amber-300">{cartMessage}</p>}
             {product.stock <= 0 ? (
@@ -204,7 +203,7 @@ export default function ProductPage() {
             <div className="mt-4 grid grid-cols-3 gap-2 text-center text-[11px] font-bold text-slate-300">
               <span className="rounded-xl border border-white/10 bg-[#06101a] p-3">✓ Stock real</span>
               <span className="rounded-xl border border-white/10 bg-[#06101a] p-3">✓ Compra protegida</span>
-              <span className="rounded-xl border border-white/10 bg-[#06101a] p-3">✓ Seguimiento {SHIPPING_PROVIDER}</span>
+              <span className="rounded-xl border border-white/10 bg-[#06101a] p-3">✓ Envío con seguimiento</span>
             </div>
           </div>
         </div>

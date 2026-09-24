@@ -7,7 +7,6 @@ import { supabase } from "@/lib/supabase";
 import { getPackagePreview } from "@/lib/package-preview";
 import { mergeVerifiedProduct } from "@/lib/verified-product";
 import { trackMetaEvent } from "@/lib/meta-pixel";
-import { SHIPPING_ORIGIN, SHIPPING_PROVIDER } from "@/lib/shipping";
 
 type Spec = {
   label: string;
@@ -612,7 +611,7 @@ export default function Home() {
     "@type": "FAQPage",
     mainEntity: [
       ["¿Los productos están disponibles para entrega inmediata?", "Sí. Los productos publicados como En stock están disponibles. El stock se descuenta al confirmar cada pedido."],
-      ["¿Cómo se calcula el envío?", `Enviamos mediante ${SHIPPING_PROVIDER} desde ${SHIPPING_ORIGIN}. El costo y el plazo se confirman según el código postal antes del despacho.`],
+      ["¿Cómo se calcula el envío?", "Despachamos desde Villa Allende, Córdoba. El costo, la modalidad y el plazo se confirman según el código postal antes del despacho."],
       ["¿Cuándo veo los datos para pagar?", "El alias se muestra únicamente después de confirmar el pedido. Luego podés adjuntar el comprobante desde tu cuenta."],
       ["¿Puedo elegir el color?", "Sí. Antes de agregar un producto al carrito tenés que abrir su ficha y seleccionar una variante con stock."],
     ].map(([name, text]) => ({
@@ -797,7 +796,7 @@ export default function Home() {
 
       <div className="siteTop">
         <div className="announcement">
-          🚚 ENVÍOS A TODO EL PAÍS · {SHIPPING_PROVIDER.toUpperCase()} · ATENCIÓN PERSONALIZADA
+          🚚 ENVÍOS A TODO EL PAÍS · ATENCIÓN PERSONALIZADA
         </div>
 
         <header>
@@ -868,7 +867,7 @@ export default function Home() {
             <strong>🚚</strong>
             <span>
               <b>Envíos nacionales</b>
-              <small>Por {SHIPPING_PROVIDER}</small>
+              <small>Desde Córdoba</small>
             </span>
           </div>
 
@@ -1128,7 +1127,7 @@ export default function Home() {
         <div>
           <span>🚚</span>
           <h3>Envíos a todo el país</h3>
-          <p>Despachamos desde {SHIPPING_ORIGIN} mediante {SHIPPING_PROVIDER}.</p>
+          <p>Despachamos desde Villa Allende, Córdoba, hacia todo el país.</p>
         </div>
 
         <div>
@@ -1179,7 +1178,7 @@ export default function Home() {
           <div>
             <b>04</b>
             <h3>Recibí</h3>
-            <p>Coordinamos tu envío por {SHIPPING_PROVIDER}.</p>
+            <p>Coordinamos el despacho y te enviamos el seguimiento.</p>
           </div>
         </div>
       </section>
@@ -1197,7 +1196,7 @@ export default function Home() {
           </details>
           <details>
             <summary>¿Cómo se calcula el envío?</summary>
-            <p>Enviamos mediante {SHIPPING_PROVIDER} desde {SHIPPING_ORIGIN}. El costo y el plazo se confirman según el código postal antes del despacho.</p>
+            <p>Despachamos desde Villa Allende, Córdoba. El costo, la modalidad y el plazo se confirman según el código postal antes del despacho.</p>
           </details>
           <details>
             <summary>¿Cuándo veo los datos para pagar?</summary>
@@ -1443,7 +1442,7 @@ export default function Home() {
 
                 <div className="purchaseTrust" aria-label="Beneficios de compra">
                   <span>🔒 Compra protegida</span>
-                  <span>🚚 Envíos por {SHIPPING_PROVIDER}</span>
+                  <span>🚚 Envíos a todo el país</span>
                   <span>💬 Soporte directo</span>
                 </div>
 
