@@ -656,11 +656,12 @@ export default function Home() {
   async function shareProduct(product: Product) {
     const url = `${window.location.origin}/productos/${product.id}?shared=rxz-logo-v2&utm_source=share&utm_medium=organic&utm_campaign=product_recommendation`;
     const text = `Mirá el ${product.brand} ${product.name} en RXZ Gamer, tienda argentina de periféricos gamer. ${product.subtitle}. Stock real y envíos a todo el país.`;
+    const message = `${url}\n\n${text}`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: `${product.brand} ${product.name} | RXZ Gamer`, text, url });
+        await navigator.share({ title: `${product.brand} ${product.name} | RXZ Gamer`, text: message });
       } else {
-        await navigator.clipboard.writeText(`${text}\n${url}`);
+        await navigator.clipboard.writeText(message);
         setToast("Mensaje del producto copiado");
       }
       track("share_product", product.id);
@@ -671,11 +672,12 @@ export default function Home() {
 
   async function shareStore() {
     const url = `${window.location.origin}/?shared=rxz-logo-v2&utm_source=share&utm_medium=organic&utm_campaign=store_recommendation`;
+    const message = `${url}\n\n${STORE_SHARE_TEXT}`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: "RXZ Gamer | Periféricos y tecnología gamer", text: STORE_SHARE_TEXT, url });
+        await navigator.share({ title: "RXZ Gamer | Periféricos y tecnología gamer", text: message });
       } else {
-        await navigator.clipboard.writeText(`${STORE_SHARE_TEXT}\n${url}`);
+        await navigator.clipboard.writeText(message);
         setToast("Mensaje de la tienda copiado");
       }
       track("share_store");
@@ -687,7 +689,7 @@ export default function Home() {
   async function copyStoreLink() {
     const url = `${window.location.origin}/?shared=rxz-logo-v2&utm_source=copy_link&utm_medium=organic&utm_campaign=store_recommendation`;
     try {
-      await navigator.clipboard.writeText(`${STORE_SHARE_TEXT}\n${url}`);
+      await navigator.clipboard.writeText(`${url}\n\n${STORE_SHARE_TEXT}`);
       track("copy_store_link");
       setToast("Mensaje de la tienda copiado");
     } catch {
@@ -1225,7 +1227,7 @@ export default function Home() {
         <div className="shareButtons">
           <button onClick={() => void shareStore()}>↗ COMPARTIR TIENDA</button>
           <a
-            href={`https://wa.me/?text=${encodeURIComponent(`${STORE_SHARE_TEXT}\nhttps://rxz-gamer-tflb.vercel.app/?shared=rxz-logo-v2&utm_source=whatsapp&utm_medium=organic&utm_campaign=store_recommendation`)}`}
+            href={`https://wa.me/?text=${encodeURIComponent(`https://rxz-gamer-tflb.vercel.app/?shared=rxz-logo-v2&utm_source=whatsapp&utm_medium=organic&utm_campaign=store_recommendation\n\n${STORE_SHARE_TEXT}`)}`}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => track("share_store_whatsapp")}
