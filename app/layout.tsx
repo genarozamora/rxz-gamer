@@ -14,7 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://rxz-gamer-tflb.vercel.app"),
+  metadataBase: new URL("https://rxzgamer.com.ar"),
+  alternates: { canonical: "/" },
   title: {
     default: "RXZ Gamer | Periféricos y Tecnología Gamer",
     template: "%s | RXZ Gamer",
@@ -86,9 +87,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     "@context": "https://schema.org",
     "@type": "OnlineStore",
     name: "RXZ Gamer",
-    url: "https://rxz-gamer-tflb.vercel.app",
-    logo: "https://rxz-gamer-tflb.vercel.app/icon.png",
-    image: "https://rxz-gamer-tflb.vercel.app/icon.png",
+    url: "https://rxzgamer.com.ar",
+    logo: "https://rxzgamer.com.ar/icon.png",
+    image: "https://rxzgamer.com.ar/icon.png",
     description: "Tienda argentina de periféricos y tecnología gamer con envíos nacionales.",
     areaServed: { "@type": "Country", name: "Argentina" },
     paymentAccepted: "Transferencia bancaria",

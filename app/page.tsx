@@ -593,17 +593,17 @@ export default function Home() {
         "@type": "Product",
         name: `${product.brand} ${product.name}`,
         description: product.description,
-        image: product.images.map((image) => `https://rxz-gamer-tflb.vercel.app${image}`),
+        image: product.images.map((image) => `https://rxzgamer.com.ar${image}`),
         brand: { "@type": "Brand", name: product.brand },
         sku: `RXZ-${product.id}`,
-        url: `https://rxz-gamer-tflb.vercel.app/productos/${product.id}`,
+        url: `https://rxzgamer.com.ar/productos/${product.id}`,
         offers: {
           "@type": "Offer",
           priceCurrency: "ARS",
           price: product.price,
           availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
           itemCondition: "https://schema.org/NewCondition",
-          url: `https://rxz-gamer-tflb.vercel.app/productos/${product.id}`,
+          url: `https://rxzgamer.com.ar/productos/${product.id}`,
         },
       },
     })),
@@ -1227,7 +1227,7 @@ export default function Home() {
         <div className="shareButtons">
           <button onClick={() => void shareStore()}>↗ COMPARTIR TIENDA</button>
           <a
-            href={`https://wa.me/?text=${encodeURIComponent(`https://rxz-gamer-tflb.vercel.app/?shared=rxz-logo-v2&utm_source=whatsapp&utm_medium=organic&utm_campaign=store_recommendation\n\n${STORE_SHARE_TEXT}`)}`}
+            href={`https://wa.me/?text=${encodeURIComponent(`https://rxzgamer.com.ar/?shared=rxz-logo-v2&utm_source=whatsapp&utm_medium=organic&utm_campaign=store_recommendation\n\n${STORE_SHARE_TEXT}`)}`}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => track("share_store_whatsapp")}

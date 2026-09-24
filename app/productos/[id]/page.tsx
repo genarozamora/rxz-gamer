@@ -131,15 +131,15 @@ export default function ProductPage() {
   const discount = product.oldPrice && product.oldPrice > product.price
     ? Math.round((1 - product.price / product.oldPrice) * 100)
     : 0;
-  const whatsappShareUrl = `https://wa.me/?text=${encodeURIComponent(`${product.brand} ${product.name} en RXZ Gamer: https://rxz-gamer-tflb.vercel.app/productos/${product.id}`)}`;
+  const whatsappShareUrl = `https://wa.me/?text=${encodeURIComponent(`${product.brand} ${product.name} en RXZ Gamer: https://rxzgamer.com.ar/productos/${product.id}`)}`;
 
   const schema = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: `${product.brand} ${product.name}`,
     description: product.description,
-    image: product.images.map((image) => new URL(image, "https://rxz-gamer-tflb.vercel.app").toString()),
-    url: `https://rxz-gamer-tflb.vercel.app/productos/${product.id}`,
+    image: product.images.map((image) => new URL(image, "https://rxzgamer.com.ar").toString()),
+    url: `https://rxzgamer.com.ar/productos/${product.id}`,
     sku: `RXZ-${product.id}`,
     brand: { "@type": "Brand", name: product.brand },
     offers: {
@@ -148,7 +148,7 @@ export default function ProductPage() {
       price: product.price,
       availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
-      url: `https://rxz-gamer-tflb.vercel.app/productos/${product.id}`,
+      url: `https://rxzgamer.com.ar/productos/${product.id}`,
       seller: { "@type": "Organization", name: "RXZ Gamer" },
     },
   };

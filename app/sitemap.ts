@@ -1,10 +1,10 @@
 import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = "https://rxz-gamer-tflb.vercel.app";
+  const base = "https://rxzgamer.com.ar";
   return [
     {
-      url: "https://rxz-gamer-tflb.vercel.app/",
+      url: `${base}/`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 1,

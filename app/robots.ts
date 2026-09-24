@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/admin/", "/checkout", "/cuenta"],
     },
-    sitemap: "https://rxz-gamer-tflb.vercel.app/sitemap.xml",
-    host: "https://rxz-gamer-tflb.vercel.app",
+    sitemap: "https://rxzgamer.com.ar/sitemap.xml",
+    host: "https://rxzgamer.com.ar",
   };
 }
