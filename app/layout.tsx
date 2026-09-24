@@ -63,7 +63,7 @@ export const metadata: Metadata = {
     title: "RXZ Gamer | Periféricos y Tecnología Gamer",
     description:
       "Mouse, teclados, controles y periféricos gamer. Envíos a todo el país.",
-    images: [{ url: "/icon.png?social=rxz-logo-v2", width: 1024, height: 1024, alt: "Logo RXZ Gamer" }],
+    images: [{ url: "/rxz-logo-512.png?brand=rxz-v3", width: 512, height: 512, alt: "Logo oficial de RXZ Gamer" }],
   },
 
   twitter: {
@@ -71,14 +71,20 @@ export const metadata: Metadata = {
     title: "RXZ Gamer | Periféricos y Tecnología Gamer",
     description:
       "Mouse, teclados, controles y periféricos gamer. Envíos a todo el país.",
-    images: ["/icon.png?social=rxz-logo-v2"],
+    images: ["/rxz-logo-512.png?brand=rxz-v3"],
   },
 
   manifest: "/manifest.webmanifest",
 
   icons: {
-    icon: "/icon.png",
-    apple: "/apple-icon.png",
+    icon: [
+      { url: "/rxz-logo-48.png", sizes: "48x48", type: "image/png" },
+      { url: "/rxz-logo-96.png", sizes: "96x96", type: "image/png" },
+      { url: "/rxz-logo-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/rxz-logo-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    shortcut: "/rxz-logo-48.png",
+    apple: [{ url: "/rxz-logo-180.png", sizes: "180x180", type: "image/png" }],
   },
 };
 
@@ -88,8 +94,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     "@type": "OnlineStore",
     name: "RXZ Gamer",
     url: "https://rxzgamer.com.ar",
-    logo: "https://rxzgamer.com.ar/icon.png",
-    image: "https://rxzgamer.com.ar/icon.png",
+    logo: {
+      "@type": "ImageObject",
+      url: "https://rxzgamer.com.ar/rxz-logo-512.png",
+      width: 512,
+      height: 512,
+    },
+    image: "https://rxzgamer.com.ar/rxz-logo-512.png",
     description: "Tienda argentina de periféricos y tecnología gamer con envíos nacionales.",
     areaServed: { "@type": "Country", name: "Argentina" },
     paymentAccepted: "Transferencia bancaria",

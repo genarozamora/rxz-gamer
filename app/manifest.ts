@@ -11,8 +11,9 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#19d47f",
     lang: "es-AR",
     icons: [
-      { src: "/icon.png", sizes: "any", type: "image/png" },
-      { src: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+      { src: "/rxz-logo-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/rxz-logo-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/rxz-logo-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
   };
 }

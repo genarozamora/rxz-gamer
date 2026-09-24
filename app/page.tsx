@@ -654,7 +654,7 @@ export default function Home() {
   }
 
   async function shareProduct(product: Product) {
-    const url = `${window.location.origin}/productos/${product.id}?shared=rxz-logo-v2&utm_source=share&utm_medium=organic&utm_campaign=product_recommendation`;
+    const url = `${window.location.origin}/productos/${product.id}?shared=rxz-logo-v3&utm_source=share&utm_medium=organic&utm_campaign=product_recommendation`;
     const text = `Mirá el ${product.brand} ${product.name} en RXZ Gamer, tienda argentina de periféricos gamer. ${product.subtitle}. Stock real y envíos a todo el país.`;
     const message = `${url}\n\n${text}`;
     try {
@@ -671,7 +671,7 @@ export default function Home() {
   }
 
   async function shareStore() {
-    const url = `${window.location.origin}/?shared=rxz-logo-v2&utm_source=share&utm_medium=organic&utm_campaign=store_recommendation`;
+    const url = `${window.location.origin}/?shared=rxz-logo-v3&utm_source=share&utm_medium=organic&utm_campaign=store_recommendation`;
     const message = `${url}\n\n${STORE_SHARE_TEXT}`;
     try {
       if (navigator.share) {
@@ -687,7 +687,7 @@ export default function Home() {
   }
 
   async function copyStoreLink() {
-    const url = `${window.location.origin}/?shared=rxz-logo-v2&utm_source=copy_link&utm_medium=organic&utm_campaign=store_recommendation`;
+    const url = `${window.location.origin}/?shared=rxz-logo-v3&utm_source=copy_link&utm_medium=organic&utm_campaign=store_recommendation`;
     try {
       await navigator.clipboard.writeText(`${url}\n\n${STORE_SHARE_TEXT}`);
       track("copy_store_link");
@@ -1227,7 +1227,7 @@ export default function Home() {
         <div className="shareButtons">
           <button onClick={() => void shareStore()}>↗ COMPARTIR TIENDA</button>
           <a
-            href={`https://wa.me/?text=${encodeURIComponent(`https://rxzgamer.com.ar/?shared=rxz-logo-v2&utm_source=whatsapp&utm_medium=organic&utm_campaign=store_recommendation\n\n${STORE_SHARE_TEXT}`)}`}
+            href={`https://wa.me/?text=${encodeURIComponent(`https://rxzgamer.com.ar/?shared=rxz-logo-v3&utm_source=whatsapp&utm_medium=organic&utm_campaign=store_recommendation\n\n${STORE_SHARE_TEXT}`)}`}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => track("share_store_whatsapp")}
