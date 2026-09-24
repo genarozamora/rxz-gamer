@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     title: "RXZ Gamer | Periféricos y Tecnología Gamer",
     description:
       "Mouse, teclados, controles y periféricos gamer. Envíos a todo el país.",
-    images: [{ url: "/icon.png", width: 1024, height: 1024, alt: "Logo RXZ Gamer" }],
+    images: [{ url: "/icon.png?social=rxz-logo-v2", width: 1024, height: 1024, alt: "Logo RXZ Gamer" }],
   },
 
   twitter: {
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     title: "RXZ Gamer | Periféricos y Tecnología Gamer",
     description:
       "Mouse, teclados, controles y periféricos gamer. Envíos a todo el país.",
-    images: ["/icon.png"],
+    images: ["/icon.png?social=rxz-logo-v2"],
   },
 
   manifest: "/manifest.webmanifest",
