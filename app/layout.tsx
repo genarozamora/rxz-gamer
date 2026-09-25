@@ -16,6 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://rxzgamer.com.ar"),
   alternates: { canonical: "/" },
+  applicationName: "RXZ Gamer",
   title: {
     default: "RXZ Gamer | Periféricos y Tecnología Gamer",
     template: "%s | RXZ Gamer",
@@ -89,6 +90,16 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": "https://rxzgamer.com.ar/#website",
+    url: "https://rxzgamer.com.ar/",
+    name: "RXZ Gamer",
+    alternateName: ["RXZ Gamer Argentina", "RXZ"],
+    inLanguage: "es-AR",
+  };
+
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "OnlineStore",
@@ -113,6 +124,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <a className="skip-link" href="#contenido-principal">Saltar al contenido</a>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema).replace(/</g, "\\u003c") }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema).replace(/</g, "\\u003c") }} />
         {children}
         <StoreObservability />
