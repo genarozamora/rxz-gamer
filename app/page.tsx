@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { getPackagePreview } from "@/lib/package-preview";
 import { mergeVerifiedProduct } from "@/lib/verified-product";
 import { trackMetaEvent } from "@/lib/meta-pixel";
+import { matchesCatalogSearch } from "@/lib/catalog-search";
 
 type Spec = {
   label: string;
@@ -423,7 +424,11 @@ function SafeImage({
 }
 
 export default function Home() {
-  const [catalogProducts, setCatalogProducts] = useState<Product[]>(PRODUCTS);
+  const [catalogProducts, setCatalogProducts] = useState<Product[]>([]);
+  const [catalogState, setCatalogState] = useState<"loading" | "ready" | "error">("loading");
+  const [catalogAttempt, setCatalogAttempt] = useState(0);
+  const productDialog = useRef<HTMLDivElement>(null);
+  const cartDialog = useRef<HTMLElement>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [selected, setSelected] = useState<Product | null>(null);
@@ -459,8 +464,10 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    supabase.from("products").select("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants,active").then(({ data }) => {
-      if (!data?.length) return;
+    let cancelled = false;
+    supabase.from("products").select("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants,active").then(({ data, error }) => {
+      if (cancelled) return;
+      if (error || !data) { setCatalogState("error"); return; }
       const managed = data.filter((row) => row.active).map((row) => {
         const id = Number(row.id);
         const staticProduct = PRODUCTS.find((product) =>
@@ -470,8 +477,10 @@ export default function Home() {
         return mergeVerifiedProduct(row, staticProduct);
       });
       setCatalogProducts(managed);
+      setCatalogState("ready");
     });
-  }, []);
+    return () => { cancelled = true; };
+  }, [catalogAttempt]);
 
   useEffect(() => {
     async function syncUser(user: User | null) {
@@ -532,18 +541,39 @@ export default function Home() {
 
   useEffect(() => {
     if (!selected && !cartOpen) return;
+    const dialog = cartOpen ? cartDialog.current : productDialog.current;
+    if (!dialog) return;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    const focusable = () => Array.from(dialog.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex="0"]')).filter((element) => element.getClientRects().length > 0);
+    (focusable()[0] || dialog).focus({ preventScroll: true });
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setSelected(null);
         setCartOpen(false);
       }
+      if (event.key === "Tab") {
+        const controls = focusable();
+        const first = controls[0] || dialog;
+        const last = controls.at(-1) || dialog;
+        if (event.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) {
+          event.preventDefault(); last.focus();
+        } else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) {
+          event.preventDefault(); first.focus();
+        }
+      }
+    };
+    const containFocus = (event: FocusEvent) => {
+      if (!dialog.contains(event.target as Node)) (focusable()[0] || dialog).focus({ preventScroll: true });
     };
     window.addEventListener("keydown", closeOnEscape);
+    document.addEventListener("focusin", containFocus);
     return () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", closeOnEscape);
+      document.removeEventListener("focusin", containFocus);
+      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
     };
   }, [selected, cartOpen]);
 
@@ -564,8 +594,7 @@ export default function Home() {
     const matches = catalogProducts.filter((p) => {
       const categoryOK = category === "Todos"
         || (category === "Favoritos" ? favoriteIds.includes(p.id) : p.category === category);
-      const text = `${p.brand} ${p.name} ${p.subtitle}`.toLowerCase();
-      return categoryOK && text.includes(search.toLowerCase());
+      return categoryOK && matchesCatalogSearch(p, search);
     });
     return [...matches].sort((a, b) => {
       if (sort === "price-asc") return a.price - b.price;
@@ -791,7 +820,7 @@ export default function Home() {
 
   return (
     <main id="contenido-principal">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(catalogSchema).replace(/</g, "\\u003c") }} />
+      {catalogState === "ready" && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(catalogSchema).replace(/</g, "\\u003c") }} />}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema).replace(/</g, "\\u003c") }} />
       <div className="background">
         <div className="grid" />
@@ -902,7 +931,7 @@ export default function Home() {
         </div>
         <div className="reelCards">
           <a className="reelCard reelCardGreen" href="#productos"><small>01 · DESCUBRÍ</small><strong>TODO EMPIEZA CON EL SETUP.</strong><span>Explorá periféricos seleccionados por rendimiento.</span><b>VER CATÁLOGO →</b></a>
-          <a className="reelCard reelCardBlue" href="#productos"><small>02 · COMPARÁ</small><strong>DATOS REALES. DECISIÓN SIMPLE.</strong><span>Revisá características, variantes, stock y precio.</span><b>COMPARAR OPCIONES →</b></a>
+          <a className="reelCard reelCardBlue" href="#comparar"><small>02 · COMPARÁ</small><strong>DATOS REALES. DECISIÓN SIMPLE.</strong><span>Revisá características, variantes, stock y precio.</span><b>COMPARAR OPCIONES →</b></a>
           <a className="reelCard reelCardDark" href="#beneficios"><small>03 · ELEGÍ</small><strong>TU SETUP. TU NIVEL.</strong><span>Compra segura, atención directa y envíos nacionales.</span><b>CONOCER RXZ →</b></a>
         </div>
         <div className="performanceTicker" aria-label="Características de RXZ Gamer"><div><span>GAMING</span><i>✦</i><span>PERFORMANCE</span><i>✦</i><span>TECNOLOGÍA</span><i>✦</i><span>GAMING</span><i>✦</i><span>PERFORMANCE</span><i>✦</i><span>TECNOLOGÍA</span><i>✦</i></div></div>
@@ -934,6 +963,7 @@ export default function Home() {
               <button
                 key={c}
                 className={category === c ? "active" : ""}
+                aria-pressed={category === c}
                 onClick={() => setCategory(c)}
               >
                 {c === "Favoritos" ? `♡ Favoritos (${favoriteIds.length})` : c}
@@ -944,7 +974,7 @@ export default function Home() {
 
         <div className="catalogStatus" aria-live="polite">
           <span>
-            {filtered.length} {filtered.length === 1 ? "producto disponible" : "productos disponibles"}
+            {catalogState === "loading" ? "Cargando catálogo…" : catalogState === "error" ? "Catálogo no disponible" : `${filtered.length} ${filtered.length === 1 ? "producto encontrado" : "productos encontrados"}`}
           </span>
           <div className="catalogControls">
             <label htmlFor="catalog-sort">Ordenar:</label>
@@ -962,7 +992,17 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="productGrid">
+        <div className="productGrid" aria-busy={catalogState === "loading"}>
+          {catalogState === "loading" && <p role="status">Consultando precios y stock actualizados…</p>}
+          {catalogState === "error" && <div className="emptyCatalog" role="alert"><h3>No pudimos cargar el catálogo</h3><p>Reintentá para consultar los precios y la disponibilidad actuales.</p><button onClick={() => { setCatalogState("loading"); setCatalogAttempt((attempt) => attempt + 1); }}>REINTENTAR</button></div>}
+          {catalogState === "ready" && filtered.length === 0 && (
+            <div className="emptyCatalog">
+              <span aria-hidden="true">⌕</span>
+              <h3>{category === "Favoritos" && favoriteIds.length === 0 ? "Todavía no guardaste productos" : "No encontramos coincidencias"}</h3>
+              <p>{category === "Favoritos" && favoriteIds.length === 0 ? "Tocá el corazón de un producto para guardarlo acá." : "Probá con otro nombre o restablecé los filtros."}</p>
+              <button onClick={() => { setSearch(""); setCategory("Todos"); setSort("featured"); }}>VER TODO EL CATÁLOGO</button>
+            </div>
+          )}
           {filtered.map((product) => {
             const discount = product.oldPrice
               ? Math.round((1 - product.price / product.oldPrice) * 100)
@@ -971,23 +1011,13 @@ export default function Home() {
 
             return (
               <article className="card" key={product.id}>
-                <div
-                  className="imageBox"
-                  onClick={() => openProduct(product)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      openProduct(product);
-                    }
-                  }}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Ver detalles de ${product.brand} ${product.name}`}
-                >
+                <div className="imageBox">
+                  <button className="imageOpen" onClick={() => openProduct(product)} aria-label={`Ver detalles de ${product.brand} ${product.name}`} />
                   <button
                     className={favoriteIds.includes(product.id) ? "favoriteBtn isFavorite" : "favoriteBtn"}
                     onClick={(event) => { event.stopPropagation(); toggleFavorite(product.id); }}
-                    aria-label={favoriteIds.includes(product.id) ? "Quitar de favoritos" : "Guardar en favoritos"}
+                    aria-label={`${favoriteIds.includes(product.id) ? "Quitar de favoritos" : "Guardar en favoritos"}: ${product.brand} ${product.name}`}
+                    aria-pressed={favoriteIds.includes(product.id)}
                     title={favoriteIds.includes(product.id) ? "Quitar de favoritos" : "Guardar en favoritos"}
                   >
                     {favoriteIds.includes(product.id) ? "♥" : "♡"}
@@ -1117,14 +1147,6 @@ export default function Home() {
               </article>
             );
           })}
-          {filtered.length === 0 && (
-            <div className="emptyCatalog">
-              <span>⌕</span>
-              <h3>{category === "Favoritos" ? "Todavía no guardaste productos" : "No encontramos coincidencias"}</h3>
-              <p>{category === "Favoritos" ? "Tocá el corazón de un producto para guardarlo acá." : "Probá con otro nombre o restablecé los filtros."}</p>
-              <button onClick={() => { setSearch(""); setCategory("Todos"); }}>VER TODO EL CATÁLOGO</button>
-            </div>
-          )}
         </div>
       </section>
 
@@ -1301,13 +1323,13 @@ export default function Home() {
         <div className="toast" role="status" aria-live="polite">
           <span>{toast}</span>
           {toast.toLowerCase().includes("carrito") && (
-            <button onClick={() => setCartOpen(true)}>VER CARRITO</button>
+            <button onClick={() => { setSelected(null); setCartOpen(true); }}>VER CARRITO</button>
           )}
         </div>
       )}
 
       {selected && (
-        <div className="overlay" onClick={() => setSelected(null)} role="dialog" aria-modal="true" aria-label={`Detalle de ${selected.name}`}>
+        <div ref={productDialog} tabIndex={-1} className="overlay" onClick={() => setSelected(null)} role="dialog" aria-modal="true" aria-label={`Detalle de ${selected.name}`}>
           <button className="fixedMenuBack" onClick={() => setSelected(null)}>
             ← VOLVER AL MENÚ
           </button>
@@ -1408,6 +1430,7 @@ export default function Home() {
                           key={variant.id}
                           type="button"
                           disabled={variant.stock <= 0}
+                          aria-pressed={selectedVariantId === variant.id}
                           className={selectedVariantId === variant.id ? "variantOption activeVariant" : "variantOption"}
                           onClick={() => {
                             setSelectedVariantId(variant.id);
@@ -1532,11 +1555,11 @@ export default function Home() {
           className="overlay cartOverlay"
           onClick={() => setCartOpen(false)}
         >
-          <aside className="cart" onClick={(e) => e.stopPropagation()}>
+          <aside ref={cartDialog} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="cart-title" className="cart" onClick={(e) => e.stopPropagation()}>
             <div className="cartHeader">
               <div>
                 <small>RXZ GAMER</small>
-                <h2>Tu carrito</h2>
+                <h2 id="cart-title">Tu carrito</h2>
               </div>
 
               <button className="closeNormal" onClick={() => setCartOpen(false)} aria-label="Cerrar carrito">
@@ -1571,12 +1594,13 @@ export default function Home() {
                         <span>{money(item.price)}</span>
 
                         <div className="quantity">
-                          <button onClick={() => changeQuantity(item.cartKey, -1)}>
+                          <button aria-label={`Reducir cantidad de ${item.name}${item.variantLabel ? `, ${item.variantLabel}` : ""}`} onClick={() => changeQuantity(item.cartKey, -1)}>
                             −
                           </button>
                           <strong>{item.quantity}</strong>
                           <button
                             disabled={item.quantity >= (item.variantStock ?? item.stock)}
+                            aria-label={`Aumentar cantidad de ${item.name}${item.variantLabel ? `, ${item.variantLabel}` : ""}`}
                             onClick={() => changeQuantity(item.cartKey, 1)}
                           >
                             +
@@ -2046,6 +2070,8 @@ export default function Home() {
           object-fit: contain;
           transition: .3s;
         }
+        .imageOpen { position: absolute; inset: 0; z-index: 4; width: 100%; height: 100%; border: 0; background: transparent; cursor: pointer; }
+        .imageOpen:focus-visible { outline-offset: -4px; }
         .packagePreview {
           position: absolute;
           z-index: 3;

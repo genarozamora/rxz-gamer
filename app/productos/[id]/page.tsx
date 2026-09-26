@@ -16,7 +16,9 @@ type Review = { id: string; rating: number; comment: string; created_at: string 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [product, setProduct] = useState<Product | undefined>(() => PRODUCTS.find((item) => String(item.id) === id));
+  const [product, setProduct] = useState<Product | undefined>();
+  const [catalogResult, setCatalogResult] = useState<{ id: string; error: boolean } | null>(null);
+  const [catalogAttempt, setCatalogAttempt] = useState(0);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [reviewOrder] = useState(() => typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("reviewOrder") || "");
   const [rating, setRating] = useState(5);
@@ -28,19 +30,22 @@ export default function ProductPage() {
   const trackedProductId = useRef<number | null>(null);
 
   useEffect(() => {
-    supabase.from("products").select("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants").eq("id", id).eq("active", true).maybeSingle().then(({ data }) => {
-      if (!data) return;
-      const curated = PRODUCTS.find((item) => item.id === Number(data.id));
-      setProduct(mergeVerifiedProduct(data, curated));
+    let cancelled = false;
+    supabase.from("products").select("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants").eq("id", id).eq("active", true).maybeSingle().then(({ data, error }) => {
+      if (cancelled) return;
+      const curated = data ? PRODUCTS.find((item) => item.id === Number(data.id)) : undefined;
+      setProduct(data && !error ? mergeVerifiedProduct(data, curated) : undefined);
+      setCatalogResult({ id, error: Boolean(error) });
     });
-  }, [id]);
+    return () => { cancelled = true; };
+  }, [id, catalogAttempt]);
 
   useEffect(() => {
     supabase.from("product_reviews").select("id,rating,comment,created_at").eq("product_id", id).eq("approved", true).order("created_at", { ascending: false }).then(({ data }) => setReviews((data || []) as Review[]));
   }, [id]);
 
   useEffect(() => {
-    if (!product || trackedProductId.current === product.id) return;
+    if (!product || catalogResult?.id !== id || trackedProductId.current === product.id) return;
     trackedProductId.current = product.id;
     trackMetaEvent("ViewContent", {
       content_ids: [String(product.id)],
@@ -49,7 +54,7 @@ export default function ProductPage() {
       currency: "ARS",
       value: product.price,
     });
-  }, [product]);
+  }, [product, catalogResult, id]);
 
   async function sendReview() {
     const { data: { user } } = await supabase.auth.getUser();
@@ -120,6 +125,14 @@ export default function ProductPage() {
     } catch (error) {
       if (error instanceof Error && error.name !== "AbortError") setCartMessage("No pudimos compartir el producto.");
     }
+  }
+
+  if (catalogResult?.id !== id) {
+    return <main className="grid min-h-screen place-items-center bg-[#03070c] p-5 text-white"><p role="status">Consultando precio y disponibilidad…</p></main>;
+  }
+
+  if (catalogResult.error) {
+    return <main className="grid min-h-screen place-items-center bg-[#03070c] p-5 text-white"><div className="text-center"><h1 className="text-2xl font-black">No pudimos cargar el producto</h1><p className="mt-3 text-slate-300">Reintentá para consultar su precio y disponibilidad.</p><button onClick={() => { setCatalogResult(null); setCatalogAttempt((attempt) => attempt + 1); }} className="mt-5 rounded-xl bg-emerald-500 px-5 py-3 font-black text-[#031008]">REINTENTAR</button><Link href="/#productos" className="mt-5 block text-emerald-400">Volver al catálogo</Link></div></main>;
   }
 
   if (!product) {
