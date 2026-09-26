@@ -2027,7 +2027,7 @@ export default function Home() {
         }
         .productGrid {
           display: grid;
-          grid-template-columns: repeat(auto-fit,minmax(290px,1fr));
+          grid-template-columns: repeat(auto-fill,minmax(290px,1fr));
           gap: 25px;
         }
         .emptyCatalog {
