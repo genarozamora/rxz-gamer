@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AdminNav } from "./admin-nav";
+import { matchesAdminSearch, matchesOrderStatus } from "@/lib/admin-tools";
 import { supabase } from "@/lib/supabase";
 import { SHIPPING_PROVIDER } from "@/lib/shipping";
 
@@ -61,6 +63,11 @@ function statusLabel(status: string) {
 
 export default function AdminPage() {
   const router = useRouter();
+  const [orderSearch, setOrderSearch] = useState("");
+  const [orderFilter, setOrderFilter] = useState("all");
+  const [supportFilter, setSupportFilter] = useState("all");
+  const [supportSearch, setSupportSearch] = useState("");
+  const [orderLimit, setOrderLimit] = useState(10);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
@@ -586,6 +593,10 @@ export default function AdminPage() {
     window.location.href = "/";
   }
 
+  const filteredOrders = orders.filter((order) => matchesOrderStatus(order.status, orderFilter) && matchesAdminSearch(orderSearch, [order.order_number, order.customer_name, order.customer_email, order.customer_phone, order.tracking_number, ...(order.order_items || []).map((item) => item.product_name)]));
+  const filteredConversations = conversations.filter((conversation) => (supportFilter === "all" || conversation.status === supportFilter) && matchesAdminSearch(supportSearch, [conversation.subject, conversation.customer_name, conversation.customer_email]));
+  function showOrders(filter: string) { setOrderFilter(filter); setOrderSearch(""); setOrderLimit(10); document.getElementById("pedidos")?.scrollIntoView({behavior:"smooth"}); }
+
   const selectedConversation = conversations.find(
     (conversation) => conversation.id === selectedConversationId
   );
@@ -622,6 +633,7 @@ export default function AdminPage() {
   return (
     <main style={styles.page}>
       <div style={styles.container}>
+        <AdminNav />
         <div style={styles.header}>
           <div>
             <h1 style={{ margin: 0 }}>RXZ Gamer</h1>
@@ -637,18 +649,7 @@ export default function AdminPage() {
           </div>
 
           <div style={styles.headerButtons}>
-            <button style={styles.secondaryButton} onClick={() => document.getElementById("pedidos")?.scrollIntoView({ behavior: "smooth" })}>Pedidos</button>
-            <button style={styles.secondaryButton} onClick={() => (window.location.href = "/admin/productos")}>Catálogo</button>
-            <button style={styles.secondaryButton} onClick={() => (window.location.href = "/admin/metricas")}>Métricas</button>
-            <button style={styles.secondaryButton} onClick={() => (window.location.href = "/admin/devoluciones")}>Devoluciones</button>
-            <button style={styles.secondaryButton} onClick={() => (window.location.href = "/admin/resenas")}>Reseñas</button>
-            <button
-              style={styles.secondaryButton}
-              onClick={() => (window.location.href = "/")}
-            >
-              Ver tienda
-            </button>
-
+            <a href="#soporte" style={styles.secondaryButton}>Ir a soporte</a>
             <button
               style={styles.secondaryButton}
               onClick={() => (window.location.href = "/cuenta")}
@@ -662,7 +663,7 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {message && <div style={styles.message}>{message}</div>}
+        {message && <div role="status" style={styles.message}>{message}</div>}
 
         <div style={styles.notificationPanel}>
           <div>
@@ -690,47 +691,199 @@ export default function AdminPage() {
         )}
 
         <div style={styles.summary}>
-          <div style={styles.summaryCard}>
-            <span style={styles.summaryLabel}>Pedidos</span>
-            <strong style={styles.summaryNumber}>
-              {orders.length}
-            </strong>
-          </div>
-
-          <div style={styles.summaryCard}>
-            <span style={styles.summaryLabel}>
-              Comprobantes a revisar
-            </span>
-
-            <strong style={styles.summaryNumber}>
-              {
-                orders.filter(
-                  (order) => order.status === "receipt_uploaded"
-                ).length
-              }
-            </strong>
-          </div>
-
-          <div style={styles.summaryCard}>
-            <span style={styles.summaryLabel}>
-              Preparando despacho
-            </span>
-
-            <strong style={styles.summaryNumber}>
-              {
-                orders.filter(
-                  (order) =>
-                    order.status === "preparing_shipment" ||
-                    order.status === "payment_verified"
-                ).length
-              }
-            </strong>
-          </div>
+          {[["all", "Todos los pedidos", orders.length], ["receipt_uploaded", "Comprobantes a revisar", orders.filter((order) => order.status === "receipt_uploaded").length], ["preparing", "Por despachar", orders.filter((order) => matchesOrderStatus(order.status, "preparing")).length], ["shipped", "En camino", orders.filter((order) => order.status === "shipped").length]].map(([filter, label, count]) => <button key={filter} onClick={() => showOrders(String(filter))} style={{...styles.summaryCard, textAlign:"left", cursor:"pointer"}} aria-label={label + ": " + count + ". Ver pedidos"}><span style={styles.summaryLabel}>{label}</span><strong style={styles.summaryNumber}>{count}</strong><span style={{display:"block", color:"#86efac", marginTop:8, fontSize:12}}>Ver pedidos →</span></button>)}
         </div>
+
+        <h2 id="pedidos" style={{ marginTop: 34, scrollMarginTop: 28 }}>Pedidos</h2>
+
+        <p style={styles.sectionDescription}>Buscá un pedido o elegí una tarea pendiente. Abrí el comprobante antes de aprobar un pago.</p>
+        <div className="adminFilters">
+          <label>Buscar pedido<input type="search" value={orderSearch} onChange={(e) => {setOrderSearch(e.target.value);setOrderLimit(10);}} placeholder="Número, cliente, email o producto" /></label>
+          <label>Estado del pedido<select value={orderFilter} onChange={(e) => {setOrderFilter(e.target.value);setOrderLimit(10);}}>{[["all","Todos"],["receipt_uploaded","Comprobantes a revisar"],["preparing","Por despachar"],["shipped","En camino"],["pending_payment","Pendientes de pago"],["payment_rejected","Comprobantes rechazados"],["delivered","Entregados"],["cancelled","Cancelados"]].map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <button style={styles.secondaryButton} onClick={() => showOrders("all")}>Limpiar filtros</button>
+        </div>
+        <p role="status" style={{color:"#a9b6c9"}}>{filteredOrders.length} de {orders.length} pedidos · Mostrando hasta {orderLimit}</p>
+        {filteredOrders.length === 0 ? (
+          <div style={styles.card}>
+            No hay pedidos para mostrar con estos filtros.
+          </div>
+        ) : (
+          <div style={styles.orders}>
+            {filteredOrders.slice(0, orderLimit).map((order) => (
+              <div key={order.id} style={styles.card}>
+                <div style={styles.orderHeader}>
+                  <div>
+                    <div style={styles.orderNumber}>
+                      {order.order_number}
+                    </div>
+
+                    <div style={styles.date}>
+                      {new Date(order.created_at).toLocaleString(
+                        "es-AR"
+                      )}
+                    </div>
+                  </div>
+
+                  <div style={styles.status}>
+                    {statusLabel(order.status)}
+                  </div>
+                </div>
+
+                <div style={styles.total}>
+                  ${Number(order.total).toLocaleString("es-AR")}
+                </div>
+
+                <div style={styles.addressBox}>
+                  <span style={styles.label}>Productos del pedido</span>
+                  {order.order_items?.length ? order.order_items.map((item) => (
+                    <strong key={`${order.id}-${item.product_id}-${item.variant_label || "sin-variante"}`} style={{ display: "block", marginTop: 7 }}>
+                      {item.quantity}× {item.product_name}{item.variant_label ? ` · ${item.variant_label}` : ""}
+                    </strong>
+                  )) : <strong>Sin detalle disponible</strong>}
+                </div>
+
+                <div style={styles.detailsGrid}>
+                  <div>
+                    <span style={styles.label}>Cliente</span>
+                    <strong>
+                      {order.customer_name || "Sin informar"}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span style={styles.label}>Email</span>
+                    <strong>
+                      {order.customer_email || "Sin informar"}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span style={styles.label}>Teléfono</span>
+                    <strong>
+                      {order.customer_phone || "Sin informar"}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span style={styles.label}>Código postal</span>
+                    <strong>
+                      {order.shipping_postal_code || "Sin informar"}
+                    </strong>
+                  </div>
+                </div>
+
+                <div style={styles.addressBox}>
+                  <span style={styles.label}>
+                    Dirección de entrega
+                  </span>
+
+                  <strong>
+                    {order.shipping_address || "Sin informar"}
+                    {order.shipping_city
+                      ? `, ${order.shipping_city}`
+                      : ""}
+                    {order.shipping_province
+                      ? `, ${order.shipping_province}`
+                      : ""}
+                  </strong>
+                </div>
+
+
+                {order.receipt_path && (
+                  <button
+                    style={styles.receiptButton}
+                    onClick={() => viewReceipt(order)}
+                  >
+                    VER COMPROBANTE
+                  </button>
+                )}
+
+                {order.status === "receipt_uploaded" && (
+                  <div style={styles.actionGrid}>
+                    <button
+                      style={styles.approveButton}
+                      disabled={processing === order.id}
+                      onClick={() => approvePayment(order)}
+                    >
+                      {processing === order.id
+                        ? "PROCESANDO..."
+                        : "APROBAR PAGO"}
+                    </button>
+
+                    <button
+                      style={styles.rejectButton}
+                      disabled={processing === order.id}
+                      onClick={() => rejectPayment(order)}
+                    >
+                      RECHAZAR COMPROBANTE
+                    </button>
+                  </div>
+                )}
+
+                {(order.status === "preparing_shipment" ||
+                  order.status === "payment_verified") && (
+                  <button
+                    style={styles.shipButton}
+                    disabled={processing === order.id}
+                    onClick={() => markShipped(order)}
+                  >
+                    MARCAR COMO DESPACHADO
+                  </button>
+                )}
+
+                {order.status === "shipped" && (
+                  <>
+                    <div style={styles.shippingInfo}>
+                      <div>
+                        Transporte:{" "}
+                        <strong>
+                          {order.shipping_company || "-"}
+                        </strong>
+                      </div>
+
+                      <div style={{ marginTop: 7 }}>
+                        Seguimiento:{" "}
+                        <strong>
+                          {order.tracking_number || "-"}
+                        </strong>
+                      </div>
+                    </div>
+
+                    <button
+                      style={styles.approveButton}
+                      disabled={processing === order.id}
+                      onClick={() => markDelivered(order)}
+                    >
+                      MARCAR COMO ENTREGADO
+                    </button>
+                  </>
+                )}
+
+                {order.status === "payment_rejected" &&
+                  order.payment_rejection_reason && (
+                    <div style={styles.rejectionBox}>
+                      <strong>Motivo del rechazo:</strong>
+
+                      <div style={{ marginTop: 6 }}>
+                        {order.payment_rejection_reason}
+                      </div>
+                    </div>
+                  )}
+
+                {["pending_payment", "receipt_uploaded", "payment_rejected"].includes(order.status) && (
+                  <button style={styles.cancelButton} disabled={processing === order.id} onClick={() => cancelOrder(order)}>
+                    CANCELAR PEDIDO Y DEVOLVER STOCK
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        {filteredOrders.length > orderLimit && <button style={styles.secondaryButton} onClick={() => setOrderLimit((limit) => limit + 10)}>Mostrar 10 pedidos más</button>}
 
         <div style={styles.sectionHeader}>
           <div>
-            <h2 style={{ margin: 0 }}>Mensajes de soporte</h2>
+            <h2 id="soporte" style={{ margin: 0, scrollMarginTop:24 }}>Mensajes de soporte</h2>
             <p style={styles.sectionDescription}>
               Consultas enviadas por clientes desde la página Ayuda.
             </p>
@@ -741,14 +894,18 @@ export default function AdminPage() {
           </button>
         </div>
 
+        <div className="adminFilters">
+          <label>Buscar consulta<input type="search" value={supportSearch} onChange={(e) => setSupportSearch(e.target.value)} placeholder="Asunto, cliente o email" /></label>
+          <label>Estado de consultas<select value={supportFilter} onChange={(e) => setSupportFilter(e.target.value)}><option value="all">Todas</option><option value="open">Abiertas</option><option value="closed">Cerradas</option></select></label>
+        </div>
         <div className="adminSupportLayout" style={styles.supportLayout}>
           <div className="adminConversationList" style={styles.conversationList}>
             {supportLoading && conversations.length === 0 ? (
               <div style={styles.emptySupport}>Cargando consultas...</div>
-            ) : conversations.length === 0 ? (
-              <div style={styles.emptySupport}>Todavía no hay consultas.</div>
+            ) : filteredConversations.length === 0 ? (
+              <div style={styles.emptySupport}>No hay consultas con estos filtros.</div>
             ) : (
-              conversations.map((conversation) => (
+              filteredConversations.map((conversation) => (
                 <button
                   key={conversation.id}
                   onClick={() => loadSupportMessages(conversation.id)}
@@ -871,185 +1028,14 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <h2 id="pedidos" style={{ marginTop: 34, scrollMarginTop: 28 }}>Pedidos</h2>
 
-        {orders.length === 0 ? (
-          <div style={styles.card}>
-            Todavía no hay pedidos.
-          </div>
-        ) : (
-          <div style={styles.orders}>
-            {orders.map((order) => (
-              <div key={order.id} style={styles.card}>
-                <div style={styles.orderHeader}>
-                  <div>
-                    <div style={styles.orderNumber}>
-                      {order.order_number}
-                    </div>
-
-                    <div style={styles.date}>
-                      {new Date(order.created_at).toLocaleString(
-                        "es-AR"
-                      )}
-                    </div>
-                  </div>
-
-                  <div style={styles.status}>
-                    {statusLabel(order.status)}
-                  </div>
-                </div>
-
-                <div style={styles.total}>
-                  ${Number(order.total).toLocaleString("es-AR")}
-                </div>
-
-                <div style={styles.addressBox}>
-                  <span style={styles.label}>Productos del pedido</span>
-                  {order.order_items?.length ? order.order_items.map((item) => (
-                    <strong key={`${order.id}-${item.product_id}-${item.variant_label || "sin-variante"}`} style={{ display: "block", marginTop: 7 }}>
-                      {item.quantity}× {item.product_name}{item.variant_label ? ` · ${item.variant_label}` : ""}
-                    </strong>
-                  )) : <strong>Sin detalle disponible</strong>}
-                </div>
-
-                <div style={styles.detailsGrid}>
-                  <div>
-                    <span style={styles.label}>Cliente</span>
-                    <strong>
-                      {order.customer_name || "Sin informar"}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span style={styles.label}>Email</span>
-                    <strong>
-                      {order.customer_email || "Sin informar"}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span style={styles.label}>Teléfono</span>
-                    <strong>
-                      {order.customer_phone || "Sin informar"}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span style={styles.label}>Código postal</span>
-                    <strong>
-                      {order.shipping_postal_code || "Sin informar"}
-                    </strong>
-                  </div>
-                </div>
-
-                <div style={styles.addressBox}>
-                  <span style={styles.label}>
-                    Dirección de entrega
-                  </span>
-
-                  <strong>
-                    {order.shipping_address || "Sin informar"}
-                    {order.shipping_city
-                      ? `, ${order.shipping_city}`
-                      : ""}
-                    {order.shipping_province
-                      ? `, ${order.shipping_province}`
-                      : ""}
-                  </strong>
-                </div>
-
-                {order.receipt_path && (
-                  <button
-                    style={styles.receiptButton}
-                    onClick={() => viewReceipt(order)}
-                  >
-                    VER COMPROBANTE
-                  </button>
-                )}
-
-                {order.status === "receipt_uploaded" && (
-                  <div style={styles.actionGrid}>
-                    <button
-                      style={styles.approveButton}
-                      disabled={processing === order.id}
-                      onClick={() => approvePayment(order)}
-                    >
-                      {processing === order.id
-                        ? "PROCESANDO..."
-                        : "APROBAR PAGO"}
-                    </button>
-
-                    <button
-                      style={styles.rejectButton}
-                      disabled={processing === order.id}
-                      onClick={() => rejectPayment(order)}
-                    >
-                      RECHAZAR COMPROBANTE
-                    </button>
-                  </div>
-                )}
-
-                {(order.status === "preparing_shipment" ||
-                  order.status === "payment_verified") && (
-                  <button
-                    style={styles.shipButton}
-                    disabled={processing === order.id}
-                    onClick={() => markShipped(order)}
-                  >
-                    MARCAR COMO DESPACHADO
-                  </button>
-                )}
-
-                {order.status === "shipped" && (
-                  <>
-                    <div style={styles.shippingInfo}>
-                      <div>
-                        Transporte:{" "}
-                        <strong>
-                          {order.shipping_company || "-"}
-                        </strong>
-                      </div>
-
-                      <div style={{ marginTop: 7 }}>
-                        Seguimiento:{" "}
-                        <strong>
-                          {order.tracking_number || "-"}
-                        </strong>
-                      </div>
-                    </div>
-
-                    <button
-                      style={styles.approveButton}
-                      disabled={processing === order.id}
-                      onClick={() => markDelivered(order)}
-                    >
-                      MARCAR COMO ENTREGADO
-                    </button>
-                  </>
-                )}
-
-                {order.status === "payment_rejected" &&
-                  order.payment_rejection_reason && (
-                    <div style={styles.rejectionBox}>
-                      <strong>Motivo del rechazo:</strong>
-
-                      <div style={{ marginTop: 6 }}>
-                        {order.payment_rejection_reason}
-                      </div>
-                    </div>
-                  )}
-
-                {["pending_payment", "receipt_uploaded", "payment_rejected"].includes(order.status) && (
-                  <button style={styles.cancelButton} disabled={processing === order.id} onClick={() => cancelOrder(order)}>
-                    CANCELAR PEDIDO Y DEVOLVER STOCK
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
       </div>
       <style jsx>{`
+        .adminFilters { display:flex; flex-wrap:wrap; align-items:end; gap:14px; margin:20px 0; }
+        .adminFilters label { flex:1 1 220px; color:#b7c5d6; font-size:14px; }
+        .adminFilters input, .adminFilters select { display:block; width:100%; margin-top:7px; min-height:46px; border:1px solid #344154; border-radius:10px; padding:12px; background:#0b1724; color:white; font-size:16px; }
+        :global(button:focus-visible), :global(a:focus-visible), input:focus-visible, select:focus-visible { outline:2px solid #86efac; outline-offset:3px; }
+
         @media (max-width: 720px) {
           .adminSupportLayout {
             grid-template-columns: minmax(0, 1fr) !important;
