@@ -445,6 +445,7 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
   const [recentIds, setRecentIds] = useState<number[]>([]);
+  const [trustNudge, setTrustNudge] = useState(false);
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -583,6 +584,22 @@ export default function Home() {
     const timer = window.setTimeout(() => setToast(""), 3000);
     return () => window.clearTimeout(timer);
   }, [toast]);
+
+  useEffect(() => {
+    if (!loaded) return;
+    let hideTimer = 0;
+    const show = () => {
+      setTrustNudge(true);
+      hideTimer = window.setTimeout(() => setTrustNudge(false), 6500);
+    };
+    const firstTimer = window.setTimeout(show, 12000);
+    const repeatTimer = window.setInterval(show, 48000);
+    return () => {
+      window.clearTimeout(firstTimer);
+      window.clearTimeout(hideTimer);
+      window.clearInterval(repeatTimer);
+    };
+  }, [loaded]);
 
   const selectedVariant = selected?.variants?.find((variant) => variant.id === selectedVariantId);
 
@@ -1320,6 +1337,14 @@ export default function Home() {
         </div>
       )}
 
+      {trustNudge && !selected && !cartOpen && (
+        <aside className="trustNudge" role="status" aria-live="polite">
+          <span aria-hidden="true">✓</span>
+          <div><strong>COMPRÁ CON INFORMACIÓN CLARA</strong><small>Stock visible, atención directa y seguimiento personal de tu pedido.</small></div>
+          <button type="button" onClick={() => setTrustNudge(false)} aria-label="Cerrar aviso">×</button>
+        </aside>
+      )}
+
       {selected && (
         <div ref={productDialog} tabIndex={-1} className="overlay" onClick={() => setSelected(null)} role="dialog" aria-modal="true" aria-label={`Detalle de ${selected.name}`}>
           <button className="fixedMenuBack" onClick={() => setSelected(null)}>
@@ -1437,7 +1462,7 @@ export default function Home() {
                             className="variantPreview"
                           />
                           <span className="colorDot" style={{ background: variant.color }} />
-                          <span>{variant.label}<small>{variant.stock > 0 ? `${variant.stock} ${variant.stock === 1 ? "unidad" : "unidades"}` : "Sin stock"}</small></span>
+                          <span>{variant.label}<small>{selectedVariantId === variant.id ? "✓ COLOR ELEGIDO" : variant.stock > 0 ? `${variant.stock} ${variant.stock === 1 ? "unidad" : "unidades"}` : "Sin stock"}</small></span>
                         </button>
                       ))}
                     </div>
@@ -2529,6 +2554,9 @@ export default function Home() {
         }
         .fixedMenuBack:hover { border-color: #34d399; background: #0a1b20; color: white; }
         .variantOption:hover:not(:disabled), .activeVariant { border-color: #22c55e; box-shadow: 0 0 0 1px rgba(34,197,94,.25); }
+        .activeVariant { background:rgba(34,197,94,.13); animation:colorChosen .48s ease-out; transform:translateY(-2px); }
+        .activeVariant small { color:#86efac; font-weight:950; letter-spacing:.04em; }
+        @keyframes colorChosen { 0% { transform:scale(.96); box-shadow:0 0 0 0 rgba(34,197,94,.8); } 65% { transform:scale(1.035); box-shadow:0 0 0 8px rgba(34,197,94,0); } 100% { transform:translateY(-2px); } }
         .variantOption:disabled { opacity: .45; cursor: not-allowed; }
         .variantOption small { display: block; margin-top: 3px; color: #8fa0b5; }
         .colorDot { width: 22px; height: 22px; flex: 0 0 auto; border: 2px solid rgba(255,255,255,.35); border-radius: 50%; }
@@ -2836,6 +2864,14 @@ export default function Home() {
         .purchaseTrust span { padding:8px 10px; border:1px solid #263349; border-radius:9px; background:rgba(15,23,42,.75); color:#cbd5e1; font-size:12px; }
         .buyNowBtn { min-width:190px; border:1px solid #22c55e; border-radius:10px; padding:14px 20px; background:transparent; color:#86efac; font-weight:950; }
         .buyNowBtn:hover:not(:disabled) { background:rgba(34,197,94,.1); }
+        .trustNudge { position:fixed; left:24px; bottom:24px; z-index:125; width:min(390px,calc(100vw - 32px)); display:grid; grid-template-columns:42px 1fr 28px; gap:12px; align-items:center; padding:16px; border:1px solid rgba(74,222,128,.55); border-radius:16px; background:rgba(5,20,16,.96); color:white; box-shadow:0 18px 55px rgba(0,0,0,.48); backdrop-filter:blur(14px); animation:nudgeIn .45s ease-out; }
+        .trustNudge > span { display:grid; place-items:center; width:42px; height:42px; border-radius:50%; background:#22c55e; color:#031008; font-size:22px; font-weight:950; }
+        .trustNudge strong,.trustNudge small { display:block; }
+        .trustNudge strong { color:#86efac; font-size:12px; letter-spacing:.08em; }
+        .trustNudge small { margin-top:4px; color:#d2dbe7; line-height:1.4; }
+        .trustNudge button { border:0; background:transparent; color:#aab6c6; font-size:24px; }
+        @keyframes nudgeIn { from { opacity:0; transform:translateY(18px) scale(.97); } to { opacity:1; transform:none; } }
+        @media (prefers-reduced-motion:reduce) { .activeVariant,.trustNudge { animation:none; } }
 
         @media (min-width:901px) and (max-width:1450px) {
           header { padding-inline: 24px; gap: 16px; }
@@ -2854,6 +2890,7 @@ export default function Home() {
         }
 
         @media(max-width:900px) {
+          .trustNudge { left:16px; bottom:104px; }
           main { padding-bottom: 78px; }
           .mobileDock {
             position: fixed;

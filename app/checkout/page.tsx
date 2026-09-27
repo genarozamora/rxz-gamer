@@ -64,8 +64,10 @@ export default function CheckoutPage() {
   const [province, setProvince] = useState("Córdoba");
   const [postalCode, setPostalCode] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [termsError, setTermsError] = useState(false);
   const [copied, setCopied] = useState("");
   const trackedCheckout = useRef(false);
+  const termsCheckbox = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function load() {
@@ -119,6 +121,13 @@ export default function CheckoutPage() {
   async function createOrder() {
     if (creating) return;
     setMessage("");
+
+    if (!acceptedTerms) {
+      setTermsError(true);
+      setMessage("Tenés que aceptar los Términos y condiciones y la Política de privacidad para confirmar el pedido.");
+      window.setTimeout(() => termsCheckbox.current?.focus(), 0);
+      return;
+    }
 
     if (
       !fullName.trim() ||
@@ -174,11 +183,6 @@ export default function CheckoutPage() {
 
     if (!validPostalCode(postalCode)) {
       setMessage("Ingresá un código postal argentino válido: 4 números o CPA completo.");
-      return;
-    }
-
-    if (!acceptedTerms) {
-      setMessage("Para continuar, aceptá los términos y las políticas de compra.");
       return;
     }
 
@@ -471,15 +475,16 @@ export default function CheckoutPage() {
                 <span>💬 Podés consultar a soporte durante todo el proceso.</span>
               </div>
 
-              <label style={styles.termsRow}>
-                <input type="checkbox" required checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} />
-                <span>Acepto los <a href="/legal/terminos" target="_blank" rel="noopener noreferrer">Términos y condiciones</a>, la <a href="/legal/privacidad" target="_blank" rel="noopener noreferrer">Política de privacidad</a> y las condiciones de <a href="/legal/envios" target="_blank" rel="noopener noreferrer">envío</a>.</span>
+              <label style={{ ...styles.termsRow, ...(termsError ? styles.termsRowError : {}) }}>
+                <input ref={termsCheckbox} type="checkbox" required checked={acceptedTerms} aria-invalid={termsError} aria-describedby={termsError ? "terms-error" : undefined} onChange={(event) => { setAcceptedTerms(event.target.checked); if (event.target.checked) setTermsError(false); }} />
+                <span>Acepto los <a href="/legal/terminos" target="_blank" rel="noopener noreferrer">Términos y condiciones</a>, la <a href="/legal/privacidad" target="_blank" rel="noopener noreferrer">Política de privacidad</a> y las condiciones de <a href="/legal/envios" target="_blank" rel="noopener noreferrer">envío</a>. <strong>Podés abrir y leer cada documento antes de aceptar.</strong></span>
               </label>
+              {termsError && <div id="terms-error" role="alert" style={styles.termsError}>⚠ Tenés que aceptar los términos y la privacidad para confirmar el pedido.</div>}
 
               <button
                 style={styles.primaryButton}
                 onClick={createOrder}
-                disabled={creating || !acceptedTerms}
+                disabled={creating}
               >
                 {creating
                   ? "GENERANDO PEDIDO..."
@@ -606,6 +611,22 @@ const styles: Record<string, React.CSSProperties> = {
     color: "#cbd5e1",
     fontSize: 13,
     lineHeight: 1.5,
+    padding: 14,
+    border: "1px solid #334155",
+    borderRadius: 12,
+  },
+
+  termsRowError: {
+    border: "2px solid #ef4444",
+    background: "rgba(239,68,68,.12)",
+    color: "#fecaca",
+  },
+
+  termsError: {
+    marginTop: 8,
+    color: "#fca5a5",
+    fontSize: 13,
+    fontWeight: 900,
   },
 
   copyButton: {
