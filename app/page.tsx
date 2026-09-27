@@ -934,7 +934,7 @@ export default function Home() {
           <a className="reelCard reelCardBlue" href="#comparar"><small>02 · COMPARÁ</small><strong>DATOS REALES. DECISIÓN SIMPLE.</strong><span>Revisá características, variantes, stock y precio.</span><b>COMPARAR OPCIONES →</b></a>
           <a className="reelCard reelCardDark" href="#beneficios"><small>03 · ELEGÍ</small><strong>TU SETUP. TU NIVEL.</strong><span>Compra segura, atención directa y envíos nacionales.</span><b>CONOCER RXZ →</b></a>
         </div>
-        <div className="performanceTicker" aria-label="Características de RXZ Gamer"><div><span>GAMING</span><i>✦</i><span>PERFORMANCE</span><i>✦</i><span>TECNOLOGÍA</span><i>✦</i><span>GAMING</span><i>✦</i><span>PERFORMANCE</span><i>✦</i><span>TECNOLOGÍA</span><i>✦</i></div></div>
+        <div className="performanceTicker" aria-label="Características de RXZ Gamer"><div><span>GAMING</span><i aria-hidden="true">✦</i><span>PERFORMANCE</span><i aria-hidden="true">✦</i><span>TECNOLOGÍA</span></div></div>
       </section>
 
       <section id="productos" className="products">
@@ -1712,7 +1712,6 @@ export default function Home() {
           background: #16a34a;
           top: 50px;
           left: -300px;
-          animation: move1 15s infinite alternate ease-in-out;
         }
         .glow2 {
           width: 750px;
@@ -1720,7 +1719,6 @@ export default function Home() {
           background: #1d4ed8;
           right: -350px;
           top: 350px;
-          animation: move2 20s infinite alternate ease-in-out;
         }
         .siteTop, .announcement, header, section, footer {
           position: relative;
@@ -1923,18 +1921,18 @@ export default function Home() {
         .reelIntro p { margin: 0; color: #8f9db1; line-height: 1.6; }
         .reelCards { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
         .reelCard { min-height: 390px; padding: 30px; border-radius: 24px; text-decoration: none; color: white; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; isolation: isolate; border: 1px solid rgba(255,255,255,.1); transition: transform .35s ease,border-color .35s ease,box-shadow .35s ease; }
-        .reelCard::before { content: ""; position: absolute; inset: -35%; z-index: -1; background: conic-gradient(from 180deg,transparent,rgba(255,255,255,.13),transparent 35%); animation: reelSweep 8s linear infinite; }
+        .reelCard::before { content: ""; position: absolute; inset: -35%; z-index: -1; background: conic-gradient(from 180deg,transparent,rgba(255,255,255,.13),transparent 35%); }
         .reelCard::after { content: ""; position: absolute; width: 220px; height: 220px; border: 1px solid rgba(255,255,255,.2); border-radius: 50%; top: 35px; right: -60px; box-shadow: 0 0 80px currentColor; opacity: .35; z-index: -1; }
-        .reelCard:hover { transform: translateY(-9px) scale(1.01); border-color: rgba(80,255,177,.55); box-shadow: 0 30px 70px rgba(0,0,0,.38); }
+        .reelCard:hover { transform: translateY(-3px); border-color: rgba(80,255,177,.55); box-shadow: 0 30px 70px rgba(0,0,0,.38); }
         .reelCard small { color: #b8c6d8; font-weight: 900; letter-spacing: 2px; }
         .reelCard strong { max-width: 390px; margin: 18px 0 13px; font-size: clamp(25px,2.4vw,39px); line-height: .95; letter-spacing: -1px; }
         .reelCard span { max-width: 360px; color: #c4cedb; line-height: 1.55; }
-        .reelCard b { margin-top: 28px; color: #50ffb1; font-size: 12px; letter-spacing: 1.5px; }
-        .reelCardGreen { background: radial-gradient(circle at 85% 15%,rgba(34,197,94,.38),transparent 35%),linear-gradient(145deg,#071c17,#07100e 65%); color: #6cffae; }
-        .reelCardBlue { background: radial-gradient(circle at 85% 15%,rgba(34,211,238,.36),transparent 35%),linear-gradient(145deg,#071622,#050a11 65%); color: #38d9ff; }
-        .reelCardDark { background: radial-gradient(circle at 85% 15%,rgba(168,85,247,.3),transparent 35%),linear-gradient(145deg,#161021,#07090e 65%); color: #a855f7; }
+        .reelCard b { margin-top: 28px; color: #86efac; font-size: 12px; letter-spacing: 1.5px; }
+        .reelCardGreen { background: radial-gradient(circle at 85% 15%,rgba(34,197,94,.22),transparent 35%),linear-gradient(145deg,#071c17,#07100e 65%); color: #f1f5f9; }
+        .reelCardBlue { background: radial-gradient(circle at 85% 15%,rgba(56,189,248,.22),transparent 35%),linear-gradient(145deg,#071622,#050a11 65%); color: #f1f5f9; }
+        .reelCardDark { background: radial-gradient(circle at 85% 15%,rgba(45,212,191,.18),transparent 35%),linear-gradient(145deg,#0b1923,#070d15 65%); color: #f1f5f9; }
         .performanceTicker { margin-top: 18px; border-block: 1px solid rgba(80,255,177,.18); overflow: hidden; color: #dfffee; }
-        .performanceTicker div { width: max-content; display: flex; gap: 28px; padding: 17px 0; font-size: 13px; font-weight: 950; letter-spacing: 3px; animation: tickerMove 18s linear infinite; }
+        .performanceTicker div { width: max-content; display: flex; gap: 28px; padding: 17px 0; font-size: 13px; font-weight: 950; letter-spacing: 3px; }
         .performanceTicker i { color: #22c55e; font-style: normal; }
         @keyframes reelSweep { to { transform: rotate(360deg); } }
         @keyframes tickerMove { to { transform: translateX(-50%); } }
@@ -2053,7 +2051,7 @@ export default function Home() {
           box-shadow: 0 25px 60px rgba(0,0,0,.25);
         }
         .card:hover {
-          transform: translateY(-6px);
+          transform: translateY(-3px);
           border-color: rgba(34,197,94,.45);
           box-shadow: 0 30px 80px rgba(0,0,0,.45);
         }
@@ -2389,7 +2387,7 @@ export default function Home() {
         .overlay {
           position: fixed;
           inset: 0;
-          z-index: 700;
+          z-index: 1000;
           background: rgba(0,0,0,.9);
           backdrop-filter: blur(10px);
           padding: 20px;
@@ -2768,7 +2766,7 @@ export default function Home() {
         .compareBottom > strong { color:#21d477; font-size:22px; }
         .compareBottom button { width:100%; padding:11px; border:1px solid #2d4d40; border-radius:9px; background:#0b241c; color:#7ef0b4; font-weight:900; font-size:11px; }
         .compareBottom button:hover { background:#19d47f; color:#031008; }
-        .faqIntro { position:sticky; top:110px; }
+        .faqIntro { position:sticky; top:136px; }
         .faqIntro > span { color:#19d47f; font-size:12px; font-weight:900; letter-spacing:3px; }
         .faqIntro h2 { margin:12px 0; font-size:clamp(34px,4vw,54px); line-height:1; }
         .faqIntro p { color:#9daabc; line-height:1.7; max-width:440px; }
@@ -2833,6 +2831,22 @@ export default function Home() {
         .purchaseTrust span { padding:8px 10px; border:1px solid #263349; border-radius:9px; background:rgba(15,23,42,.75); color:#cbd5e1; font-size:12px; }
         .buyNowBtn { min-width:190px; border:1px solid #22c55e; border-radius:10px; padding:14px 20px; background:transparent; color:#86efac; font-weight:950; }
         .buyNowBtn:hover:not(:disabled) { background:rgba(34,197,94,.1); }
+
+        @media (min-width:901px) and (max-width:1250px) {
+          header { padding-inline: 24px; gap: 16px; }
+          header > nav { gap: 10px; flex-wrap: wrap; justify-content: flex-end; padding-block: 10px; }
+          header > nav > a { font-size: 12px; }
+          .logo { flex-shrink: 0; }
+        }
+        .performanceTicker div { width: 100%; flex-wrap: wrap; justify-content: center; gap: 12px 24px; letter-spacing: 1.5px; }
+        .hero p, .sectionHead p { color: #a9b6c9; }
+        .trust small { color: #a4b2c5; }
+        .categories button { min-height: 44px; }
+        .menuBtn { min-width: 44px; min-height: 44px; }
+        .modal { overscroll-behavior: contain; }
+        @media (hover:none) {
+          .card:hover, .reelCard:hover { transform: none; }
+        }
 
         @media(max-width:900px) {
           main { padding-bottom: 78px; }
@@ -2901,15 +2915,18 @@ export default function Home() {
           .reelExperience { padding: 20px 16px 60px; }
           .reelIntro { grid-template-columns: 1fr; gap: 12px; }
           .reelCards { grid-template-columns: 1fr; }
-          .reelCard { min-height: 330px; padding: 24px; }
+          .reelCard { min-height: 210px; padding: 24px; }
           .recentGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
           .savedCart { margin:0 5% 70px; }
           .shareSection { margin:70px 5%; grid-template-columns:1fr; }
           .menuBtn { display: block; margin-left: auto; }
-          nav {
+          header > nav {
             display: none;
             position: absolute;
-            top: 75px;
+            top: 100%;
+            max-height: calc(100dvh - 200px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
             left: 16px;
             right: 16px;
             padding: 16px;
