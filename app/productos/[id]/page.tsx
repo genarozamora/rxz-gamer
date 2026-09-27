@@ -8,6 +8,7 @@ import type { Product } from "@/app/page";
 import { supabase } from "@/lib/supabase";
 import { getPackagePreview } from "@/lib/package-preview";
 import { mergeVerifiedProduct } from "@/lib/verified-product";
+import { trackStoreEvent } from "@/lib/store-tracking";
 import { trackMetaEvent } from "@/lib/meta-pixel";
 
 const money = (value: number) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(value);
@@ -47,6 +48,7 @@ export default function ProductPage() {
   useEffect(() => {
     if (!product || catalogResult?.id !== id || trackedProductId.current === product.id) return;
     trackedProductId.current = product.id;
+    void trackStoreEvent("product_view", product.id);
     trackMetaEvent("ViewContent", {
       content_ids: [String(product.id)],
       content_name: `${product.brand} ${product.name}`,
@@ -99,6 +101,7 @@ export default function ProductPage() {
             images: variant ? [variant.image, ...product.images.filter((image) => image !== variant.image)] : product.images,
           }];
       localStorage.setItem("rxz-cart", JSON.stringify(nextCart));
+      void trackStoreEvent("add_to_cart", product.id);
       trackMetaEvent("AddToCart", {
         content_ids: [String(product.id)],
         content_name: `${product.brand} ${product.name}`,
@@ -122,6 +125,7 @@ export default function ProductPage() {
         await navigator.clipboard.writeText(url);
         setCartMessage("Enlace del producto copiado.");
       }
+      void trackStoreEvent("share_product", product.id);
     } catch (error) {
       if (error instanceof Error && error.name !== "AbortError") setCartMessage("No pudimos compartir el producto.");
     }

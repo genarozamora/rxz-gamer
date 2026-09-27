@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
+import { trackStoreEvent } from "@/lib/store-tracking";
 import { supabase } from "@/lib/supabase";
 import { getPackagePreview } from "@/lib/package-preview";
 import { mergeVerifiedProduct } from "@/lib/verified-product";
@@ -536,7 +537,7 @@ export default function Home() {
     const visitKey = `rxz-campaign-visit:${window.location.search}`;
     if (sessionStorage.getItem(visitKey)) return;
     sessionStorage.setItem(visitKey, "1");
-    void supabase.from("store_events").insert({ event_name: "campaign_visit", product_id: null, metadata: campaign });
+    void trackStoreEvent("campaign_visit", undefined, campaign);
   }, [loaded]);
 
   useEffect(() => {
@@ -652,18 +653,7 @@ export default function Home() {
     })),
   };
 
-  function track(eventName: string, productId?: number) {
-    let campaign: Record<string, string> | null = null;
-    try {
-      const saved = localStorage.getItem("rxz-campaign");
-      campaign = saved ? JSON.parse(saved) as Record<string, string> : null;
-    } catch {}
-    void supabase.from("store_events").insert({
-      event_name: eventName,
-      product_id: productId ? String(productId) : null,
-      metadata: campaign ? { campaign } : {},
-    });
-  }
+  const track = trackStoreEvent;
 
   function openProduct(product: Product) {
     setSelectedImage(0);
@@ -806,7 +796,6 @@ export default function Home() {
 
   function goToCheckout() {
     setCartOpen(false);
-    track("begin_checkout");
     window.location.href = userEmail ? "/checkout" : "/login?next=/checkout";
   }
 
@@ -844,6 +833,7 @@ export default function Home() {
 
         <nav id="navegacion-principal" className={menuOpen ? "navOpen" : ""} onClick={() => setMenuOpen(false)}>
           <a href="#inicio">Inicio</a>
+          <button className="navShare" onClick={shareStore}>↗ Compartir</button>
           <a href="#productos">Productos</a>
           <a href="#comparar">Comparar</a>
           <a href="#beneficios">Envíos</a>
@@ -895,6 +885,8 @@ export default function Home() {
             HABLAR CON SOPORTE
           </a>
         </div>
+
+        <button className="heroShare" onClick={shareStore}>↗ Compartir RXZ Gamer</button>
 
         <div className="trust">
           <div>
@@ -1214,7 +1206,7 @@ export default function Home() {
         <div className="faqIntro">
           <span>TODO CLARO ANTES DE COMPRAR</span>
           <h2 id="faq-title">Preguntas frecuentes</h2>
-          <p>La información importante sobre pago, envío, stock y garantía en un solo lugar.</p>
+          <p>La información importante sobre pago, envío y stock en un solo lugar.</p>
         </div>
         <div className="faqList">
           <details>
@@ -1235,7 +1227,7 @@ export default function Home() {
           </details>
           <details>
             <summary>¿Qué pasa si necesito ayuda o un cambio?</summary>
-            <p>Podés hablar con soporte desde el botón de chat. También podés consultar las políticas de cambios, garantías y arrepentimiento al pie de la página.</p>
+            <p>Podés hablar con soporte desde el botón de chat para consultar sobre tu pedido.</p>
           </details>
         </div>
       </section>
@@ -1276,7 +1268,7 @@ export default function Home() {
         <div className="footerLinks">
           <Link href="/legal/terminos">Términos</Link>
           <Link href="/legal/privacidad">Privacidad</Link>
-          <Link href="/legal/garantias">Cambios y garantías</Link>
+          <Link href="/legal/garantias">Información de compra</Link>
           <Link href="/legal/envios">Envíos</Link>
           <Link href="/arrepentimiento">BOTÓN DE ARREPENTIMIENTO</Link>
         </div>
@@ -1555,6 +1547,7 @@ export default function Home() {
           className="overlay cartOverlay"
           onClick={() => setCartOpen(false)}
         >
+          <div className="cartBackdrop" aria-hidden="true"><img src="/rxz-logo-192.png" alt="" /><span>ESTÁS A UN PASO</span><h2>Tu próximo<br /><em>upgrade.</em></h2><p>Revisá tu selección y elegí cómo seguir.</p><div><b>01 · Tu selección</b><b>02 · Datos de entrega</b><b>03 · Confirmación</b></div></div>
           <aside ref={cartDialog} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="cart-title" className="cart" onClick={(e) => e.stopPropagation()}>
             <div className="cartHeader">
               <div>
@@ -2646,7 +2639,19 @@ export default function Home() {
         .specRow span { color: #8391a6; }
         .specRow strong { color: #e4eaf2; font-weight: 800; }
 
-        .cartOverlay { justify-content: flex-end; padding: 0; }
+        .heroShare { margin-top:20px; padding:12px 22px; border:1px solid #2b6653; border-radius:12px; background:#0d2821; color:#a7f3d0; font-weight:800; min-height:44px; }
+        .navShare { padding:10px 12px; border:1px solid #2b6653; border-radius:9px; background:#0d2821; color:#a7f3d0; font-weight:700; min-height:44px; }
+        .cartOverlay { justify-content: flex-end; padding: 0; background:radial-gradient(ellipse at 25% 50%,#0b352c 0%,#071521 45%,#03060b 85%); }
+        .cartBackdrop { flex:1; padding:clamp(30px,7vw,120px); color:#e2e8f0; }
+        .cartBackdrop img { width:100px; height:100px; border-radius:24px; margin-bottom:30px; }
+        .cartBackdrop > span { display:block; color:#86efac; font-size:12px; letter-spacing:3px; }
+        .cartBackdrop h2 { font-size:clamp(45px,5vw,88px); line-height:1.02; letter-spacing:-3px; margin:22px 0; }
+        .cartBackdrop em { font-style:normal; color:#34d399; }
+        .cartBackdrop p { color:#a9b6c9; font-size:18px; line-height:1.6; }
+        .cartBackdrop > div { display:grid; gap:16px; margin-top:40px; color:#9badc1; font-size:14px; }
+        .cartBackdrop b:first-child { color:#86efac; }
+        @media(max-width:900px) { .cartBackdrop { display:none; } }
+        .cart { flex-shrink:0; }
         .cart {
           width: min(480px,100%);
           height: 100%;
@@ -2832,7 +2837,7 @@ export default function Home() {
         .buyNowBtn { min-width:190px; border:1px solid #22c55e; border-radius:10px; padding:14px 20px; background:transparent; color:#86efac; font-weight:950; }
         .buyNowBtn:hover:not(:disabled) { background:rgba(34,197,94,.1); }
 
-        @media (min-width:901px) and (max-width:1250px) {
+        @media (min-width:901px) and (max-width:1450px) {
           header { padding-inline: 24px; gap: 16px; }
           header > nav { gap: 10px; flex-wrap: wrap; justify-content: flex-end; padding-block: 10px; }
           header > nav > a { font-size: 12px; }

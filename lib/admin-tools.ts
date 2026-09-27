@@ -5,6 +5,7 @@ export function matchesAdminSearch(query: string, values: (string | null | undef
 }
 
 export function matchesOrderStatus(status: string, filter: string) {
+  if (filter === "active") return status !== "cancelled";
   if (filter === "all") return true;
   if (filter === "preparing") return ["payment_verified", "preparing_shipment"].includes(status);
   return status === filter;

@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     configureWebPush();
     const { data: subscriptions } = await db.from("admin_push_subscriptions").select("id,endpoint,p256dh,auth");
     if (!subscriptions?.length) return Response.json({ error: "No hay dispositivos administradores suscriptos" }, { status: 503 });
-    const payload = JSON.stringify({ title: "Nuevo pedido en RXZ Gamer", body: `${order.order_number} · $${Number(order.total).toLocaleString("es-AR")}`, tag: `rxz-order-${order.id}`, url: "/admin" });
+    const payload = JSON.stringify({ title: "Nuevo pedido en RXZ Gamer", body: `${order.order_number} · $${Number(order.total).toLocaleString("es-AR")}`, tag: `rxz-order-${order.id}`, url: "/admin/pedidos" });
     let successfulDeliveries = 0;
     await Promise.allSettled(subscriptions.map(async (sub) => {
       try { await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, payload); }

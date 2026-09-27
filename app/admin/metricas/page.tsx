@@ -1,42 +1,75 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { AdminNav } from "../admin-nav";
 import { supabase } from "@/lib/supabase";
+import { summarizeMetrics, type StoreEvent, type MetricOrder } from "@/lib/store-metrics";
 
-type EventRow = { event_name: string; product_id: string | null; created_at: string; metadata: Record<string, unknown> | null };
-
+type Report = ReturnType<typeof summarizeMetrics>;
 export default function MetricsPage() {
-  const [events, setEvents] = useState<EventRow[]>([]);
+  const [days, setDays] = useState(30);
+  const [attempt, setAttempt] = useState(0);
+  const [report, setReport] = useState<Report | null>(null);
+  const [names, setNames] = useState<Record<string,string>>({});
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [updated, setUpdated] = useState("");
+  const [partial, setPartial] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { window.location.href = "/login?next=/admin/metricas"; return; }
-      const { data: staff } = await supabase.from("support_staff").select("user_id").eq("user_id", user.id).maybeSingle();
-      if (!staff) { window.location.href = "/"; return; }
-      const { data, error } = await supabase.from("store_events").select("event_name,product_id,created_at,metadata").order("created_at", { ascending: false }).limit(5000);
-      if (error) setMessage(error.message); else setEvents((data || []) as EventRow[]);
+      setLoading(true); setMessage(""); setReport(null);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { window.location.href = "/login?next=/admin/metricas"; return; }
+        const { data: staff, error: accessError } = await supabase.from("support_staff").select("user_id").eq("user_id", user.id).maybeSingle();
+        if (accessError || !staff) throw new Error("No se pudo verificar tu acceso al panel.");
+        const until = new Date().toISOString();
+        const since = new Date(Date.parse(until) - days * 86400000).toISOString();
+        // Supabase caps each response; retrieve explicit pages rather than silently counting only the first 1,000 rows.
+        async function rows(table: "orders" | "store_events", columns: string) {
+          const result: unknown[] = [];
+          let total = 0;
+          for (let from = 0; from < 50000; from += 1000) {
+            const { data, error, count } = await supabase.from(table).select(columns, { count: "exact" }).gte("created_at", since).lte("created_at", until).order("created_at", {ascending:false}).order("id", {ascending:false}).range(from, from + 999);
+            if (error) throw new Error(`No se pudieron cargar ${table === "orders" ? "los pedidos" : "las interacciones"}: ${error.message}`);
+            result.push(...(data || [])); total = count || 0;
+            if (result.length >= total || !data?.length) break;
+          }
+          return {data:result, partial:result.length < total};
+        }
+        const [events, orders, products] = await Promise.all([
+          rows("store_events", "id,event_name,product_id,metadata,created_at"),
+          rows("orders", "id,status,total,created_at"),
+          supabase.from("products").select("id,brand,name"),
+        ]);
+        if (cancelled) return;
+        setReport(summarizeMetrics(events.data as StoreEvent[], orders.data as MetricOrder[]));
+        setNames(Object.fromEntries((products.data || []).map((product) => [String(product.id), `${product.brand} ${product.name}`])));
+        setPartial(events.partial || orders.partial);
+        setUpdated(new Date(until).toLocaleString("es-AR"));
+      } catch (error) { if (!cancelled) setMessage(error instanceof Error ? error.message : "No se pudieron cargar las métricas."); }
+      finally { if (!cancelled) setLoading(false); }
     }
-    void load();
-  }, []);
+    void load(); return () => { cancelled = true; };
+  }, [days, attempt]);
 
-  const count = (name: string) => events.filter((event) => event.event_name === name).length;
-  const views = count("product_view");
-  const carts = count("add_to_cart");
-  const checkouts = count("begin_checkout");
-  const purchases = count("purchase");
-  const shares = events.filter((event) => event.event_name.startsWith("share_") || event.event_name === "copy_store_link").length;
-  const popular = Object.entries(events.filter((event) => event.event_name === "product_view" && event.product_id).reduce<Record<string, number>>((result, event) => ({ ...result, [event.product_id!]: (result[event.product_id!] || 0) + 1 }), {})).sort((a,b) => b[1]-a[1]).slice(0,5);
-  const sources = Object.entries(events.reduce<Record<string, number>>((result, event) => {
-    const direct = event.metadata?.utm_source;
-    const nested = event.metadata?.campaign;
-    const source = typeof direct === "string" ? direct : nested && typeof nested === "object" && "utm_source" in nested && typeof nested.utm_source === "string" ? nested.utm_source : null;
-    if (source) result[source] = (result[source] || 0) + 1;
-    return result;
-  }, {})).sort((a,b) => b[1]-a[1]).slice(0,8);
-
-  return <main className="min-h-screen bg-[#03070c] px-5 py-10 text-white"><div className="mx-auto max-w-5xl"><AdminNav /><Link href="/admin" className="text-sm font-bold text-emerald-400">← PANEL ADMIN</Link><h1 className="mt-3 text-3xl font-black">Métricas de la tienda</h1><p className="mt-2 text-slate-400">Resumen de los últimos 5.000 eventos registrados.</p>{message && <div className="mt-6 rounded-xl border border-red-400/20 bg-red-500/10 p-4 text-red-200">{message}</div>}<div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">{[["Vistas",views],["Agregados",carts],["Checkouts",checkouts],["Compras",purchases],["Compartidos",shares]].map(([label,value]) => <div key={label} className="rounded-2xl border border-white/10 bg-[#09131e] p-5"><p className="text-sm text-slate-400">{label}</p><strong className="mt-2 block text-3xl text-emerald-400">{value}</strong></div>)}</div><div className="mt-6 rounded-2xl border border-white/10 bg-[#09131e] p-6"><h2 className="text-xl font-black">Conversión orientativa</h2><p className="mt-3 text-3xl font-black text-emerald-400">{views ? ((purchases/views)*100).toFixed(1) : "0.0"}%</p><p className="mt-2 text-sm text-slate-400">Compras registradas respecto de vistas de producto.</p></div><div className="mt-6 grid gap-6 md:grid-cols-2"><div className="rounded-2xl border border-white/10 bg-[#09131e] p-6"><h2 className="text-xl font-black">Productos más vistos</h2>{popular.length ? <ol className="mt-4 space-y-3">{popular.map(([id,total]) => <li key={id} className="flex justify-between border-b border-white/10 pb-3"><span>Producto #{id}</span><strong>{total} vistas</strong></li>)}</ol> : <p className="mt-4 text-slate-400">Todavía no hay datos.</p>}</div><div className="rounded-2xl border border-white/10 bg-[#09131e] p-6"><h2 className="text-xl font-black">Origen de campañas</h2>{sources.length ? <ol className="mt-4 space-y-3">{sources.map(([source,total]) => <li key={source} className="flex justify-between border-b border-white/10 pb-3"><span>{source}</span><strong>{total} eventos</strong></li>)}</ol> : <p className="mt-4 text-slate-400">Los nuevos enlaces compartidos empezarán a mostrar sus resultados acá.</p>}</div></div></div></main>;
+  return <main className="min-h-screen bg-[#03070c] px-5 py-10 text-white"><div className="mx-auto max-w-6xl"><AdminNav />
+    <h1 className="text-3xl font-black">Métricas de la tienda</h1>
+    <div className="my-6 flex flex-wrap items-end gap-4"><label className="text-sm text-slate-300">Período<select className="ml-3 rounded-xl border border-white/15 bg-[#111c29] p-3 text-white" value={days} onChange={(event) => setDays(Number(event.target.value))}><option value={7}>Últimos 7 días</option><option value={30}>Últimos 30 días</option><option value={90}>Últimos 90 días</option></select></label><button disabled={loading} onClick={() => setAttempt((value) => value + 1)} className="rounded-xl bg-emerald-500 px-5 py-3 font-bold text-[#031008] disabled:opacity-50">{loading ? "Cargando…" : "Actualizar"}</button></div>
+    {message && <p role="alert" className="rounded-xl border border-red-400/30 bg-red-500/10 p-4 text-red-200">{message} Podés volver a intentar con Actualizar.</p>}
+    {loading && <p role="status" className="text-slate-300">Consultando interacciones y pedidos reales…</p>}
+    {report && <>
+      <p className="text-sm text-slate-400">Actualizado: {updated}. Período móvil de {days} días.</p>
+      {partial && <p role="alert" className="mt-4 rounded-xl bg-amber-500/10 p-4 text-amber-200">El período supera 50.000 registros. Estos resultados son parciales: elegí un período menor.</p>}
+      <h2 className="mt-7 text-xl font-bold">Actividad en la tienda</h2>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{[["Vistas de productos",report.views],["Agregados al carrito",report.carts],["Inicios de compra",report.checkouts],["Acciones de compartir",report.shares]].map(([label,value]) => <div key={label} className="rounded-2xl border border-white/10 bg-[#09131e] p-5"><p className="text-sm text-slate-300">{label}</p><strong className="mt-2 block text-3xl text-emerald-400">{value}</strong></div>)}</div>
+      <p className="mt-3 text-sm leading-6 text-slate-400">Son acciones registradas, no personas únicas. Compartir incluye copiar enlaces y abrir WhatsApp; no confirma que el mensaje se haya enviado. Las interacciones que antes no se registraban no se pueden recuperar.</p>
+      <h2 className="mt-7 text-xl font-bold">Pedidos creados en este período</h2>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{[["Pedidos creados",report.orders],["Cancelados",report.cancelled],["Con pago verificado",report.paid],["Total con pago verificado",new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0}).format(report.revenue)]].map(([label,value]) => <div key={label} className="rounded-2xl border border-white/10 bg-[#09131e] p-5"><p className="text-sm text-slate-300">{label}</p><strong className="mt-2 block text-2xl text-emerald-400">{value}</strong></div>)}</div>
+      <p className="mt-3 text-sm text-slate-400">Datos de los pedidos reales según su estado actual. Los pendientes y cancelados no suman al total con pago verificado. El importe incluye el envío si está cargado.</p>
+      <div className="mt-7 grid gap-6 md:grid-cols-2">{[["Productos más vistos",report.popular],["Visitas desde campañas",report.sources]].map(([title,items]) => <section key={String(title)} className="rounded-2xl border border-white/10 bg-[#09131e] p-6"><h2 className="text-xl font-bold">{String(title)}</h2>{(items as [string,number][]).length ? <ol className="mt-4 space-y-3">{(items as [string,number][]).map(([id,total]) => <li key={id} className="flex justify-between gap-4 border-b border-white/10 pb-3"><span>{title === "Productos más vistos" ? names[id] || `Producto #${id}` : id}</span><strong>{total}</strong></li>)}</ol> : <p className="mt-4 text-slate-400">Sin registros en este período.</p>}</section>)}</div>
+    </>}
+  </div></main>;
 }

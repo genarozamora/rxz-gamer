@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { trackStoreEvent } from "@/lib/store-tracking";
 import { trackMetaEvent } from "@/lib/meta-pixel";
 import { SHIPPING_ORIGIN, SHIPPING_PROVIDER } from "@/lib/shipping";
 
@@ -96,6 +97,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (loading || cart.length === 0 || trackedCheckout.current) return;
     trackedCheckout.current = true;
+    void trackStoreEvent("begin_checkout");
     trackMetaEvent("InitiateCheckout", {
       content_ids: cart.map((item) => String(item.id)),
       content_type: "product",
@@ -115,6 +117,7 @@ export default function CheckoutPage() {
   );
 
   async function createOrder() {
+    if (creating) return;
     setMessage("");
 
     if (
@@ -193,6 +196,7 @@ export default function CheckoutPage() {
 
       const { data: order, error: orderError } = await supabase
         .rpc("create_store_order", {
+          p_accepted_terms: acceptedTerms,
           p_customer_name: fullName.trim(),
           p_customer_email: user.email || "",
           p_customer_phone: phone.trim(),
@@ -216,11 +220,7 @@ export default function CheckoutPage() {
         body: JSON.stringify({ orderId: created.order_id }),
       }));
 
-      void supabase.from("store_events").insert({
-        event_name: "purchase",
-        user_id: user.id,
-        metadata: { order_id: created.order_id, total: Number(created.total) },
-      });
+
 
       trackMetaEvent("Purchase", {
         content_ids: cart.map((item) => String(item.id)),
@@ -472,14 +472,14 @@ export default function CheckoutPage() {
               </div>
 
               <label style={styles.termsRow}>
-                <input type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} />
-                <span>Acepto los <a href="/legal/terminos" target="_blank" rel="noopener noreferrer">términos</a>, la <a href="/legal/privacidad" target="_blank" rel="noopener noreferrer">privacidad</a> y las condiciones de <a href="/legal/envios" target="_blank" rel="noopener noreferrer">envío</a>.</span>
+                <input type="checkbox" required checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} />
+                <span>Acepto los <a href="/legal/terminos" target="_blank" rel="noopener noreferrer">Términos y condiciones</a>, la <a href="/legal/privacidad" target="_blank" rel="noopener noreferrer">Política de privacidad</a> y las condiciones de <a href="/legal/envios" target="_blank" rel="noopener noreferrer">envío</a>.</span>
               </label>
 
               <button
                 style={styles.primaryButton}
                 onClick={createOrder}
-                disabled={creating}
+                disabled={creating || !acceptedTerms}
               >
                 {creating
                   ? "GENERANDO PEDIDO..."

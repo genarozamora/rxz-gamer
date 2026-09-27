@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { enableAdminSound, playAdminSound, adminSoundEnabled } from "@/lib/admin-sound";
 import { AdminNav } from "./admin-nav";
 import { matchesAdminSearch, matchesOrderStatus } from "@/lib/admin-tools";
 import { supabase } from "@/lib/supabase";
@@ -61,10 +62,11 @@ function statusLabel(status: string) {
   return labels[status] || status;
 }
 
-export default function AdminPage() {
+export default function AdminPage({ view = "dashboard" }: { view?: "dashboard" | "orders" }) {
   const router = useRouter();
+  const [soundEnabled, setSoundEnabled] = useState(false);
   const [orderSearch, setOrderSearch] = useState("");
-  const [orderFilter, setOrderFilter] = useState("all");
+  const [orderFilter, setOrderFilter] = useState("active");
   const [supportFilter, setSupportFilter] = useState("all");
   const [supportSearch, setSupportSearch] = useState("");
   const [orderLimit, setOrderLimit] = useState(10);
@@ -88,13 +90,15 @@ export default function AdminPage() {
   const knownOrderIds = useRef<Set<string> | null>(null);
 
   function showOrderNotification(order: Order) {
+    playAdminSound();
     if (!("Notification" in window) || Notification.permission !== "granted") return;
     navigator.serviceWorker?.ready.then((registration) => registration.showNotification("Nuevo pedido en RXZ Gamer", {
       body: `${order.order_number} · $${Number(order.total).toLocaleString("es-AR")}`,
-      icon: "/icon-192.png",
-      badge: "/icon-192.png",
+      icon: "/rxz-logo-192.png",
+      badge: "/rxz-logo-192.png",
       tag: `rxz-order-${order.id}`,
-      data: { url: "/admin#pedidos" },
+      data: { url: "/admin/pedidos" },
+      silent: false,
     })).catch(() => undefined);
   }
 
@@ -129,7 +133,10 @@ export default function AdminPage() {
 
   useEffect(() => {
     queueMicrotask(() => {
+      setSoundEnabled(adminSoundEnabled());
       void checkAdmin();
+      const requestedStatus = new URLSearchParams(window.location.search).get("estado");
+      if (requestedStatus) setOrderFilter(requestedStatus);
       if ("Notification" in window) {
         setNotificationPermission(Notification.permission);
         if ("serviceWorker" in navigator) {
@@ -202,7 +209,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (!authorized) return;
-    const refresh = () => { if (document.visibilityState === "visible") void loadOrders(); };
+    const refresh = () => { void loadOrders(); };
     const timer = window.setInterval(refresh, 30000);
     document.addEventListener("visibilitychange", refresh);
     return () => {
@@ -595,7 +602,7 @@ export default function AdminPage() {
 
   const filteredOrders = orders.filter((order) => matchesOrderStatus(order.status, orderFilter) && matchesAdminSearch(orderSearch, [order.order_number, order.customer_name, order.customer_email, order.customer_phone, order.tracking_number, ...(order.order_items || []).map((item) => item.product_name)]));
   const filteredConversations = conversations.filter((conversation) => (supportFilter === "all" || conversation.status === supportFilter) && matchesAdminSearch(supportSearch, [conversation.subject, conversation.customer_name, conversation.customer_email]));
-  function showOrders(filter: string) { setOrderFilter(filter); setOrderSearch(""); setOrderLimit(10); document.getElementById("pedidos")?.scrollIntoView({behavior:"smooth"}); }
+  function showOrders(filter: string) { if (view !== "orders") { router.push(`/admin/pedidos?estado=${encodeURIComponent(filter)}`); return; } setOrderFilter(filter); setOrderSearch(""); setOrderLimit(10); document.getElementById("pedidos")?.scrollIntoView({behavior:"smooth"}); }
 
   const selectedConversation = conversations.find(
     (conversation) => conversation.id === selectedConversationId
@@ -649,7 +656,7 @@ export default function AdminPage() {
           </div>
 
           <div style={styles.headerButtons}>
-            <a href="#soporte" style={styles.secondaryButton}>Ir a soporte</a>
+            <a href={view === "orders" ? "/admin#soporte" : "/admin/pedidos"} style={styles.secondaryButton}>{view === "orders" ? "Ir a soporte" : "Ver pedidos"}</a>
             <button
               style={styles.secondaryButton}
               onClick={() => (window.location.href = "/cuenta")}
@@ -666,6 +673,7 @@ export default function AdminPage() {
         {message && <div role="status" style={styles.message}>{message}</div>}
 
         <div style={styles.notificationPanel}>
+          <div><button style={styles.seenButton} onClick={async () => {try {setSoundEnabled(await enableAdminSound());} catch {setMessage("No se pudo activar el sonido. Revisá que el navegador permita audio.");}}}>{soundEnabled ? "PROBAR SONIDO" : "ACTIVAR SONIDO"}</button><p style={styles.notificationText}>{soundEnabled ? "Sonido activo mientras este panel permanezca abierto." : "Tocá para habilitar el aviso sonoro en este panel."}</p></div>
           <div>
             <strong>Avisos de pedidos</strong>
             <div style={styles.notificationText}>
@@ -691,16 +699,17 @@ export default function AdminPage() {
         )}
 
         <div style={styles.summary}>
-          {[["all", "Todos los pedidos", orders.length], ["receipt_uploaded", "Comprobantes a revisar", orders.filter((order) => order.status === "receipt_uploaded").length], ["preparing", "Por despachar", orders.filter((order) => matchesOrderStatus(order.status, "preparing")).length], ["shipped", "En camino", orders.filter((order) => order.status === "shipped").length]].map(([filter, label, count]) => <button key={filter} onClick={() => showOrders(String(filter))} style={{...styles.summaryCard, textAlign:"left", cursor:"pointer"}} aria-label={label + ": " + count + ". Ver pedidos"}><span style={styles.summaryLabel}>{label}</span><strong style={styles.summaryNumber}>{count}</strong><span style={{display:"block", color:"#86efac", marginTop:8, fontSize:12}}>Ver pedidos →</span></button>)}
+          {[["active", "Pedidos activos", orders.filter((order) => order.status !== "cancelled").length], ["receipt_uploaded", "Comprobantes a revisar", orders.filter((order) => order.status === "receipt_uploaded").length], ["preparing", "Por despachar", orders.filter((order) => matchesOrderStatus(order.status, "preparing")).length], ["shipped", "En camino", orders.filter((order) => order.status === "shipped").length]].map(([filter, label, count]) => <button key={filter} onClick={() => showOrders(String(filter))} style={{...styles.summaryCard, textAlign:"left", cursor:"pointer"}} aria-label={label + ": " + count + ". Ver pedidos"}><span style={styles.summaryLabel}>{label}</span><strong style={styles.summaryNumber}>{count}</strong><span style={{display:"block", color:"#86efac", marginTop:8, fontSize:12}}>Ver pedidos →</span></button>)}
         </div>
 
+        {view === "orders" && <>
         <h2 id="pedidos" style={{ marginTop: 34, scrollMarginTop: 28 }}>Pedidos</h2>
 
         <p style={styles.sectionDescription}>Buscá un pedido o elegí una tarea pendiente. Abrí el comprobante antes de aprobar un pago.</p>
         <div className="adminFilters">
           <label>Buscar pedido<input type="search" value={orderSearch} onChange={(e) => {setOrderSearch(e.target.value);setOrderLimit(10);}} placeholder="Número, cliente, email o producto" /></label>
-          <label>Estado del pedido<select value={orderFilter} onChange={(e) => {setOrderFilter(e.target.value);setOrderLimit(10);}}>{[["all","Todos"],["receipt_uploaded","Comprobantes a revisar"],["preparing","Por despachar"],["shipped","En camino"],["pending_payment","Pendientes de pago"],["payment_rejected","Comprobantes rechazados"],["delivered","Entregados"],["cancelled","Cancelados"]].map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-          <button style={styles.secondaryButton} onClick={() => showOrders("all")}>Limpiar filtros</button>
+          <label>Estado del pedido<select value={orderFilter} onChange={(e) => {setOrderFilter(e.target.value);setOrderLimit(10);}}>{[["active","Activos (sin cancelados)"],["all","Todos, incluido historial"],["receipt_uploaded","Comprobantes a revisar"],["preparing","Por despachar"],["shipped","En camino"],["pending_payment","Pendientes de pago"],["payment_rejected","Comprobantes rechazados"],["delivered","Entregados"],["cancelled","Cancelados"]].map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <button style={styles.secondaryButton} onClick={() => showOrders("active")}>Limpiar filtros</button>
         </div>
         <p role="status" style={{color:"#a9b6c9"}}>{filteredOrders.length} de {orders.length} pedidos · Mostrando hasta {orderLimit}</p>
         {filteredOrders.length === 0 ? (
@@ -710,12 +719,14 @@ export default function AdminPage() {
         ) : (
           <div style={styles.orders}>
             {filteredOrders.slice(0, orderLimit).map((order) => (
-              <div key={order.id} style={styles.card}>
+              <details key={order.id} className="orderCard" style={styles.card}>
+                <summary className="orderSummary">
                 <div style={styles.orderHeader}>
                   <div>
                     <div style={styles.orderNumber}>
                       {order.order_number}
                     </div>
+                    <strong style={{display:"block", marginTop:6, color:"#e2e8f0"}}>{order.customer_name || order.customer_email || "Cliente sin nombre"}</strong>
 
                     <div style={styles.date}>
                       {new Date(order.created_at).toLocaleString(
@@ -733,6 +744,8 @@ export default function AdminPage() {
                   ${Number(order.total).toLocaleString("es-AR")}
                 </div>
 
+                <span className="expandOrder">Ver detalle del pedido</span>
+                </summary>
                 <div style={styles.addressBox}>
                   <span style={styles.label}>Productos del pedido</span>
                   {order.order_items?.length ? order.order_items.map((item) => (
@@ -875,12 +888,14 @@ export default function AdminPage() {
                     CANCELAR PEDIDO Y DEVOLVER STOCK
                   </button>
                 )}
-              </div>
+              </details>
             ))}
           </div>
         )}
         {filteredOrders.length > orderLimit && <button style={styles.secondaryButton} onClick={() => setOrderLimit((limit) => limit + 10)}>Mostrar 10 pedidos más</button>}
 
+        </>}
+        {view !== "orders" && <>
         <div style={styles.sectionHeader}>
           <div>
             <h2 id="soporte" style={{ margin: 0, scrollMarginTop:24 }}>Mensajes de soporte</h2>
@@ -1029,8 +1044,15 @@ export default function AdminPage() {
         </div>
 
 
+        </>}
       </div>
       <style jsx>{`
+        .orderSummary { cursor:pointer; list-style:none; }
+        .orderSummary::-webkit-details-marker { display:none; }
+        .expandOrder { display:block; color:#86efac; font-size:13px; margin-top:10px; }
+        .expandOrder::after { content:" ＋"; }
+        .orderCard[open] .expandOrder::after { content:" −"; }
+        .orderCard[open] .orderSummary { border-bottom:1px solid #263449; padding-bottom:16px; }
         .adminFilters { display:flex; flex-wrap:wrap; align-items:end; gap:14px; margin:20px 0; }
         .adminFilters label { flex:1 1 220px; color:#b7c5d6; font-size:14px; }
         .adminFilters input, .adminFilters select { display:block; width:100%; margin-top:7px; min-height:46px; border:1px solid #344154; border-radius:10px; padding:12px; background:#0b1724; color:white; font-size:16px; }
