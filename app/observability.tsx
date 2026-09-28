@@ -22,10 +22,13 @@ export function StoreObservability() {
       const viewportRatio = window.outerWidth > 0 && window.innerWidth > 0
         ? window.outerWidth / window.innerWidth
         : 1;
-      const extremeZoomOut = viewportRatio < 0.72;
-      const compensation = extremeZoomOut
-        ? Math.min(4, Math.max(1, 1 / viewportRatio))
-        : 1;
+      const pixelRatio = window.devicePixelRatio || 1;
+      const viewportCompensation = viewportRatio < 0.72 ? 1 / viewportRatio : 1;
+      const pixelCompensation = pixelRatio < 0.75 ? 1 / pixelRatio : 1;
+      const compensation = Math.min(
+        5,
+        Math.max(1, viewportCompensation, pixelCompensation),
+      );
       document.body.style.zoom = compensation > 1 ? String(compensation) : "";
       document.documentElement.dataset.zoomGuard = compensation > 1 ? "active" : "normal";
     };
