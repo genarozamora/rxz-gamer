@@ -435,6 +435,7 @@ export default function Home() {
   const [selected, setSelected] = useState<Product | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedVariantId, setSelectedVariantId] = useState("");
+  const [purchaseIntent, setPurchaseIntent] = useState<"details" | "cart" | "buy">("details");
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Todos");
   const [sort, setSort] = useState("featured");
@@ -662,7 +663,7 @@ export default function Home() {
       ["¿Los productos están disponibles para entrega inmediata?", "Sí. Los productos publicados como En stock están disponibles. El stock se descuenta al confirmar cada pedido."],
       ["¿Cómo se calcula el envío?", "Despachamos desde Villa Allende, Córdoba. El costo, la modalidad y el plazo se confirman según el código postal antes del despacho."],
       ["¿Cuándo veo los datos para pagar?", "El alias se muestra únicamente después de confirmar el pedido. Luego podés adjuntar el comprobante desde tu cuenta."],
-      ["¿Puedo elegir el color?", "Sí. Antes de agregar un producto al carrito tenés que abrir su ficha y seleccionar una variante con stock."],
+      ["¿Puedo elegir el color?", "Sí. Tocá Agregar al carrito o Comprar ahora y elegí una variante con stock. En los productos con colores, la selección es obligatoria antes de continuar."],
     ].map(([name, text]) => ({
       "@type": "Question",
       name,
@@ -672,9 +673,10 @@ export default function Home() {
 
   const track = trackStoreEvent;
 
-  function openProduct(product: Product) {
+  function openProduct(product: Product, intent: "details" | "cart" | "buy" = "details") {
     setSelectedImage(0);
     setSelectedVariantId("");
+    setPurchaseIntent(intent);
     setSelected(product);
     setRecentIds((current) => [product.id, ...current.filter((id) => id !== product.id)].slice(0, 4));
     track("product_view", product.id);
@@ -1019,9 +1021,12 @@ export default function Home() {
             const packagePreview = getPackagePreview(product);
 
             return (
-              <article className="card" key={product.id}>
+              <article
+                className="card cardClickable"
+                key={product.id}
+                onClick={() => openProduct(product)}
+              >
                 <div className="imageBox">
-                  <button className="imageOpen" onClick={() => openProduct(product)} aria-label={`Ver detalles de ${product.brand} ${product.name}`} />
                   <button
                     className={favoriteIds.includes(product.id) ? "favoriteBtn isFavorite" : "favoriteBtn"}
                     onClick={(event) => { event.stopPropagation(); toggleFavorite(product.id); }}
@@ -1084,13 +1089,30 @@ export default function Home() {
                     Precio especial por transferencia
                   </small>
 
-                  <button className="details" onClick={() => openProduct(product)}>
-                    VER DETALLES Y FICHA TÉCNICA
-                  </button>
-
-                  <button className="buy" disabled={product.stock <= 0} onClick={() => openProduct(product)}>
-                    {product.stock <= 0 ? "SIN STOCK" : product.variants?.length ? "VER Y ELEGIR COLOR" : "VER ANTES DE COMPRAR"}
-                  </button>
+                  <div className="cardActions">
+                    <button
+                      className="details"
+                      disabled={product.stock <= 0}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        if (product.variants?.length) openProduct(product, "cart");
+                        else add(product);
+                      }}
+                    >
+                      {product.stock <= 0 ? "SIN STOCK" : "AGREGAR AL CARRITO"}
+                    </button>
+                    <button
+                      className="buy"
+                      disabled={product.stock <= 0}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        if (product.variants?.length) openProduct(product, "buy");
+                        else buyNow(product);
+                      }}
+                    >
+                      {product.stock <= 0 ? "SIN STOCK" : "COMPRAR AHORA"}
+                    </button>
+                  </div>
                 </div>
               </article>
             );
@@ -1537,10 +1559,10 @@ export default function Home() {
 
             <div className="finalPurchase">
               <div>
-                <strong>Último paso</strong>
+                <strong>{purchaseIntent === "buy" ? "Comprá ahora" : purchaseIntent === "cart" ? "Agregalo al carrito" : "Último paso"}</strong>
                 <span>
                   {selected.variants?.length
-                    ? "Revisá las especificaciones y elegí arriba el color que querés."
+                    ? `Elegí arriba el color obligatorio para ${purchaseIntent === "buy" ? "continuar con la compra" : "agregar el producto"}.`
                     : "Revisá las características y especificaciones antes de agregarlo."}
                 </span>
               </div>
@@ -1560,7 +1582,7 @@ export default function Home() {
                 disabled={(selected.variants?.length && !selectedVariant) || (selectedVariant ? selectedVariant.stock : selected.stock) <= 0}
                 onClick={() => buyNow(selected, selectedVariantId || undefined)}
               >
-                COMPRAR AHORA
+                {selected.variants?.length && !selectedVariant ? "ELEGÍ UN COLOR" : "COMPRAR AHORA"}
               </button>
             </div>
           </div>
@@ -2086,8 +2108,7 @@ export default function Home() {
           object-fit: contain;
           transition: .3s;
         }
-        .imageOpen { position: absolute; inset: 0; z-index: 4; width: 100%; height: 100%; border: 0; background: transparent; cursor: pointer; }
-        .imageOpen:focus-visible { outline-offset: -4px; }
+        .cardClickable { cursor:pointer; }
         .packagePreview {
           position: absolute;
           z-index: 3;
@@ -2879,6 +2900,8 @@ export default function Home() {
           header > nav > a { font-size: 12px; }
           .logo { flex-shrink: 0; }
         }
+        .cardActions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+        .cardActions .details,.cardActions .buy { margin-top:0; min-height:58px; padding:12px 10px; font-size:12px; line-height:1.25; }
         .performanceTicker div { width: 100%; flex-wrap: wrap; justify-content: center; gap: 12px 24px; letter-spacing: 1.5px; }
         .hero p, .sectionHead p { color: #a9b6c9; }
         .trust small { color: #a4b2c5; }
