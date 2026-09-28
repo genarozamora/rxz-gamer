@@ -26,3 +26,14 @@ test('campaign counts use visits, not all interactions attributed to a source', 
 test('empty periods show zero actual orders and no fabricated conversion', () => {
   const report=api.summarizeMetrics([],[]); assert.equal(report.revenue,0);assert.equal(report.orders,0);assert.equal(report.views,0);
 });
+test('search metrics normalize queries and separate no-result opportunities', () => {
+  const report=api.summarizeMetrics([
+    {event_name:'search',metadata:{query:'Mouse'}},
+    {event_name:'search',metadata:{query:' mouse '}},
+    {event_name:'search_no_results',metadata:{query:'Auriculares'}},
+    {event_name:'search_no_results',metadata:{}},
+  ],[]);
+  assert.equal(report.searches,4); assert.equal(report.noResultSearches,2);
+  assert.equal(report.queries[0][0],'mouse'); assert.equal(report.queries[0][1],2);
+  assert.equal(report.emptyQueries[0][0],'auriculares'); assert.equal(report.emptyQueries[0][1],1);
+});
