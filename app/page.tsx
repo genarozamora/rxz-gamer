@@ -1581,7 +1581,7 @@ export default function Home() {
               </div>
             </div>
 
-            <a className="productDetailLink productDetailLinkBelow" href={`/productos/${selected.id}`}>
+            <a className="productDetailLink productDetailLinkBelow" href={`/productos/${selected.id}#ficha-tecnica`}>
               VER FICHA COMPLETA
             </a>
 
