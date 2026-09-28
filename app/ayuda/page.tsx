@@ -230,8 +230,8 @@ export default function AyudaPage() {
   }
 
   return (
-    <main className="min-h-screen min-h-[100dvh] bg-[#050b14] px-0 py-0 text-white sm:px-6 sm:py-8">
-      <section className="mx-auto flex h-[100dvh] min-h-0 max-w-4xl flex-col overflow-hidden border border-emerald-400/20 bg-[#08121f] shadow-2xl shadow-cyan-950/30 sm:h-auto sm:min-h-[76vh] sm:rounded-3xl">
+    <main className="bg-[#050b14] px-0 py-0 text-white sm:px-6 sm:py-8" style={{ minHeight: "var(--rxz-viewport-height, 100dvh)" }}>
+      <section className="supportShell mx-auto flex min-h-0 max-w-4xl flex-col overflow-hidden border border-emerald-400/20 bg-[#08121f] shadow-2xl shadow-cyan-950/30 sm:rounded-3xl">
         <header className="border-b border-white/10 bg-gradient-to-r from-emerald-500/10 via-cyan-500/10 to-blue-500/10 px-5 py-5 sm:px-7">
           <div className="flex items-center gap-4">
             <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-emerald-400 to-cyan-500 font-black text-[#031018] shadow-lg shadow-emerald-500/20">
@@ -346,6 +346,12 @@ export default function AyudaPage() {
           </p>
         </footer>
       </section>
+      <style jsx global>{`
+        .supportShell { height: var(--rxz-viewport-height, 100dvh); }
+        @media (min-width: 640px) {
+          .supportShell { height: calc(var(--rxz-viewport-height, 100dvh) - 4rem); }
+        }
+      `}</style>
     </main>
   );
 }

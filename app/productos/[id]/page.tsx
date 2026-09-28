@@ -33,6 +33,15 @@ export default function ProductPage() {
   const trackedProductId = useRef<number | null>(null);
 
   useEffect(() => {
+    document.documentElement.style.overflowY = "auto";
+    document.body.style.overflowY = "auto";
+    return () => {
+      document.documentElement.style.overflowY = "";
+      document.body.style.overflowY = "";
+    };
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     supabase.from("products").select("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants").eq("id", id).eq("active", true).maybeSingle().then(({ data, error }) => {
       if (cancelled) return;
@@ -70,12 +79,12 @@ export default function ProductPage() {
 
   useEffect(() => {
     if (!zoomOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const previousOverflow = document.body.style.overflowY;
+    document.body.style.overflowY = "hidden";
     const closeOnEscape = (event: KeyboardEvent) => { if (event.key === "Escape") setZoomOpen(false); };
     window.addEventListener("keydown", closeOnEscape);
     return () => {
-      document.body.style.overflow = previousOverflow;
+      document.body.style.overflowY = previousOverflow || "auto";
       window.removeEventListener("keydown", closeOnEscape);
     };
   }, [zoomOpen]);
