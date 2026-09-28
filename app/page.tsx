@@ -633,14 +633,14 @@ export default function Home() {
   const selectedVariant = selected?.variants?.find((variant) => variant.id === selectedVariantId);
 
   const categories = useMemo(
-    () => ["Todos", ...Array.from(new Set(catalogProducts.map((p) => p.category))), "Favoritos"],
+    () => ["Todos", ...Array.from(new Set(catalogProducts.map((p) => p.category))), "Ofertas", "Favoritos"],
     [catalogProducts]
   );
 
   const filtered = useMemo(() => {
     const matches = catalogProducts.filter((p) => {
       const categoryOK = category === "Todos"
-        || (category === "Favoritos" ? favoriteIds.includes(p.id) : p.category === category);
+        || (category === "Favoritos" ? favoriteIds.includes(p.id) : category === "Ofertas" ? Boolean(p.oldPrice && p.oldPrice > p.price) : p.category === category);
       return categoryOK && matchesCatalogSearch(p, search);
     });
     return [...matches].sort((a, b) => {
@@ -912,6 +912,7 @@ export default function Home() {
           <a href="#inicio">Inicio</a>
           <button className="navShare" onClick={shareStore}>↗ Compartir</button>
           <a href="#productos">Productos</a>
+          <Link href="/?categoria=Ofertas#productos">Ofertas</Link>
           <a href="#comparar">Comparar</a>
           <a href="#beneficios">Envíos</a>
           <a href="#preguntas">Preguntas</a>
@@ -1423,17 +1424,21 @@ export default function Home() {
       </footer>
 
       <nav className="mobileDock" aria-label="Accesos rápidos">
+        <a href="#inicio" aria-label="Ir al inicio">
+          <span aria-hidden="true">⌂</span>
+          Inicio
+        </a>
         <a href="#productos" aria-label="Ver productos">
           <span aria-hidden="true">⌕</span>
-          Productos
+          Buscar
         </a>
-        <a href="#comparar" aria-label="Comparar productos">
-          <span aria-hidden="true">⇄</span>
-          Comparar
-        </a>
-        <a href={userEmail ? "/cuenta#pedidos" : "/login?next=/cuenta"} aria-label="Ver mis pedidos">
-          <span aria-hidden="true">▣</span>
-          Pedidos
+        <Link href="/?categoria=Ofertas#productos" aria-label="Ver ofertas vigentes">
+          <span aria-hidden="true">%</span>
+          Ofertas
+        </Link>
+        <a href={userEmail ? "/cuenta" : "/login"} aria-label={userEmail ? "Abrir mi cuenta" : "Iniciar sesión"}>
+          <span aria-hidden="true">♙</span>
+          Cuenta
         </a>
         <button
           type="button"
@@ -3126,7 +3131,7 @@ export default function Home() {
             right: 10px;
             bottom: 10px;
             display: grid !important;
-            grid-template-columns: repeat(4,minmax(0,1fr));
+            grid-template-columns: repeat(5,minmax(0,1fr));
             gap: 3px;
             padding: 7px;
             border: 1px solid rgba(148,163,184,.24);
