@@ -238,7 +238,6 @@ export default function ProductPage() {
               <button onClick={() => void shareProduct()} className="rounded-xl border border-white/15 p-3 text-sm font-bold text-white">↗ COMPARTIR</button>
               <a href={whatsappShareUrl} target="_blank" rel="noopener noreferrer" className="rounded-xl border border-emerald-400/30 bg-emerald-400/5 p-3 text-center text-sm font-bold text-emerald-300 no-underline">WHATSAPP</a>
             </div>
-            <Link href="/ayuda" className="mt-3 block rounded-xl border border-white/15 p-4 text-center font-bold text-white no-underline">CONSULTAR A SOPORTE</Link>
             <div className="mt-4 grid grid-cols-3 gap-2 text-center text-[11px] font-bold text-slate-300">
               <span className="rounded-xl border border-white/10 bg-[#06101a] p-3">✓ Stock real</span>
               <span className="rounded-xl border border-white/10 bg-[#06101a] p-3">✓ Compra protegida</span>
@@ -258,6 +257,10 @@ export default function ProductPage() {
           {reviewMessage && <p className="mt-4 text-sm text-emerald-300">{reviewMessage}</p>}
         </section>
       </div>
+      <Link href="/ayuda" aria-label="Consultar a soporte RXZ Gamer" className="group fixed bottom-5 right-5 z-[80] flex min-h-14 items-center gap-3 rounded-full border border-emerald-300/50 bg-emerald-500 px-4 py-3 font-black text-[#031008] no-underline shadow-[0_14px_45px_rgba(34,197,94,.32)] transition hover:-translate-y-1 hover:bg-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-300">
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-white/80 text-lg transition group-hover:scale-110">💬</span>
+        <span className="hidden pr-1 text-sm sm:inline">CONSULTAR</span>
+      </Link>
     </main>
   );
 }

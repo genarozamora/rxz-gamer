@@ -1910,6 +1910,7 @@ export default function Home() {
           font-size: 11px;
           letter-spacing: 2.5px;
           font-weight: 900;
+          animation: badgeFloat 3.4s ease-in-out infinite;
         }
         .hero h1 {
           margin: 28px 0 0;
@@ -1918,6 +1919,7 @@ export default function Home() {
           line-height: .91;
           letter-spacing: -5px;
           font-weight: 1000;
+          animation: heroReveal .7s cubic-bezier(.2,.75,.2,1) both;
         }
         .hero h1 span {
           color: #22c55e;
@@ -1929,12 +1931,14 @@ export default function Home() {
           font-size: 19px;
           line-height: 1.7;
           margin: 32px auto;
+          animation: heroReveal .7s .12s cubic-bezier(.2,.75,.2,1) both;
         }
         .heroButtons {
           display: flex;
           justify-content: center;
           flex-wrap: wrap;
           gap: 12px;
+          animation: heroReveal .7s .2s cubic-bezier(.2,.75,.2,1) both;
         }
         .primary, .secondary {
           text-decoration: none;
@@ -1944,9 +1948,19 @@ export default function Home() {
           font-weight: 950;
         }
         .primary {
+          position: relative;
+          overflow: hidden;
           background: #22c55e;
           color: #031008;
           box-shadow: 0 0 35px rgba(34,197,94,.25);
+        }
+        .primary::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          transform: translateX(-130%) skewX(-20deg);
+          background: linear-gradient(90deg,transparent,rgba(255,255,255,.42),transparent);
+          animation: buttonShine 4.8s 1.2s ease-in-out infinite;
         }
         .secondary {
           color: white;
@@ -1959,6 +1973,7 @@ export default function Home() {
           gap: 15px;
           width: min(850px,100%);
           margin-top: 70px;
+          animation: heroReveal .7s .3s cubic-bezier(.2,.75,.2,1) both;
         }
         .trust > div {
           display: flex;
@@ -2110,7 +2125,10 @@ export default function Home() {
           background: linear-gradient(180deg,rgba(17,24,39,.95),rgba(6,10,17,.98));
           transition: .25s;
           box-shadow: 0 25px 60px rgba(0,0,0,.25);
+          animation: cardArrive .55s cubic-bezier(.2,.75,.2,1) both;
         }
+        .card:nth-child(2n) { animation-delay: .08s; }
+        .card:nth-child(3n) { animation-delay: .16s; }
         .card:hover {
           transform: translateY(-3px);
           border-color: rgba(34,197,94,.45);
@@ -2862,6 +2880,22 @@ export default function Home() {
         }
         @keyframes move2 {
           to { transform: translate(-300px,150px); }
+        }
+        @keyframes heroReveal {
+          from { opacity:0; transform:translateY(22px) scale(.985); }
+          to { opacity:1; transform:none; }
+        }
+        @keyframes badgeFloat {
+          0%,100% { transform:translateY(0); box-shadow:0 0 0 rgba(34,197,94,0); }
+          50% { transform:translateY(-6px); box-shadow:0 10px 28px rgba(34,197,94,.14); }
+        }
+        @keyframes buttonShine {
+          0%,68% { transform:translateX(-130%) skewX(-20deg); }
+          82%,100% { transform:translateX(130%) skewX(-20deg); }
+        }
+        @keyframes cardArrive {
+          from { opacity:0; transform:translateY(18px); }
+          to { opacity:1; transform:none; }
         }
 
         @media (prefers-reduced-motion: reduce) {
