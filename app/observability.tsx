@@ -32,7 +32,7 @@ export function StoreObservability() {
       const guardActive = compensation > 1;
       document.body.style.zoom = guardActive ? String(compensation) : "";
       document.body.style.width = guardActive ? `${100 / compensation}%` : "";
-      document.body.style.marginInline = guardActive ? "auto" : "";
+      document.body.style.marginInline = "";
       document.documentElement.dataset.zoomGuard = compensation > 1 ? "active" : "normal";
     };
 
@@ -44,7 +44,6 @@ export function StoreObservability() {
       window.visualViewport?.removeEventListener("resize", preserveReadableBrowserZoom);
       document.body.style.zoom = "";
       document.body.style.width = "";
-      document.body.style.marginInline = "";
       delete document.documentElement.dataset.zoomGuard;
     };
   }, []);
