@@ -49,3 +49,12 @@ test('cart and category interactions are summarized without treating them as peo
   assert.equal(report.cartViews,2); assert.equal(report.cartRemovals,1); assert.equal(report.filterUses,1);
   assert.equal(report.categories[0][0],'Mouse'); assert.equal(report.categories[0][1],2);
 });
+test('products added to cart are ranked independently from product views', () => {
+  const report=api.summarizeMetrics([
+    {event_name:'product_view',product_id:'1',metadata:{}},
+    {event_name:'add_to_cart',product_id:'7',metadata:{}},
+    {event_name:'add_to_cart',product_id:'7',metadata:{}},
+    {event_name:'add_to_cart',product_id:'1',metadata:{}},
+  ],[]);
+  assert.equal(report.popular[0][0],'1'); assert.equal(report.popularAdded[0][0],'7'); assert.equal(report.popularAdded[0][1],2);
+});

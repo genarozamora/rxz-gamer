@@ -4,12 +4,14 @@ export function summarizeMetrics(events: StoreEvent[], orders: MetricOrder[]) {
   const count = (name: string) => events.filter((event) => event.event_name === name).length;
   const paid = orders.filter((order) => ["payment_verified", "preparing_shipment", "shipped", "delivered"].includes(order.status));
   const popular: Record<string, number> = {};
+  const popularAdded: Record<string, number> = {};
   const sources: Record<string, number> = {};
   const queries: Record<string, number> = {};
   const emptyQueries: Record<string, number> = {};
   const categories: Record<string, number> = {};
   for (const event of events) {
     if (event.event_name === "product_view" && event.product_id) popular[event.product_id] = (popular[event.product_id] || 0) + 1;
+    if (event.event_name === "add_to_cart" && event.product_id) popularAdded[event.product_id] = (popularAdded[event.product_id] || 0) + 1;
     if (["search", "search_no_results"].includes(event.event_name)) {
       const query = event.metadata?.query;
       if (typeof query === "string" && query.trim()) {
@@ -35,6 +37,7 @@ export function summarizeMetrics(events: StoreEvent[], orders: MetricOrder[]) {
     orders: orders.length, cancelled: orders.filter((order) => order.status === "cancelled").length,
     paid: paid.length, revenue: paid.reduce((sum, order) => sum + Number(order.total), 0),
     popular: Object.entries(popular).sort((a,b) => b[1]-a[1]).slice(0,5),
+    popularAdded: Object.entries(popularAdded).sort((a,b) => b[1]-a[1]).slice(0,5),
     sources: Object.entries(sources).sort((a,b) => b[1]-a[1]).slice(0,8),
     queries: Object.entries(queries).sort((a,b) => b[1]-a[1]).slice(0,8),
     emptyQueries: Object.entries(emptyQueries).sort((a,b) => b[1]-a[1]).slice(0,8),
