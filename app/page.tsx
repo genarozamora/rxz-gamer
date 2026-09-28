@@ -1925,8 +1925,8 @@ export default function Home() {
           font-size: 11px;
         }
         .hero {
-          min-height: 760px;
-          padding: 130px 20px 80px;
+          min-height: 620px;
+          padding: 92px 20px 58px;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -2003,7 +2003,7 @@ export default function Home() {
           grid-template-columns: repeat(3,1fr);
           gap: 15px;
           width: min(850px,100%);
-          margin-top: 70px;
+          margin-top: 46px;
           animation: heroReveal .7s .3s cubic-bezier(.2,.75,.2,1) both;
         }
         .trust > div {
@@ -3148,7 +3148,7 @@ export default function Home() {
           .cartBtn span { display: none; }
           .announcement { min-height: 36px; font-size: 9px; letter-spacing: .8px; }
           .announcementSet { gap: 18px; padding: 7px 10px; }
-          .hero { min-height: 650px; }
+          .hero { min-height: 540px; }
           .hero h1 { font-size: 52px; }
           .trust { margin-top: 45px; }
           .products { padding-left: 15px; padding-right: 15px; }

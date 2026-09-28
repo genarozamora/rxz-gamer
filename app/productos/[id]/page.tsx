@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { PRODUCTS } from "@/app/page";
 import type { Product } from "@/app/page";
@@ -16,7 +16,6 @@ type Review = { id: string; rating: number; comment: string; created_at: string 
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
   const [product, setProduct] = useState<Product | undefined>();
   const [catalogResult, setCatalogResult] = useState<{ id: string; error: boolean } | null>(null);
   const [catalogAttempt, setCatalogAttempt] = useState(0);
@@ -30,6 +29,7 @@ export default function ProductPage() {
   const [zoomOpen, setZoomOpen] = useState(false);
   const [zoomScale, setZoomScale] = useState(1);
   const [cartMessage, setCartMessage] = useState("");
+  const [cartAdded, setCartAdded] = useState(false);
   const trackedProductId = useRef<number | null>(null);
 
   useEffect(() => {
@@ -99,6 +99,7 @@ export default function ProductPage() {
 
   function addToCart() {
     if (!product) return;
+    setCartAdded(false);
     const variant = product.variants?.find((item) => item.id === variantId);
     if (product.variants?.length && !variant) {
       setCartMessage("Elegí un color antes de agregar el producto.");
@@ -140,7 +141,8 @@ export default function ProductPage() {
         currency: "ARS",
         value: product.price,
       });
-      router.push("/?cart=open");
+      setCartAdded(true);
+      setCartMessage(`✓ ${product.name}${variant ? ` · ${variant.label}` : ""} se agregó al carrito.`);
     } catch {
       setCartMessage("No pudimos actualizar el carrito. Intentá nuevamente.");
     }
@@ -235,7 +237,12 @@ export default function ProductPage() {
             <div className={`mt-5 rounded-xl border p-4 text-sm font-bold ${product.stock <= 0 ? "border-red-400/30 bg-red-400/10 text-red-400" : "border-emerald-400/20 bg-emerald-400/5 text-emerald-100"}`}>
               {product.stock <= 0 ? "0 unidades · Producto sin stock" : "En stock · Entrega inmediata · Envíos a todo el país"}
             </div>
-            {cartMessage && <p role="alert" className="mt-4 text-sm font-bold text-amber-300">{cartMessage}</p>}
+            {cartMessage && (
+              <div role="alert" className={`mt-4 rounded-xl border p-4 text-sm font-bold ${cartAdded ? "border-emerald-400/35 bg-emerald-400/10 text-emerald-200" : "border-amber-400/30 bg-amber-400/10 text-amber-200"}`}>
+                <p>{cartMessage}</p>
+                {cartAdded && <div className="mt-3 flex flex-wrap gap-2"><button type="button" onClick={() => { setCartAdded(false); setCartMessage(""); }} className="min-h-11 rounded-lg border border-white/15 px-4 text-white">SEGUIR VIENDO</button><Link href="/?cart=open" className="flex min-h-11 items-center rounded-lg bg-emerald-500 px-4 text-[#031008] no-underline">VER CARRITO</Link></div>}
+              </div>
+            )}
             {product.stock <= 0 ? (
               <button disabled className="mt-6 block w-full cursor-not-allowed rounded-xl bg-slate-700 p-4 text-center font-black text-slate-400">SIN STOCK</button>
             ) : (
