@@ -20,6 +20,17 @@ const contentSecurityPolicy = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  trailingSlash: false,
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.rxzgamer.com.ar" }],
+        destination: "https://rxzgamer.com.ar/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
