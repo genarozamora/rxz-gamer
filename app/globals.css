@@ -25,6 +25,25 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Mantiene la tienda legible cuando el navegador se aleja a 50%, 33% o 25%.
+   Esos niveles crean un viewport virtual enorme y los max-width normales dejan
+   todo el sitio diminuto en el centro de la pantalla. */
+@media (min-width: 2600px) {
+  body { zoom: 1.35; }
+}
+
+@media (min-width: 3800px) {
+  body { zoom: 1.8; }
+}
+
+@media (min-width: 5200px) {
+  body { zoom: 2.6; }
+}
+
+@media (min-width: 6800px) {
+  body { zoom: 3.4; }
+}
+
 .skip-link {
   position: fixed;
   left: 16px;

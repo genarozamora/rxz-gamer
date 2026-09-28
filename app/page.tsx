@@ -430,6 +430,7 @@ export default function Home() {
   const [catalogAttempt, setCatalogAttempt] = useState(0);
   const productDialog = useRef<HTMLDivElement>(null);
   const cartDialog = useRef<HTMLElement>(null);
+  const photoDialog = useRef<HTMLDivElement>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [selected, setSelected] = useState<Product | null>(null);
@@ -546,7 +547,7 @@ export default function Home() {
 
   useEffect(() => {
     if (!selected && !cartOpen) return;
-    const dialog = cartOpen ? cartDialog.current : productDialog.current;
+    const dialog = zoomOpen ? photoDialog.current : cartOpen ? cartDialog.current : productDialog.current;
     if (!dialog) return;
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
@@ -555,8 +556,11 @@ export default function Home() {
     (focusable()[0] || dialog).focus({ preventScroll: true });
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setSelected(null);
-        setCartOpen(false);
+        if (zoomOpen) setZoomOpen(false);
+        else {
+          setSelected(null);
+          setCartOpen(false);
+        }
       }
       if (event.key === "Tab") {
         const controls = focusable();
@@ -580,7 +584,7 @@ export default function Home() {
       document.removeEventListener("focusin", containFocus);
       if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
     };
-  }, [selected, cartOpen]);
+  }, [selected, cartOpen, zoomOpen]);
 
   useEffect(() => {
     if (!toast) return;
@@ -1590,11 +1594,11 @@ export default function Home() {
       )}
 
       {zoomOpen && selected && (
-        <div className="photoLightbox" role="dialog" aria-modal="true" aria-label={`Foto ampliada de ${selected.name}`} onClick={() => setZoomOpen(false)}>
+        <div ref={photoDialog} tabIndex={-1} className="photoLightbox" role="dialog" aria-modal="true" aria-label={`Foto ampliada de ${selected.name}`} onClick={() => setZoomOpen(false)}>
           <button className="photoClose" type="button" onClick={() => setZoomOpen(false)} aria-label="Cerrar foto ampliada">×</button>
           <button className="photoNav photoNavLeft" type="button" onClick={(event) => { event.stopPropagation(); nextImage(-1); setZoomScale(1); }} aria-label="Foto anterior">‹</button>
           <div className="photoCanvas" onClick={(event) => event.stopPropagation()}>
-            <img src={selected.images[selectedImage] || selectedVariant?.image || selected.fallbackImage} alt={`${selected.name} ampliado`} style={{ transform: `scale(${zoomScale})` }} />
+            <img src={selected.images[selectedImage] || selectedVariant?.image || selected.fallbackImage} alt={`${selected.name} ampliado`} style={{ width: `${Math.round(zoomScale * 88)}%`, maxWidth: "none", maxHeight: zoomScale === 1 ? "82vh" : "none" }} />
           </div>
           <button className="photoNav photoNavRight" type="button" onClick={(event) => { event.stopPropagation(); nextImage(1); setZoomScale(1); }} aria-label="Foto siguiente">›</button>
           <div className="photoTools" onClick={(event) => event.stopPropagation()}>
@@ -2629,7 +2633,7 @@ export default function Home() {
         .galleryZoomButton > span { position:absolute; left:50%; bottom:14px; transform:translateX(-50%); padding:8px 12px; border:1px solid rgba(255,255,255,.2); border-radius:999px; background:rgba(3,10,16,.82); color:#d8e4ef; font-size:10px; font-weight:900; letter-spacing:.08em; opacity:.82; }
         .photoLightbox { position:fixed; inset:0; z-index:1000; display:grid; place-items:center; padding:72px 90px 100px; background:rgba(0,4,8,.96); backdrop-filter:blur(14px); }
         .photoCanvas { width:100%; height:100%; display:grid; place-items:center; overflow:auto; border-radius:18px; cursor:zoom-in; }
-        .photoCanvas img { max-width:88%; max-height:82vh; object-fit:contain; transition:transform .22s ease; transform-origin:center; }
+        .photoCanvas img { height:auto; object-fit:contain; transition:width .22s ease; }
         .photoClose,.photoNav { position:fixed; z-index:1001; display:grid; place-items:center; border:1px solid rgba(255,255,255,.18); background:#101b29; color:white; box-shadow:0 10px 30px rgba(0,0,0,.4); }
         .photoClose { top:22px; right:24px; width:50px; height:50px; border-radius:50%; font-size:30px; }
         .photoNav { top:50%; width:54px; height:70px; border-radius:14px; font-size:42px; transform:translateY(-50%); }
