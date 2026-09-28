@@ -346,16 +346,16 @@ const ALL_PRODUCTS: Product[] = [
     badge: "COMBO COMPLETO",
     images: [
       "/easysmx-d10-official-4.jpg",
-      "/easysmx-d10-official-1.png",
+      "/easysmx-d10-official-1.webp",
       "/easysmx-d10-official-2.jpg",
       "/easysmx-d10-official-3.jpg",
       "/easysmx-d10-trigger.webp",
       "/easysmx-d10-compatibility.webp",
     ],
-    fallbackImage: "/easysmx-d10-official-1.png",
+    fallbackImage: "/easysmx-d10-official-1.webp",
     stock: 1,
     variants: [
-      { id: "space-black", label: "Negro (Space Black)", color: "#101216", stock: 1, image: "/easysmx-d10-official-1.png" },
+      { id: "space-black", label: "Negro (Space Black)", color: "#101216", stock: 1, image: "/easysmx-d10-official-1.webp" },
     ],
     description: "Control inalámbrico multiplataforma con sticks TMR de alta precisión, gatillos de doble modo, botones mecánicos y base inteligente de carga. El combo incluye receptor USB 2.4 GHz.",
     features: [
@@ -414,6 +414,8 @@ function SafeImage({
       src={src}
       alt={alt}
       className={className}
+      width={800}
+      height={800}
       loading="lazy"
       decoding="async"
       onError={(event) => {
