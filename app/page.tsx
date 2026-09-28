@@ -440,6 +440,10 @@ export default function Home() {
   const [zoomOpen, setZoomOpen] = useState(false);
   const [zoomScale, setZoomScale] = useState(1);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [activeSuggestion, setActiveSuggestion] = useState(-1);
+  const trackedSearchRef = useRef("");
   const [category, setCategory] = useState("Todos");
   const [sort, setSort] = useState("featured");
   const [toast, setToast] = useState("");
@@ -593,6 +597,11 @@ export default function Home() {
   }, [toast]);
 
   useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 280);
+    return () => window.clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
     if (!loaded) return;
     let hideTimer = 0;
     const show = () => {
@@ -628,6 +637,19 @@ export default function Home() {
       return 0;
     });
   }, [search, category, sort, catalogProducts, favoriteIds]);
+
+  const searchSuggestions = useMemo(() => {
+    if (search.trim().length < 2) return [];
+    return catalogProducts.filter((product) => matchesCatalogSearch(product, search)).slice(0, 5);
+  }, [catalogProducts, search]);
+
+  useEffect(() => {
+    const query = debouncedSearch.toLocaleLowerCase("es");
+    if (catalogState !== "ready" || query.length < 2 || trackedSearchRef.current === query) return;
+    const results = catalogProducts.filter((product) => matchesCatalogSearch(product, query)).length;
+    trackedSearchRef.current = query;
+    void trackStoreEvent(results ? "search" : "search_no_results", undefined, { query, results });
+  }, [catalogProducts, catalogState, debouncedSearch]);
 
   const totalItems = cart.reduce((a, b) => a + b.quantity, 0);
   const total = cart.reduce((a, b) => a + b.price * b.quantity, 0);
@@ -979,17 +1001,67 @@ export default function Home() {
         </div>
 
         <div className="tools">
-          <div className="search">
-            🔎
-            <label className="srOnly" htmlFor="catalog-search">Buscar productos en el catálogo</label>
-            <input
-              id="catalog-search"
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar productos..."
-              autoComplete="off"
-            />
+          <div className="searchWrap">
+            <div className={`search ${searchFocused ? "focused" : ""}`}>
+              <span aria-hidden="true">⌕</span>
+              <label className="srOnly" htmlFor="catalog-search">Buscar productos en el catálogo</label>
+              <input
+                id="catalog-search"
+                type="search"
+                value={search}
+                onChange={(event) => { setSearch(event.target.value); setActiveSuggestion(-1); }}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => window.setTimeout(() => setSearchFocused(false), 140)}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") { setSearchFocused(false); setActiveSuggestion(-1); }
+                  if (!searchSuggestions.length) return;
+                  if (event.key === "ArrowDown") {
+                    event.preventDefault();
+                    setActiveSuggestion((current) => (current + 1) % searchSuggestions.length);
+                  }
+                  if (event.key === "ArrowUp") {
+                    event.preventDefault();
+                    setActiveSuggestion((current) => current <= 0 ? searchSuggestions.length - 1 : current - 1);
+                  }
+                  if (event.key === "Enter" && activeSuggestion >= 0) {
+                    event.preventDefault();
+                    setSearchFocused(false);
+                    openProduct(searchSuggestions[activeSuggestion]);
+                  }
+                }}
+                placeholder="Buscá por producto, marca o característica..."
+                autoComplete="off"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded={searchFocused && search.trim().length >= 2}
+                aria-controls="search-suggestions"
+                aria-activedescendant={activeSuggestion >= 0 ? `search-suggestion-${searchSuggestions[activeSuggestion]?.id}` : undefined}
+              />
+              {search && <button className="searchClear" type="button" onClick={() => setSearch("")} aria-label="Limpiar búsqueda">×</button>}
+            </div>
+            {searchFocused && search.trim().length >= 2 && (
+              <div id="search-suggestions" className="searchSuggestions" role="listbox" aria-label="Sugerencias de productos">
+                {searchSuggestions.length ? searchSuggestions.map((product, index) => (
+                  <button
+                    id={`search-suggestion-${product.id}`}
+                    key={product.id}
+                    type="button"
+                    role="option"
+                    aria-selected={activeSuggestion === index}
+                    className={activeSuggestion === index ? "active" : ""}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onMouseEnter={() => setActiveSuggestion(index)}
+                    onClick={() => { setSearchFocused(false); openProduct(product); }}
+                  >
+                    <SafeImage src={product.images[0]} fallback={product.fallbackImage} alt="" />
+                    <span><small>{product.brand} · {product.category}</small><strong>{product.name}</strong><em>{product.stock > 0 ? `${product.stock} disponibles` : "Sin stock"}</em></span>
+                    <b>{money(product.price)}</b>
+                  </button>
+                )) : (
+                  <div className="searchEmpty" role="status"><strong>No encontramos “{search.trim()}”</strong><span>Probá con otra marca, categoría o característica.</span></div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="categories">
@@ -2062,6 +2134,7 @@ export default function Home() {
         }
         .sectionHead p { color: #8794a8; }
         .tools { max-width: 900px; margin: 0 auto 45px; }
+        .searchWrap { position: relative; z-index: 12; }
         .search {
           display: flex;
           align-items: center;
@@ -2070,7 +2143,10 @@ export default function Home() {
           border: 1px solid #29364a;
           padding: 0 17px;
           border-radius: 12px;
+          transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
         }
+        .search.focused { border-color: #22c55e; background: #090f18; box-shadow: 0 0 0 3px rgba(34,197,94,.12), 0 18px 45px rgba(0,0,0,.32); }
+        .search > span { color: #58e18a; font-size: 24px; line-height: 1; }
         .search input {
           flex: 1;
           border: 0;
@@ -2078,7 +2154,23 @@ export default function Home() {
           padding: 16px 5px;
           background: transparent;
           color: white;
+          min-width: 0;
         }
+        .searchClear { width: 34px; height: 34px; border: 0; border-radius: 50%; background: #172131; color: #c8d2e1; font-size: 22px; line-height: 1; }
+        .searchClear:hover { background: #233149; color: white; }
+        .searchSuggestions { position: absolute; top: calc(100% + 8px); left: 0; right: 0; overflow: hidden; border: 1px solid #26354a; border-radius: 14px; background: rgba(7,12,21,.98); box-shadow: 0 24px 60px rgba(0,0,0,.55); backdrop-filter: blur(18px); }
+        .searchSuggestions > button { width: 100%; display: grid; grid-template-columns: 58px minmax(0,1fr) auto; align-items: center; gap: 13px; border: 0; border-bottom: 1px solid rgba(148,163,184,.12); padding: 10px 13px; background: transparent; color: white; text-align: left; }
+        .searchSuggestions > button:last-child { border-bottom: 0; }
+        .searchSuggestions > button:hover, .searchSuggestions > button.active { background: rgba(34,197,94,.1); }
+        .searchSuggestions img { width: 58px; height: 48px; border-radius: 9px; object-fit: contain; background: white; }
+        .searchSuggestions span { min-width: 0; display: grid; gap: 2px; }
+        .searchSuggestions small { color: #58e18a; font-size: 10px; font-weight: 900; letter-spacing: .8px; text-transform: uppercase; }
+        .searchSuggestions strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+        .searchSuggestions em { color: #91a0b5; font-size: 11px; font-style: normal; }
+        .searchSuggestions b { color: #58e18a; font-size: 14px; white-space: nowrap; }
+        .searchEmpty { display: grid; gap: 5px; padding: 20px; text-align: center; }
+        .searchEmpty strong { font-size: 14px; }
+        .searchEmpty span { color: #91a0b5; font-size: 12px; }
         .categories {
           display: flex;
           justify-content: center;
