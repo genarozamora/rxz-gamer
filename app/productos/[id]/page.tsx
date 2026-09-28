@@ -61,6 +61,7 @@ export default function ProductPage() {
     if (!product || catalogResult?.id !== id || trackedProductId.current === product.id) return;
     trackedProductId.current = product.id;
     void trackStoreEvent("product_view", product.id);
+    void trackStoreEvent("view_item", product.id, { source: "product_page" });
     trackMetaEvent("ViewContent", {
       content_ids: [String(product.id)],
       content_name: `${product.brand} ${product.name}`,

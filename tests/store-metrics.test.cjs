@@ -37,3 +37,15 @@ test('search metrics normalize queries and separate no-result opportunities', ()
   assert.equal(report.queries[0][0],'mouse'); assert.equal(report.queries[0][1],2);
   assert.equal(report.emptyQueries[0][0],'auriculares'); assert.equal(report.emptyQueries[0][1],1);
 });
+test('cart and category interactions are summarized without treating them as people', () => {
+  const report=api.summarizeMetrics([
+    {event_name:'view_cart',metadata:{items:2}},
+    {event_name:'view_cart',metadata:{items:1}},
+    {event_name:'remove_from_cart',product_id:'3',metadata:{}},
+    {event_name:'filter_use',metadata:{filter:'sort',value:'price-asc'}},
+    {event_name:'category_view',metadata:{category:'Mouse'}},
+    {event_name:'category_view',metadata:{category:'Mouse'}},
+  ],[]);
+  assert.equal(report.cartViews,2); assert.equal(report.cartRemovals,1); assert.equal(report.filterUses,1);
+  assert.equal(report.categories[0][0],'Mouse'); assert.equal(report.categories[0][1],2);
+});

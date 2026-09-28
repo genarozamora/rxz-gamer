@@ -444,6 +444,7 @@ export default function Home() {
   const [searchFocused, setSearchFocused] = useState(false);
   const [activeSuggestion, setActiveSuggestion] = useState(-1);
   const trackedSearchRef = useRef("");
+  const cartWasOpen = useRef(false);
   const [category, setCategory] = useState("Todos");
   const [sort, setSort] = useState("featured");
   const [toast, setToast] = useState("");
@@ -666,6 +667,12 @@ export default function Home() {
 
   const totalItems = cart.reduce((a, b) => a + b.quantity, 0);
   const total = cart.reduce((a, b) => a + b.price * b.quantity, 0);
+  useEffect(() => {
+    if (cartOpen && !cartWasOpen.current) {
+      void trackStoreEvent("view_cart", undefined, { items: totalItems, value: total });
+    }
+    cartWasOpen.current = cartOpen;
+  }, [cartOpen, total, totalItems]);
   const recentProducts = recentIds
     .map((id) => catalogProducts.find((product) => product.id === id))
     .filter((product): product is Product => Boolean(product));
@@ -723,6 +730,7 @@ export default function Home() {
     setSelected(product);
     setRecentIds((current) => [product.id, ...current.filter((id) => id !== product.id)].slice(0, 4));
     track("product_view", product.id);
+    track("select_item", product.id, { source: "catalog" });
   }
 
   function toggleFavorite(productId: number) {
@@ -853,7 +861,9 @@ export default function Home() {
   }
 
   function remove(cartKey: string) {
+    const item = cart.find((product) => product.cartKey === cartKey);
     setCart((current) => current.filter((p) => p.cartKey !== cartKey));
+    if (item) track("remove_from_cart", item.id, { quantity: item.quantity, variant_id: item.variantId || null });
   }
 
   function goToCheckout() {
@@ -1084,7 +1094,7 @@ export default function Home() {
                 key={c}
                 className={category === c ? "active" : ""}
                 aria-pressed={category === c}
-                onClick={() => setCategory(c)}
+                onClick={() => { setCategory(c); track("category_view", undefined, { category: c }); }}
               >
                 {c === "Favoritos" ? `♡ Favoritos (${favoriteIds.length})` : c}
               </button>
@@ -1098,7 +1108,7 @@ export default function Home() {
           </span>
           <div className="catalogControls">
             <label htmlFor="catalog-sort">Ordenar:</label>
-            <select id="catalog-sort" value={sort} onChange={(event) => setSort(event.target.value)}>
+            <select id="catalog-sort" value={sort} onChange={(event) => { setSort(event.target.value); track("filter_use", undefined, { filter: "sort", value: event.target.value }); }}>
               <option value="featured">Destacados</option>
               <option value="price-asc">Menor precio</option>
               <option value="price-desc">Mayor precio</option>
