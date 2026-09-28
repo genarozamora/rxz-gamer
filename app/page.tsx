@@ -1809,8 +1809,9 @@ export default function Home() {
           z-index: 100;
         }
         .announcement {
-          background: #22c55e;
-          color: #031008;
+          background: linear-gradient(90deg,#15803d 0%,#22c55e 38%,#34d399 58%,#16a34a 100%);
+          background-size: 180% 100%;
+          color: #02140a;
           font-size: 12px;
           font-weight: 950;
           letter-spacing: 1.8px;
@@ -1820,11 +1821,13 @@ export default function Home() {
           line-height: 18px;
           white-space: nowrap;
           overflow: hidden;
+          box-shadow: 0 4px 18px rgba(16,185,129,.18);
+          animation: announcementGlow 8s ease-in-out infinite;
         }
         .announcementTrack {
           width: max-content;
           display: flex;
-          animation: announcementMove 28s linear infinite;
+          animation: announcementMove 20s linear infinite !important;
           will-change: transform;
         }
         .announcementSet {
@@ -1834,7 +1837,7 @@ export default function Home() {
           padding: 9px 14px;
         }
         .announcementSet i {
-          color: rgba(3,16,8,.48);
+          color: rgba(2,20,10,.42);
           font-style: normal;
         }
         header {
@@ -2928,6 +2931,10 @@ export default function Home() {
         @keyframes announcementMove {
           to { transform: translateX(-50%); }
         }
+        @keyframes announcementGlow {
+          0%,100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
 
         @media (prefers-reduced-motion: reduce) {
           html { scroll-behavior: auto; }
@@ -2937,6 +2944,8 @@ export default function Home() {
             scroll-behavior: auto !important;
             transition-duration: .01ms !important;
           }
+          .announcementTrack { animation: announcementMove 20s linear infinite !important; }
+          .announcement { animation: none !important; }
         }
 
         .favoriteBtn { position:absolute; top:12px; right:12px; z-index:5; width:42px; height:42px; border:1px solid rgba(255,255,255,.16); border-radius:50%; background:rgba(3,6,11,.78); color:white; font-size:24px; line-height:1; backdrop-filter:blur(10px); transition:.2s; }
