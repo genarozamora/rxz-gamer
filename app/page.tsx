@@ -436,6 +436,8 @@ export default function Home() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedVariantId, setSelectedVariantId] = useState("");
   const [purchaseIntent, setPurchaseIntent] = useState<"details" | "cart" | "buy">("details");
+  const [zoomOpen, setZoomOpen] = useState(false);
+  const [zoomScale, setZoomScale] = useState(1);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Todos");
   const [sort, setSort] = useState("featured");
@@ -676,6 +678,8 @@ export default function Home() {
   function openProduct(product: Product, intent: "details" | "cart" | "buy" = "details") {
     setSelectedImage(0);
     setSelectedVariantId("");
+    setZoomOpen(false);
+    setZoomScale(1);
     setPurchaseIntent(intent);
     setSelected(product);
     setRecentIds((current) => [product.id, ...current.filter((id) => id !== product.id)].slice(0, 4));
@@ -1388,11 +1392,14 @@ export default function Home() {
                     ‹
                   </button>
 
-                  <SafeImage
-                    src={selected.images[selectedImage] || selectedVariant?.image || selected.fallbackImage}
-                    fallback={selected.fallbackImage}
-                    alt={`${selected.name} imagen ${selectedImage + 1}`}
-                  />
+                  <button className="galleryZoomButton" type="button" onClick={() => { setZoomScale(1); setZoomOpen(true); }} aria-label={`Ampliar imagen ${selectedImage + 1} de ${selected.name}`}>
+                    <SafeImage
+                      src={selected.images[selectedImage] || selectedVariant?.image || selected.fallbackImage}
+                      fallback={selected.fallbackImage}
+                      alt={`${selected.name} imagen ${selectedImage + 1}`}
+                    />
+                    <span>⌕ TOCÁ PARA AMPLIAR</span>
+                  </button>
 
                   {selectedImage === 0 && selectedPackagePreview && (
                     <div className="packagePreview modalPackagePreview">
@@ -1578,6 +1585,23 @@ export default function Home() {
               VER FICHA COMPLETA
             </a>
 
+          </div>
+        </div>
+      )}
+
+      {zoomOpen && selected && (
+        <div className="photoLightbox" role="dialog" aria-modal="true" aria-label={`Foto ampliada de ${selected.name}`} onClick={() => setZoomOpen(false)}>
+          <button className="photoClose" type="button" onClick={() => setZoomOpen(false)} aria-label="Cerrar foto ampliada">×</button>
+          <button className="photoNav photoNavLeft" type="button" onClick={(event) => { event.stopPropagation(); nextImage(-1); setZoomScale(1); }} aria-label="Foto anterior">‹</button>
+          <div className="photoCanvas" onClick={(event) => event.stopPropagation()}>
+            <img src={selected.images[selectedImage] || selectedVariant?.image || selected.fallbackImage} alt={`${selected.name} ampliado`} style={{ transform: `scale(${zoomScale})` }} />
+          </div>
+          <button className="photoNav photoNavRight" type="button" onClick={(event) => { event.stopPropagation(); nextImage(1); setZoomScale(1); }} aria-label="Foto siguiente">›</button>
+          <div className="photoTools" onClick={(event) => event.stopPropagation()}>
+            <button type="button" onClick={() => setZoomScale((scale) => Math.max(1, Number((scale - 0.5).toFixed(1))))} disabled={zoomScale <= 1} aria-label="Alejar">−</button>
+            <strong>{Math.round(zoomScale * 100)}%</strong>
+            <button type="button" onClick={() => setZoomScale((scale) => Math.min(3, Number((scale + 0.5).toFixed(1))))} disabled={zoomScale >= 3} aria-label="Acercar">+</button>
+            <button type="button" onClick={() => setZoomScale(1)}>RESTABLECER</button>
           </div>
         </div>
       )}
@@ -2469,7 +2493,7 @@ export default function Home() {
           background: radial-gradient(circle,#293b60,#0c1320 68%);
           border: 1px solid rgba(255,255,255,.07);
         }
-        .galleryMain > img {
+        .galleryMain > img, .galleryMain > .galleryZoomButton img {
           width: 100%;
           height: 430px;
           object-fit: contain;
@@ -2600,6 +2624,19 @@ export default function Home() {
           font-size: 13px;
           font-weight: 900;
         }
+        .galleryZoomButton { position:absolute; inset:0; display:grid; place-items:center; width:100%; border:0; background:transparent; cursor:zoom-in; }
+        .galleryZoomButton img { max-width:100%; max-height:100%; object-fit:contain; }
+        .galleryZoomButton > span { position:absolute; left:50%; bottom:14px; transform:translateX(-50%); padding:8px 12px; border:1px solid rgba(255,255,255,.2); border-radius:999px; background:rgba(3,10,16,.82); color:#d8e4ef; font-size:10px; font-weight:900; letter-spacing:.08em; opacity:.82; }
+        .photoLightbox { position:fixed; inset:0; z-index:1000; display:grid; place-items:center; padding:72px 90px 100px; background:rgba(0,4,8,.96); backdrop-filter:blur(14px); }
+        .photoCanvas { width:100%; height:100%; display:grid; place-items:center; overflow:auto; border-radius:18px; cursor:zoom-in; }
+        .photoCanvas img { max-width:88%; max-height:82vh; object-fit:contain; transition:transform .22s ease; transform-origin:center; }
+        .photoClose,.photoNav { position:fixed; z-index:1001; display:grid; place-items:center; border:1px solid rgba(255,255,255,.18); background:#101b29; color:white; box-shadow:0 10px 30px rgba(0,0,0,.4); }
+        .photoClose { top:22px; right:24px; width:50px; height:50px; border-radius:50%; font-size:30px; }
+        .photoNav { top:50%; width:54px; height:70px; border-radius:14px; font-size:42px; transform:translateY(-50%); }
+        .photoNavLeft { left:24px; }.photoNavRight { right:24px; }
+        .photoTools { position:fixed; left:50%; bottom:24px; z-index:1001; display:flex; align-items:center; gap:8px; padding:9px; border:1px solid rgba(255,255,255,.16); border-radius:14px; background:#0c1724; transform:translateX(-50%); }
+        .photoTools button { min-width:44px; min-height:42px; padding:0 14px; border:1px solid #324257; border-radius:9px; background:#152337; color:white; font-weight:900; }
+        .photoTools button:disabled { opacity:.35; }.photoTools strong { min-width:54px; text-align:center; color:#86efac; }
         .productDetailLinkBelow { max-width:none; margin-top:18px; }
         .detailsSection {
           display: grid;
@@ -2999,7 +3036,7 @@ export default function Home() {
           .hero h1 { letter-spacing: -3px; }
           .modal { padding: 25px; }
           .galleryMain { min-height: 370px; }
-          .galleryMain > img { height: 330px; }
+          .galleryMain > img, .galleryMain > .galleryZoomButton img { height: 330px; }
         }
 
         @media(max-width:550px) {
@@ -3049,7 +3086,14 @@ export default function Home() {
             min-height: 300px;
             padding: 18px;
           }
-          .galleryMain > img { height: 270px; }
+          .galleryMain > img, .galleryMain > .galleryZoomButton img { height: 270px; }
+          .photoLightbox { padding:64px 12px 112px; }
+          .photoCanvas img { max-width:96%; max-height:72vh; }
+          .photoNav { top:auto; bottom:28px; width:46px; height:46px; border-radius:50%; transform:none; font-size:32px; }
+          .photoNavLeft { left:14px; }.photoNavRight { right:14px; }
+          .photoTools { bottom:24px; gap:5px; }
+          .photoTools button { min-width:38px; min-height:40px; padding:0 9px; }
+          .photoTools button:last-child { display:none; }
           .modalPackagePreview {
             width: calc(100% - 72px);
             height: 82px;

@@ -27,6 +27,8 @@ export default function ProductPage() {
   const [reviewMessage, setReviewMessage] = useState("");
   const [variantId, setVariantId] = useState("");
   const [imageIndex, setImageIndex] = useState(0);
+  const [zoomOpen, setZoomOpen] = useState(false);
+  const [zoomScale, setZoomScale] = useState(1);
   const [cartMessage, setCartMessage] = useState("");
   const trackedProductId = useRef<number | null>(null);
 
@@ -187,7 +189,7 @@ export default function ProductPage() {
         <div className="mt-7 grid gap-8 rounded-3xl border border-white/10 bg-[#09131e] p-5 shadow-2xl md:grid-cols-2 md:p-9">
           <div>
             <div className={`relative flex min-h-[360px] items-center justify-center overflow-hidden rounded-2xl bg-white p-6 ${imageIndex === 0 && packagePreview ? "pb-32" : ""}`}>
-              <img src={product.images[imageIndex] || selectedVariant?.image || product.images[0]} alt={`${product.brand} ${product.name} imagen ${imageIndex + 1}`} className="max-h-[420px] max-w-full object-contain" onError={(event) => { if (event.currentTarget.getAttribute("src") !== product.fallbackImage) event.currentTarget.src = product.fallbackImage; }} />
+              <button type="button" onClick={() => { setZoomScale(1); setZoomOpen(true); }} className="grid cursor-zoom-in place-items-center" aria-label={`Ampliar imagen ${imageIndex + 1} de ${product.name}`}><img src={product.images[imageIndex] || selectedVariant?.image || product.images[0]} alt={`${product.brand} ${product.name} imagen ${imageIndex + 1}`} className="max-h-[420px] max-w-full object-contain" onError={(event) => { if (event.currentTarget.getAttribute("src") !== product.fallbackImage) event.currentTarget.src = product.fallbackImage; }} /><span className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-slate-950/85 px-3 py-2 text-[10px] font-black tracking-wider text-white">⌕ TOCÁ PARA AMPLIAR</span></button>
               {imageIndex === 0 && packagePreview && <div className="absolute inset-x-4 bottom-4 grid grid-cols-[96px_1fr] items-center gap-3 rounded-xl border border-emerald-400/60 bg-[#03080eef] p-2 text-left shadow-2xl"><img src={packagePreview.image} alt={packagePreview.alt} className="h-20 w-24 rounded-lg bg-white object-cover" /><span className="text-xs leading-5 text-slate-200"><b className="block text-emerald-400">TODO LO QUE INCLUYE</b>{packagePreview.caption}</span></div>}
             </div>
             <div className="mt-3 grid grid-cols-4 gap-2">{product.images.map((image, index) => <button key={`${image}-${index}`} onClick={() => setImageIndex(index)} aria-label={`Ver imagen ${index + 1} de ${product.name}`} aria-pressed={imageIndex === index} className={`h-20 overflow-hidden rounded-xl border bg-white p-1 ${imageIndex === index ? "border-emerald-400" : "border-white/10"}`}><img src={image} alt={`Miniatura ${index + 1} de ${product.name}`} className="h-full w-full object-contain" /></button>)}</div>
@@ -221,8 +223,9 @@ export default function ProductPage() {
               <span className="rounded-xl border border-white/10 bg-[#06101a] p-3">✓ Stock real</span>
               <span className="rounded-xl border border-white/10 bg-[#06101a] p-3">✓ Compra protegida</span>
               <span className="rounded-xl border border-white/10 bg-[#06101a] p-3">✓ Envío con seguimiento</span>
-            </div>
-          </div>
+        </div>
+        {zoomOpen && <div className="fixed inset-0 z-[100] grid place-items-center bg-black/95 px-16 py-24 backdrop-blur" role="dialog" aria-modal="true" aria-label={`Foto ampliada de ${product.name}`} onClick={() => setZoomOpen(false)}><button type="button" onClick={() => setZoomOpen(false)} className="fixed right-5 top-5 z-[101] grid h-12 w-12 place-items-center rounded-full border border-white/20 bg-slate-900 text-3xl text-white" aria-label="Cerrar foto ampliada">×</button><div className="grid h-full w-full place-items-center overflow-auto" onClick={(event) => event.stopPropagation()}><img src={product.images[imageIndex] || selectedVariant?.image || product.images[0]} alt={`${product.name} ampliado`} className="max-h-[78vh] max-w-[92%] object-contain transition-transform" style={{ transform: `scale(${zoomScale})` }} /></div><div className="fixed bottom-5 left-1/2 z-[101] flex -translate-x-1/2 items-center gap-2 rounded-xl border border-white/20 bg-slate-900 p-2"><button type="button" disabled={zoomScale <= 1} onClick={(event) => { event.stopPropagation(); setZoomScale((scale) => Math.max(1, scale - .5)); }} className="h-11 min-w-11 rounded-lg bg-slate-700 px-3 text-xl font-black disabled:opacity-30">−</button><strong className="min-w-14 text-center text-emerald-300">{Math.round(zoomScale * 100)}%</strong><button type="button" disabled={zoomScale >= 3} onClick={(event) => { event.stopPropagation(); setZoomScale((scale) => Math.min(3, scale + .5)); }} className="h-11 min-w-11 rounded-lg bg-slate-700 px-3 text-xl font-black disabled:opacity-30">+</button></div></div>}
+      </div>
         </div>
         <div className="mt-7 grid gap-6 md:grid-cols-2">
           <section className="rounded-2xl border border-white/10 bg-[#09131e] p-6"><h2 className="text-xl font-black">Características</h2><ul className="mt-5 space-y-3 text-slate-300">{product.features.map((feature) => <li key={feature}>✓ {feature}</li>)}</ul></section>
