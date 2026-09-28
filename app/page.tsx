@@ -1542,18 +1542,6 @@ export default function Home() {
                   </button>
                 </div>
 
-                <a className="productDetailLink" href={`/productos/${selected.id}`}>
-                  VER FICHA COMPLETA
-                </a>
-
-                <a
-                  className="productSupport"
-                  href={userEmail ? "/ayuda" : "/login?next=/ayuda"}
-                >
-                  CONSULTAR A SOPORTE
-                </a>
-
-
               </div>
             </div>
 
@@ -1585,6 +1573,10 @@ export default function Home() {
                 </div>
               </div>
             </div>
+
+            <a className="productDetailLink productDetailLinkBelow" href={`/productos/${selected.id}`}>
+              VER FICHA COMPLETA
+            </a>
 
           </div>
         </div>
@@ -2593,20 +2585,6 @@ export default function Home() {
           margin-top: 28px;
           padding: 16px;
         }
-        .productSupport {
-          width: 100%;
-          max-width: 430px;
-          margin-top: 10px;
-          padding: 14px;
-          border: 1px solid #344154;
-          border-radius: 8px;
-          text-align: center;
-          text-decoration: none;
-          color: white;
-          background: #111b2a;
-          font-size: 13px;
-          font-weight: 900;
-        }
         .productDetailLink {
           display: block;
           width: 100%;
@@ -2622,6 +2600,7 @@ export default function Home() {
           font-size: 13px;
           font-weight: 900;
         }
+        .productDetailLinkBelow { max-width:none; margin-top:18px; }
         .detailsSection {
           display: grid;
           grid-template-columns: .85fr 1.15fr;
