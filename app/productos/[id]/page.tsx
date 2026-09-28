@@ -30,6 +30,7 @@ export default function ProductPage() {
   const [zoomScale, setZoomScale] = useState(1);
   const [cartMessage, setCartMessage] = useState("");
   const [cartAdded, setCartAdded] = useState(false);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const trackedProductId = useRef<number | null>(null);
 
   useEffect(() => {
@@ -70,6 +71,19 @@ export default function ProductPage() {
   }, [product, catalogResult, id]);
 
   useEffect(() => {
+    if (!product) return;
+    let cancelled = false;
+    supabase.from("products").select("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants,active").eq("active", true).eq("category", product.category).neq("id", product.id).limit(3).then(({ data, error }) => {
+      if (cancelled || error) return;
+      setRelatedProducts((data || []).map((row) => {
+        const curated = PRODUCTS.find((item) => item.id === Number(row.id));
+        return mergeVerifiedProduct(row, curated);
+      }));
+    });
+    return () => { cancelled = true; };
+  }, [product]);
+
+  useEffect(() => {
     if (!product || window.location.hash !== "#ficha-tecnica") return;
     const timer = window.setTimeout(() => {
       document.getElementById("ficha-tecnica")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -97,7 +111,7 @@ export default function ProductPage() {
     else { setReviewMessage("Gracias. Tu reseña quedó pendiente de aprobación."); setComment(""); }
   }
 
-  function addToCart() {
+  function addToCart(checkoutNow = false) {
     if (!product) return;
     setCartAdded(false);
     const variant = product.variants?.find((item) => item.id === variantId);
@@ -143,6 +157,7 @@ export default function ProductPage() {
       });
       setCartAdded(true);
       setCartMessage(`✓ ${product.name}${variant ? ` · ${variant.label}` : ""} se agregó al carrito.`);
+      if (checkoutNow) window.location.href = "/checkout";
     } catch {
       setCartMessage("No pudimos actualizar el carrito. Intentá nuevamente.");
     }
@@ -178,6 +193,9 @@ export default function ProductPage() {
 
   const selectedVariant = product.variants?.find((variant) => variant.id === variantId);
   const included = product.specs.find((spec) => spec.label === "Incluye")?.value;
+  const compatibility = product.specs.find((spec) => ["Compatibilidad", "Plataformas"].includes(spec.label))?.value;
+  const connectivity = product.specs.find((spec) => spec.label === "Conectividad")?.value;
+  const software = product.specs.find((spec) => spec.label === "Software")?.value;
   const discount = product.oldPrice && product.oldPrice > product.price
     ? Math.round((1 - product.price / product.oldPrice) * 100)
     : 0;
@@ -203,6 +221,21 @@ export default function ProductPage() {
     },
   };
   const packagePreview = getPackagePreview(product);
+  const productFaq = [
+    connectivity ? { question: "¿Cómo se conecta?", answer: connectivity } : null,
+    compatibility ? { question: "¿Con qué plataformas es compatible?", answer: compatibility } : null,
+    included ? { question: "¿Qué incluye la caja?", answer: included } : null,
+    software ? { question: "¿Tiene software de configuración?", answer: software } : null,
+  ].filter((item): item is { question: string; answer: string } => Boolean(item));
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Inicio", item: "https://rxzgamer.com.ar" },
+      { "@type": "ListItem", position: 2, name: product.category, item: `https://rxzgamer.com.ar/?categoria=${encodeURIComponent(product.category)}#productos` },
+      { "@type": "ListItem", position: 3, name: `${product.brand} ${product.name}`, item: `https://rxzgamer.com.ar/productos/${product.id}` },
+    ],
+  };
 
   return (
     <main className="min-h-screen bg-[#03070c] px-5 py-10 text-white">
@@ -215,8 +248,9 @@ export default function ProductPage() {
           __html: JSON.stringify(schema).replace(/</g, "\\u003c"),
         }}
       />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema).replace(/</g, "\\u003c") }} />
       <div className="mx-auto max-w-6xl">
-        <Link href="/" className="text-sm font-bold text-emerald-400 no-underline">← VOLVER A PRODUCTOS</Link>
+        <nav aria-label="Ruta del producto" className="flex flex-wrap items-center gap-2 text-sm text-slate-400"><Link href="/" className="hover:text-emerald-300">Inicio</Link><span aria-hidden="true">/</span><Link href={`/?categoria=${encodeURIComponent(product.category)}#productos`} className="hover:text-emerald-300">{product.category}</Link><span aria-hidden="true">/</span><span className="text-slate-200">{product.brand} {product.name}</span></nav>
         <div className="mt-7 grid gap-8 rounded-3xl border border-white/10 bg-[#09131e] p-5 shadow-2xl md:grid-cols-2 md:p-9">
           <div>
             <div className={`relative flex min-h-[360px] items-center justify-center overflow-hidden rounded-2xl bg-white p-6 ${imageIndex === 0 && packagePreview ? "pb-32" : ""}`}>
@@ -246,10 +280,11 @@ export default function ProductPage() {
             {product.stock <= 0 ? (
               <button disabled className="mt-6 block w-full cursor-not-allowed rounded-xl bg-slate-700 p-4 text-center font-black text-slate-400">SIN STOCK</button>
             ) : (
-              <button onClick={addToCart} disabled={Boolean(product.variants?.length && !selectedVariant)} className="mt-6 block w-full rounded-xl bg-emerald-500 p-4 text-center font-black text-[#031008] disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400">
+              <button onClick={() => addToCart(false)} disabled={Boolean(product.variants?.length && !selectedVariant)} className="mt-6 block w-full rounded-xl bg-emerald-500 p-4 text-center font-black text-[#031008] disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400">
                 {product.variants?.length && !selectedVariant ? "ELEGÍ UN COLOR" : "AGREGAR AL CARRITO"}
               </button>
             )}
+            {product.stock > 0 && <button onClick={() => addToCart(true)} disabled={Boolean(product.variants?.length && !selectedVariant)} className="mt-3 block w-full rounded-xl border border-emerald-400/50 bg-emerald-400/5 p-4 text-center font-black text-emerald-300 disabled:cursor-not-allowed disabled:border-white/10 disabled:text-slate-500">{product.variants?.length && !selectedVariant ? "ELEGÍ UN COLOR PARA COMPRAR" : "COMPRAR AHORA"}</button>}
             <div className="mt-3 grid grid-cols-2 gap-3">
               <button onClick={() => void shareProduct()} className="rounded-xl border border-white/15 p-3 text-sm font-bold text-white">↗ COMPARTIR</button>
               <a href={whatsappShareUrl} target="_blank" rel="noopener noreferrer" className="rounded-xl border border-emerald-400/30 bg-emerald-400/5 p-3 text-center text-sm font-bold text-emerald-300 no-underline">WHATSAPP</a>
@@ -266,6 +301,10 @@ export default function ProductPage() {
           <section className="rounded-2xl border border-white/10 bg-[#09131e] p-6"><h2 className="text-xl font-black">Características</h2><ul className="mt-5 space-y-3 text-slate-300">{product.features.map((feature) => <li key={feature}>✓ {feature}</li>)}</ul></section>
           <section className="rounded-2xl border border-white/10 bg-[#09131e] p-6"><h2 className="text-xl font-black">Especificaciones</h2><dl className="mt-5 divide-y divide-white/10">{product.specs.map((spec) => <div key={spec.label} className="flex justify-between gap-5 py-3"><dt className="text-slate-400">{spec.label}</dt><dd className="text-right font-bold">{spec.value}</dd></div>)}</dl></section>
         </div>
+        <section className="mt-7 rounded-2xl border border-emerald-400/20 bg-gradient-to-br from-emerald-400/10 to-[#09131e] p-6 md:p-8"><p className="text-xs font-black tracking-[.22em] text-emerald-400">RXZ SELECT</p><h2 className="mt-2 text-2xl font-black">Por qué RXZ lo eligió</h2><p className="mt-4 max-w-3xl leading-7 text-slate-300">Lo seleccionamos por la combinación de prestaciones que ofrece dentro de su categoría: {product.features.slice(0, 3).join(", ").toLocaleLowerCase("es")}.</p></section>
+        {(compatibility || included) && <div className="mt-7 grid gap-6 md:grid-cols-2">{compatibility && <section className="rounded-2xl border border-white/10 bg-[#09131e] p-6"><h2 className="text-xl font-black">Compatibilidad</h2><p className="mt-4 leading-7 text-slate-300">{compatibility}</p></section>}{included && <section className="rounded-2xl border border-white/10 bg-[#09131e] p-6"><h2 className="text-xl font-black">Contenido de la caja</h2><p className="mt-4 leading-7 text-slate-300">{included}</p></section>}</div>}
+        {productFaq.length > 0 && <section className="mt-7 rounded-2xl border border-white/10 bg-[#09131e] p-6"><h2 className="text-xl font-black">Preguntas frecuentes</h2><div className="mt-4 divide-y divide-white/10">{productFaq.map((item) => <details key={item.question} className="group py-4"><summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-bold"><span>{item.question}</span><span className="text-emerald-400 transition group-open:rotate-45" aria-hidden="true">＋</span></summary><p className="mt-3 pr-8 leading-7 text-slate-300">{item.answer}</p></details>)}</div></section>}
+        {relatedProducts.length > 0 && <section className="mt-7"><p className="text-xs font-black tracking-[.22em] text-emerald-400">COMPLETÁ TU SETUP</p><h2 className="mt-2 text-2xl font-black">Productos relacionados</h2><div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{relatedProducts.map((related) => <Link key={related.id} href={`/productos/${related.id}`} className="group grid grid-cols-[96px_1fr] items-center gap-4 rounded-2xl border border-white/10 bg-[#09131e] p-4 no-underline transition hover:-translate-y-1 hover:border-emerald-400/40"><img src={related.images[0]} alt={`${related.brand} ${related.name}`} className="h-24 w-24 rounded-xl bg-white object-contain p-2" /><span><small className="font-black text-emerald-400">{related.brand}</small><strong className="mt-1 block text-white">{related.name}</strong><em className="mt-2 block not-italic text-emerald-300">{money(related.price)}</em></span></Link>)}</div></section>}
         <section className="mt-7 rounded-2xl border border-white/10 bg-[#09131e] p-6">
           <h2 className="text-xl font-black">Opiniones verificadas</h2>
           {reviews.length ? <div className="mt-5 grid gap-4 md:grid-cols-2">{reviews.map((review) => <article key={review.id} className="rounded-xl border border-white/10 bg-[#101c29] p-4"><div className="text-amber-300">{"★".repeat(review.rating)}{"☆".repeat(5-review.rating)}</div><p className="mt-3 leading-6 text-slate-300">{review.comment}</p><small className="mt-3 block text-slate-500">Compra verificada · {new Date(review.created_at).toLocaleDateString("es-AR")}</small></article>)}</div> : <p className="mt-4 text-slate-400">Este producto todavía no tiene opiniones verificadas.</p>}

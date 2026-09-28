@@ -467,7 +467,11 @@ export default function Home() {
         const savedRecent = localStorage.getItem("rxz-recent");
         if (savedFavorites) setFavoriteIds(JSON.parse(savedFavorites));
         if (savedRecent) setRecentIds(JSON.parse(savedRecent));
-        if (new URLSearchParams(window.location.search).get("cart") === "open") setCartOpen(true);
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("cart") === "open") setCartOpen(true);
+        if (params.get("buscar")) setSearch(params.get("buscar")!.slice(0, 80));
+        if (params.get("categoria")) setCategory(params.get("categoria")!.slice(0, 50));
+        if (["price-asc", "price-desc", "name"].includes(params.get("orden") || "")) setSort(params.get("orden")!);
       } catch {}
       setLoaded(true);
     });
@@ -532,6 +536,15 @@ export default function Home() {
   useEffect(() => {
     if (loaded) localStorage.setItem("rxz-recent", JSON.stringify(recentIds));
   }, [recentIds, loaded]);
+
+  useEffect(() => {
+    if (!loaded) return;
+    const url = new URL(window.location.href);
+    if (search.trim()) url.searchParams.set("buscar", search.trim()); else url.searchParams.delete("buscar");
+    if (category !== "Todos") url.searchParams.set("categoria", category); else url.searchParams.delete("categoria");
+    if (sort !== "featured") url.searchParams.set("orden", sort); else url.searchParams.delete("orden");
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+  }, [category, loaded, search, sort]);
 
   useEffect(() => {
     if (!loaded) return;
