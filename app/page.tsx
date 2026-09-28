@@ -1513,6 +1513,35 @@ export default function Home() {
                   <span>💬 Soporte directo</span>
                 </div>
 
+                <div className="finalPurchase finalPurchaseInline">
+                  <div>
+                    <strong>{purchaseIntent === "buy" ? "Comprá ahora" : purchaseIntent === "cart" ? "Agregalo al carrito" : "Elegí cómo continuar"}</strong>
+                    <span>
+                      {selected.variants?.length
+                        ? `Elegí el color obligatorio para ${purchaseIntent === "buy" ? "continuar con la compra" : "agregar el producto"}.`
+                        : "Podés agregarlo al carrito o comprarlo ahora."}
+                    </span>
+                  </div>
+                  <button
+                    className="buy modalBuy"
+                    disabled={(selected.variants?.length && !selectedVariant) || (selectedVariant ? selectedVariant.stock : selected.stock) <= 0}
+                    onClick={() => add(selected, selectedVariantId || undefined)}
+                  >
+                    {selected.variants?.length && !selectedVariant
+                      ? "ELEGÍ UN COLOR"
+                      : (selectedVariant ? selectedVariant.stock : selected.stock) <= 0
+                      ? "SIN STOCK"
+                    : "AGREGAR AL CARRITO"}
+                  </button>
+                  <button
+                    className="buyNowBtn"
+                    disabled={(selected.variants?.length && !selectedVariant) || (selectedVariant ? selectedVariant.stock : selected.stock) <= 0}
+                    onClick={() => buyNow(selected, selectedVariantId || undefined)}
+                  >
+                    {selected.variants?.length && !selectedVariant ? "ELEGÍ UN COLOR" : "COMPRAR AHORA"}
+                  </button>
+                </div>
+
                 <a className="productDetailLink" href={`/productos/${selected.id}`}>
                   VER FICHA COMPLETA
                 </a>
@@ -1557,34 +1586,6 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="finalPurchase">
-              <div>
-                <strong>{purchaseIntent === "buy" ? "Comprá ahora" : purchaseIntent === "cart" ? "Agregalo al carrito" : "Último paso"}</strong>
-                <span>
-                  {selected.variants?.length
-                    ? `Elegí arriba el color obligatorio para ${purchaseIntent === "buy" ? "continuar con la compra" : "agregar el producto"}.`
-                    : "Revisá las características y especificaciones antes de agregarlo."}
-                </span>
-              </div>
-              <button
-                className="buy modalBuy"
-                disabled={(selected.variants?.length && !selectedVariant) || (selectedVariant ? selectedVariant.stock : selected.stock) <= 0}
-                onClick={() => add(selected, selectedVariantId || undefined)}
-              >
-                {selected.variants?.length && !selectedVariant
-                  ? "ELEGÍ UN COLOR"
-                  : (selectedVariant ? selectedVariant.stock : selected.stock) <= 0
-                  ? "SIN STOCK"
-                : "AGREGAR AL CARRITO"}
-              </button>
-              <button
-                className="buyNowBtn"
-                disabled={(selected.variants?.length && !selectedVariant) || (selectedVariant ? selectedVariant.stock : selected.stock) <= 0}
-                onClick={() => buyNow(selected, selectedVariantId || undefined)}
-              >
-                {selected.variants?.length && !selectedVariant ? "ELEGÍ UN COLOR" : "COMPRAR AHORA"}
-              </button>
-            </div>
           </div>
         </div>
       )}
@@ -2643,6 +2644,9 @@ export default function Home() {
         .finalPurchase strong, .finalPurchase span { display: block; }
         .finalPurchase span { margin-top: 5px; color: #9dacbd; font-size: 14px; }
         .finalPurchase .modalBuy { width: min(100%,360px); margin-top: 0; }
+        .finalPurchaseInline { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:16px; }
+        .finalPurchaseInline > div { grid-column:1 / -1; }
+        .finalPurchaseInline .modalBuy,.finalPurchaseInline .buyNowBtn { width:100%; min-width:0; min-height:52px; }
         .featuresPanel, .specPanel {
           padding: 26px;
           border-radius: 15px;
