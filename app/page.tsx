@@ -845,8 +845,23 @@ export default function Home() {
       </div>
 
       <div className="siteTop">
-        <div className="announcement">
-          🚚 ENVÍOS A TODO EL PAÍS · ATENCIÓN PERSONALIZADA
+        <div className="announcement" aria-label="Envíos a todo el país, stock actualizado, atención personalizada y compra segura">
+          <div className="announcementTrack">
+            <div className="announcementSet">
+              <span>🚚 ENVÍOS A TODO EL PAÍS</span><i>✦</i>
+              <span>⚡ STOCK ACTUALIZADO</span><i>✦</i>
+              <span>💬 ATENCIÓN PERSONALIZADA</span><i>✦</i>
+              <span>🔒 COMPRA SEGURA</span><i>✦</i>
+              <span>🎮 PRODUCTOS SELECCIONADOS</span><i>✦</i>
+            </div>
+            <div className="announcementSet" aria-hidden="true">
+              <span>🚚 ENVÍOS A TODO EL PAÍS</span><i>✦</i>
+              <span>⚡ STOCK ACTUALIZADO</span><i>✦</i>
+              <span>💬 ATENCIÓN PERSONALIZADA</span><i>✦</i>
+              <span>🔒 COMPRA SEGURA</span><i>✦</i>
+              <span>🎮 PRODUCTOS SELECCIONADOS</span><i>✦</i>
+            </div>
+          </div>
         </div>
 
         <header>
@@ -1796,18 +1811,31 @@ export default function Home() {
         .announcement {
           background: #22c55e;
           color: #031008;
-          text-align: center;
           font-size: 12px;
           font-weight: 950;
           letter-spacing: 1.8px;
-          padding: 9px 15px;
           min-height: 36px;
-          display: grid;
-          place-items: center;
+          display: flex;
+          align-items: center;
           line-height: 18px;
           white-space: nowrap;
           overflow: hidden;
-          text-overflow: ellipsis;
+        }
+        .announcementTrack {
+          width: max-content;
+          display: flex;
+          animation: announcementMove 28s linear infinite;
+          will-change: transform;
+        }
+        .announcementSet {
+          display: flex;
+          align-items: center;
+          gap: 28px;
+          padding: 9px 14px;
+        }
+        .announcementSet i {
+          color: rgba(3,16,8,.48);
+          font-style: normal;
         }
         header {
           min-height: 76px;
@@ -2897,6 +2925,9 @@ export default function Home() {
           from { opacity:0; transform:translateY(18px); }
           to { opacity:1; transform:none; }
         }
+        @keyframes announcementMove {
+          to { transform: translateX(-50%); }
+        }
 
         @media (prefers-reduced-motion: reduce) {
           html { scroll-behavior: auto; }
@@ -3106,7 +3137,8 @@ export default function Home() {
           header { padding: 0 16px; }
           .logo { font-size: 20px; }
           .cartBtn span { display: none; }
-          .announcement { min-height: 36px; padding: 7px 8px; font-size: 9px; letter-spacing: .8px; }
+          .announcement { min-height: 36px; font-size: 9px; letter-spacing: .8px; }
+          .announcementSet { gap: 18px; padding: 7px 10px; }
           .hero { min-height: 650px; }
           .hero h1 { font-size: 52px; }
           .trust { margin-top: 45px; }
