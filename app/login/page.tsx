@@ -1,17 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [mode, setMode] = useState<"login" | "register" | "recover" | "update">("login");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const normalizedEmail = email.trim().toLowerCase();
+
+  useEffect(() => {
+    const recoveryInUrl = new URLSearchParams(window.location.search).get("mode") === "recovery"
+      || window.location.hash.includes("type=recovery");
+    if (recoveryInUrl) setMode("update");
+    const { data: listener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") setMode("update");
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
 
   async function handleGoogleLogin() {
     setLoading(true);
@@ -38,7 +48,23 @@ export default function LoginPage() {
     setMessage("");
 
     try {
-      if (mode === "register") {
+      if (mode === "recover") {
+        const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+          redirectTo: `${window.location.origin}/login?mode=recovery`,
+        });
+        if (error) throw error;
+        setMessage("Si el correo está registrado, vas a recibir un enlace para cambiar tu contraseña.");
+      } else if (mode === "update") {
+        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password)) {
+          setMessage("Usá 8 caracteres o más, con mayúscula, minúscula, número y símbolo.");
+          return;
+        }
+        const { error } = await supabase.auth.updateUser({ password });
+        if (error) throw error;
+        setMessage("Contraseña actualizada. Ya podés entrar con tu nueva contraseña.");
+        setPassword("");
+        setMode("login");
+      } else if (mode === "register") {
         if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password)) {
           setMessage("8 caracteres: números, letras, una mayúscula y símbolos.");
           return;
@@ -52,7 +78,7 @@ export default function LoginPage() {
         });
 
         if (error) {
-          setMessage(error.message);
+          setMessage("No pudimos completar el registro. Revisá los datos o intentá más tarde.");
         } else if (data.session) {
           window.location.href = "/";
         } else {
@@ -67,7 +93,7 @@ export default function LoginPage() {
         });
 
         if (error) {
-          setMessage(error.message);
+          setMessage("No pudimos iniciar sesión con esos datos. Revisalos o recuperá tu contraseña.");
         } else {
           const requested = new URLSearchParams(window.location.search).get("next");
           window.location.href = requested?.startsWith("/") && !requested.startsWith("//") ? requested : "/";
@@ -120,13 +146,14 @@ export default function LoginPage() {
             marginBottom: "25px",
           }}
         >
-          {mode === "login"
-            ? "Iniciá sesión en tu cuenta"
-            : "Creá tu cuenta"}
+          {mode === "login" && "Iniciá sesión en tu cuenta"}
+          {mode === "register" && "Creá tu cuenta"}
+          {mode === "recover" && "Recuperá el acceso"}
+          {mode === "update" && "Elegí una contraseña nueva"}
         </p>
 
         <form onSubmit={handleSubmit}>
-          <input
+          {mode !== "update" && <input
             type="email"
             autoComplete="email"
             inputMode="email"
@@ -144,9 +171,9 @@ export default function LoginPage() {
               background: "#111827",
               color: "white",
             }}
-          />
+          />}
 
-          <div style={{ position: "relative", marginBottom: "15px" }}>
+          {mode !== "recover" && <div style={{ position: "relative", marginBottom: "15px" }}>
             <input
               type={showPassword ? "text" : "password"}
               autoComplete={mode === "login" ? "current-password" : "new-password"}
@@ -182,7 +209,7 @@ export default function LoginPage() {
             >
               {showPassword ? "Ocultar" : "Mostrar"}
             </button>
-          </div>
+          </div>}
 
           <button
             type="submit"
@@ -198,15 +225,11 @@ export default function LoginPage() {
               cursor: "pointer",
             }}
           >
-            {loading
-              ? "Procesando..."
-              : mode === "login"
-              ? "INICIAR SESIÓN"
-              : "CREAR CUENTA"}
+            {loading ? "PROCESANDO…" : mode === "login" ? "INICIAR SESIÓN" : mode === "register" ? "CREAR CUENTA" : mode === "recover" ? "ENVIAR ENLACE" : "GUARDAR CONTRASEÑA"}
           </button>
         </form>
 
-        <div
+        {(mode === "login" || mode === "register") && <div
           style={{
             display: "flex",
             alignItems: "center",
@@ -219,9 +242,9 @@ export default function LoginPage() {
           <span style={{ height: "1px", flex: 1, background: "#334155" }} />
           o
           <span style={{ height: "1px", flex: 1, background: "#334155" }} />
-        </div>
+        </div>}
 
-        <button
+        {(mode === "login" || mode === "register") && <button
           type="button"
           onClick={handleGoogleLogin}
           disabled={loading}
@@ -237,7 +260,7 @@ export default function LoginPage() {
           }}
         >
           Continuar con Google
-        </button>
+        </button>}
 
         {message && (
           <p
@@ -251,10 +274,17 @@ export default function LoginPage() {
           </p>
         )}
 
+        {mode === "login" && <button
+          type="button"
+          onClick={() => setMode("recover")}
+          style={{ marginTop: "18px", width: "100%", background: "transparent", border: "none", color: "#86efac", cursor: "pointer" }}
+        >
+          Olvidé mi contraseña
+        </button>}
+
         <button
-          onClick={() =>
-            setMode(mode === "login" ? "register" : "login")
-          }
+          type="button"
+          onClick={() => { setMessage(""); setMode(mode === "login" ? "register" : "login"); }}
           style={{
             marginTop: "20px",
             width: "100%",
@@ -264,9 +294,7 @@ export default function LoginPage() {
             cursor: "pointer",
           }}
         >
-          {mode === "login"
-            ? "¿No tenés cuenta? Crear cuenta"
-            : "¿Ya tenés cuenta? Iniciar sesión"}
+          {mode === "login" ? "¿No tenés cuenta? Crear cuenta" : mode === "register" ? "¿Ya tenés cuenta? Iniciar sesión" : "Volver a iniciar sesión"}
         </button>
 
         <button
