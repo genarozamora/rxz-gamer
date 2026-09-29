@@ -4,7 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { trackStoreEvent } from "@/lib/store-tracking";
 import { trackMetaEvent } from "@/lib/meta-pixel";
-import { SHIPPING_ORIGIN, SHIPPING_PROVIDER } from "@/lib/shipping";
+import { SHIPPING_ORIGIN } from "@/lib/shipping";
+import { ARGENTINE_PROVINCES as PROVINCES, validAddress, validArgentinePhone, validCity, validEmail, validFullName, validPostalCode } from "@/lib/checkout-validation";
 
 type CartItem = {
   id: number;
@@ -23,33 +24,7 @@ type CreatedOrder = {
 };
 
 const ALIAS = "genaroperaltaz";
-const PROVINCES = ["Buenos Aires", "CABA", "Catamarca", "Chaco", "Chubut", "Córdoba", "Corrientes", "Entre Ríos", "Formosa", "Jujuy", "La Pampa", "La Rioja", "Mendoza", "Misiones", "Neuquén", "Río Negro", "Salta", "San Juan", "San Luis", "Santa Cruz", "Santa Fe", "Santiago del Estero", "Tierra del Fuego", "Tucumán"];
-
-function validFullName(value: string) {
-  const words = value.trim().replace(/\s+/g, " ").split(" ");
-  return words.length >= 2 && words.every((word) => /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ'.-]{2,}$/.test(word));
-}
-
-function validArgentinePhone(value: string) {
-  const digits = value.replace(/\D/g, "").replace(/^00/, "");
-  const national = digits.startsWith("54") ? digits.slice(2).replace(/^9/, "") : digits;
-  if (national.length !== 10 || /^(\d)\1+$/.test(national)) return false;
-  return !["0123456789", "1234567890", "9876543210", "0000000000"].includes(national);
-}
-
-function validAddress(value: string) {
-  const clean = value.trim();
-  return clean.length >= 6 && /[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/.test(clean) && /\d/.test(clean);
-}
-
-function validCity(value: string) {
-  return /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ'. -]{2,80}$/.test(value.trim());
-}
-
-function validPostalCode(value: string) {
-  return /^(?:\d{4}|[A-HJ-NP-Z]\d{4}[A-Z]{3})$/i.test(value.trim());
-}
-
+const GUEST_CHECKOUT_ENABLED = process.env.NEXT_PUBLIC_ENABLE_GUEST_CHECKOUT === "true";
 export default function CheckoutPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,6 +33,8 @@ export default function CheckoutPage() {
   const [createdOrder, setCreatedOrder] = useState<CreatedOrder | null>(null);
 
   const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [guestCheckout, setGuestCheckout] = useState(false);
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
@@ -75,10 +52,11 @@ export default function CheckoutPage() {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) {
-        window.location.href = "/login";
-        return;
-      }
+      if (user) {
+        setEmail(user.email || "");
+        setGuestCheckout(Boolean(user.is_anonymous));
+      } else if (GUEST_CHECKOUT_ENABLED) setGuestCheckout(true);
+      else { window.location.href = "/login?next=/checkout"; return; }
 
       try {
         const saved = localStorage.getItem("rxz-cart");
@@ -131,6 +109,7 @@ export default function CheckoutPage() {
 
     if (
       !fullName.trim() ||
+      !email.trim() ||
       !phone.trim() ||
       !address.trim() ||
       !city.trim() ||
@@ -148,6 +127,11 @@ export default function CheckoutPage() {
 
     if (!validFullName(fullName)) {
       setMessage("Ingresá tu nombre y apellido reales, sin números ni caracteres inválidos.");
+      return;
+    }
+
+    if (!validEmail(email)) {
+      setMessage("Ingresá un email válido para recibir y recuperar la información del pedido.");
       return;
     }
 
@@ -189,20 +173,22 @@ export default function CheckoutPage() {
     setCreating(true);
 
     try {
-      const {
+      let {
         data: { user },
       } = await supabase.auth.getUser();
 
       if (!user) {
-        window.location.href = "/login";
-        return;
+        const { data, error: guestError } = await supabase.auth.signInAnonymously({ options: { data: { checkout_email: email.trim().toLowerCase() } } });
+        if (guestError || !data.user) throw new Error("El checkout invitado todavía no está disponible. Iniciá sesión para confirmar el pedido.");
+        user = data.user;
+        setGuestCheckout(true);
       }
 
       const { data: order, error: orderError } = await supabase
         .rpc("create_store_order", {
           p_accepted_terms: acceptedTerms,
           p_customer_name: fullName.trim(),
-          p_customer_email: user.email || "",
+          p_customer_email: email.trim().toLowerCase(),
           p_customer_phone: phone.trim(),
           p_shipping_address: address.trim(),
           p_shipping_city: city.trim(),
@@ -225,14 +211,6 @@ export default function CheckoutPage() {
       }));
 
 
-
-      trackMetaEvent("Purchase", {
-        content_ids: cart.map((item) => String(item.id)),
-        content_type: "product",
-        currency: "ARS",
-        num_items: cart.reduce((sum, item) => sum + item.quantity, 0),
-        value: Number(created.total),
-      });
 
       localStorage.removeItem("rxz-cart");
 
@@ -351,7 +329,7 @@ export default function CheckoutPage() {
             <span>3 · Pago</span>
           </div>
           <h1 style={styles.title}>Finalizar compra</h1>
-          <p style={styles.intro}>Completá tus datos para reservar el stock. Vas a ver el alias recién después de confirmar el pedido.</p>
+          <p style={styles.intro}>{guestCheckout ? "Podés comprar como invitado. Guardá el número de pedido para consultarlo después." : "Estás comprando con tu cuenta."} Vas a ver el alias recién después de confirmar el pedido.</p>
 
           <h2>Datos de envío</h2>
 
@@ -364,6 +342,19 @@ export default function CheckoutPage() {
             required
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
+          />
+
+          <input
+            style={styles.input}
+            type="email"
+            placeholder="Email"
+            aria-label="Email para el pedido"
+            autoComplete="email"
+            maxLength={254}
+            required
+            value={email}
+            disabled={!guestCheckout && Boolean(email)}
+            onChange={(e) => setEmail(e.target.value)}
           />
 
           <input
@@ -465,7 +456,7 @@ export default function CheckoutPage() {
               </div>
 
               <div style={styles.shippingNote}>
-                Envío por {SHIPPING_PROVIDER} desde {SHIPPING_ORIGIN}. El costo y plazo se confirman según el código postal antes del despacho. Nunca se cobrará un importe adicional sin informártelo.
+                Envío desde {SHIPPING_ORIGIN}. La empresa, modalidad, costo y plazo se confirman según el código postal antes del despacho. Nunca se cobrará un importe adicional sin informártelo.
               </div>
 
               <div style={styles.assuranceBox}>

@@ -21,6 +21,7 @@ type CartItem = Product & {
 };
 
 const STORE_SHARE_TEXT = "Somos RXZ Gamer, una tienda de Córdoba especializada en periféricos y tecnología gamer. Vendemos mouse, teclados y controles seleccionados, con stock real y atención personalizada.";
+const GUEST_CHECKOUT_ENABLED = process.env.NEXT_PUBLIC_ENABLE_GUEST_CHECKOUT === "true";
 
 
 function money(value: number) {
@@ -503,7 +504,7 @@ export default function Home() {
 
   function goToCheckout() {
     setCartOpen(false);
-    window.location.href = userEmail ? "/checkout" : "/login?next=/checkout";
+    window.location.href = userEmail || GUEST_CHECKOUT_ENABLED ? "/checkout" : "/login?next=/checkout";
   }
 
   function nextImage(direction: number) {

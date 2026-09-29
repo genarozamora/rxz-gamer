@@ -1,5 +1,5 @@
 export const SHIPPING = {
-  provider: "Andreani",
+  provider: "A coordinar según destino",
   originCity: "Villa Allende",
   originProvince: "Córdoba",
   coverage: "todo el país",
