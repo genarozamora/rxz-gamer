@@ -239,7 +239,7 @@ export default function ProductPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#03070c] px-5 py-10 text-white">
+    <main className="min-h-screen bg-[#03070c] px-4 pb-10 pt-24 text-white sm:px-5">
       <Link href="/" className="fixed left-3 top-3 z-50 rounded-xl border border-emerald-400/40 bg-[#030a10]/95 px-4 py-3 text-xs font-black tracking-wide text-emerald-300 no-underline shadow-2xl backdrop-blur hover:border-emerald-400 hover:text-white sm:left-5 sm:top-5">
         ← VOLVER AL MENÚ
       </Link>
@@ -256,7 +256,7 @@ export default function ProductPage() {
           <div>
             <div className={`relative flex min-h-[360px] items-center justify-center overflow-hidden rounded-2xl bg-white p-6 ${imageIndex === 0 && packagePreview ? "pb-32" : ""}`}>
               <button type="button" onClick={() => { setZoomScale(1); setZoomOpen(true); }} className="grid cursor-zoom-in place-items-center" aria-label={`Ampliar imagen ${imageIndex + 1} de ${product.name}`}><img src={product.images[imageIndex] || selectedVariant?.image || product.images[0]} alt={`${product.brand} ${product.name} imagen ${imageIndex + 1}`} width={900} height={900} decoding="async" fetchPriority="high" className="max-h-[420px] max-w-full object-contain" onError={(event) => { if (event.currentTarget.getAttribute("src") !== product.fallbackImage) event.currentTarget.src = product.fallbackImage; }} /><span className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-slate-950/85 px-3 py-2 text-[10px] font-black tracking-wider text-white">⌕ TOCÁ PARA AMPLIAR</span></button>
-              {imageIndex === 0 && packagePreview && <div className="absolute inset-x-4 bottom-4 grid grid-cols-[96px_1fr] items-center gap-3 rounded-xl border border-emerald-400/60 bg-[#03080eef] p-2 text-left shadow-2xl"><img src={packagePreview.image} alt={packagePreview.alt} className="h-20 w-24 rounded-lg bg-white object-cover" /><span className="text-xs leading-5 text-slate-200"><b className="block text-emerald-400">TODO LO QUE INCLUYE</b>{packagePreview.caption}</span></div>}
+              {imageIndex === 0 && packagePreview && <div className="absolute inset-x-2 bottom-2 grid grid-cols-[64px_1fr] items-center gap-2 rounded-xl border border-emerald-400/60 bg-[#03080ef5] p-2 text-left shadow-2xl sm:inset-x-4 sm:bottom-4 sm:grid-cols-[96px_1fr] sm:gap-3"><img src={packagePreview.image} alt={packagePreview.alt} width={192} height={160} loading="lazy" decoding="async" className="h-16 w-16 rounded-lg bg-white object-cover sm:h-20 sm:w-24" /><span className="text-[10px] leading-4 text-slate-200 sm:text-xs sm:leading-5"><b className="block text-emerald-400">TODO LO QUE INCLUYE</b>{packagePreview.caption}</span></div>}
             </div>
             <div className="mt-3 grid grid-cols-4 gap-2">{product.images.map((image, index) => <button key={`${image}-${index}`} onClick={() => setImageIndex(index)} aria-label={`Ver imagen ${index + 1} de ${product.name}`} aria-pressed={imageIndex === index} className={`h-20 overflow-hidden rounded-xl border bg-white p-1 ${imageIndex === index ? "border-emerald-400" : "border-white/10"}`}><img src={image} alt={`Miniatura ${index + 1} de ${product.name}`} width={160} height={160} loading="lazy" decoding="async" className="h-full w-full object-contain" /></button>)}</div>
           </div>

@@ -1,7 +1,8 @@
 export type StoreEvent = { event_name: string; product_id: string | null; metadata: Record<string, unknown> | null };
 export type MetricOrder = { id: string; status: string; total: number | string };
 export function summarizeMetrics(events: StoreEvent[], orders: MetricOrder[]) {
-  const count = (name: string) => events.filter((event) => event.event_name === name).length;
+  const eventName = (event: StoreEvent) => typeof event.metadata?.event_alias === "string" ? event.metadata.event_alias : event.event_name;
+  const count = (name: string) => events.filter((event) => eventName(event) === name).length;
   const paid = orders.filter((order) => ["payment_verified", "preparing_shipment", "shipped", "delivered"].includes(order.status));
   const popular: Record<string, number> = {};
   const popularAdded: Record<string, number> = {};
@@ -10,21 +11,22 @@ export function summarizeMetrics(events: StoreEvent[], orders: MetricOrder[]) {
   const emptyQueries: Record<string, number> = {};
   const categories: Record<string, number> = {};
   for (const event of events) {
-    if (event.event_name === "product_view" && event.product_id) popular[event.product_id] = (popular[event.product_id] || 0) + 1;
-    if (event.event_name === "add_to_cart" && event.product_id) popularAdded[event.product_id] = (popularAdded[event.product_id] || 0) + 1;
-    if (["search", "search_no_results"].includes(event.event_name)) {
+    const name = eventName(event);
+    if (name === "product_view" && event.product_id) popular[event.product_id] = (popular[event.product_id] || 0) + 1;
+    if (name === "add_to_cart" && event.product_id) popularAdded[event.product_id] = (popularAdded[event.product_id] || 0) + 1;
+    if (["search", "search_no_results"].includes(name)) {
       const query = event.metadata?.query;
       if (typeof query === "string" && query.trim()) {
         const normalized = query.trim().toLocaleLowerCase("es");
         queries[normalized] = (queries[normalized] || 0) + 1;
-        if (event.event_name === "search_no_results") emptyQueries[normalized] = (emptyQueries[normalized] || 0) + 1;
+        if (name === "search_no_results") emptyQueries[normalized] = (emptyQueries[normalized] || 0) + 1;
       }
     }
-    if (event.event_name === "category_view") {
+    if (name === "category_view") {
       const category = event.metadata?.category;
       if (typeof category === "string" && category.trim()) categories[category] = (categories[category] || 0) + 1;
     }
-    if (event.event_name !== "campaign_visit") continue;
+    if (name !== "campaign_visit") continue;
     const nested = event.metadata?.campaign as Record<string, unknown> | undefined;
     const source = event.metadata?.utm_source || nested?.utm_source;
     if (typeof source === "string" && source.trim()) sources[source] = (sources[source] || 0) + 1;
@@ -33,7 +35,7 @@ export function summarizeMetrics(events: StoreEvent[], orders: MetricOrder[]) {
     views: count("product_view"), carts: count("add_to_cart"), checkouts: count("begin_checkout"),
     cartViews: count("view_cart"), cartRemovals: count("remove_from_cart"), filterUses: count("filter_use"),
     searches: count("search") + count("search_no_results"), noResultSearches: count("search_no_results"),
-    shares: events.filter((event) => ["share_product", "share_store", "share_store_whatsapp", "copy_store_link"].includes(event.event_name)).length,
+    shares: events.filter((event) => ["share_product", "share_store", "share_store_whatsapp", "copy_store_link"].includes(eventName(event))).length,
     orders: orders.length, cancelled: orders.filter((order) => order.status === "cancelled").length,
     paid: paid.length, revenue: paid.reduce((sum, order) => sum + Number(order.total), 0),
     popular: Object.entries(popular).sort((a,b) => b[1]-a[1]).slice(0,5),
