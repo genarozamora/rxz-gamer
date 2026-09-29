@@ -16,7 +16,7 @@ export default function LoginPage() {
   useEffect(() => {
     const recoveryInUrl = new URLSearchParams(window.location.search).get("mode") === "recovery"
       || window.location.hash.includes("type=recovery");
-    if (recoveryInUrl) setMode("update");
+    if (recoveryInUrl) queueMicrotask(() => setMode("update"));
     const { data: listener } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") setMode("update");
     });
