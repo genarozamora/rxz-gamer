@@ -23,6 +23,10 @@ const nextConfig: NextConfig = {
   trailingSlash: false,
   async redirects() {
     return [
+      { source: "/productos/1", destination: "/productos/attack-shark-x3-pro", permanent: true },
+      { source: "/productos/3", destination: "/productos/gamesir-nova-2-lite", permanent: true },
+      { source: "/productos/6", destination: "/productos/aula-f75-he", permanent: true },
+      { source: "/productos/7", destination: "/productos/easysmx-d10", permanent: true },
       {
         source: "/:path*",
         has: [{ type: "host", value: "www.rxzgamer.com.ar" }],

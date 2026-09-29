@@ -23,6 +23,7 @@ export function mergeVerifiedProduct(row: Record<string, unknown>, reference?: P
 
   return {
     id,
+    slug: verified?.slug || String(row.slug || id),
     brand: verified?.brand || String(row.brand || ""),
     name: verified?.name || String(row.name || ""),
     category: verified?.category || String(row.category || ""),

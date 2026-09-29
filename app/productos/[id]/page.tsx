@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { PRODUCTS, type Product } from "@/lib/catalog";
+import { findCatalogProduct, productPath, PRODUCTS, type Product } from "@/lib/catalog";
 import { supabase } from "@/lib/supabase";
 import { getPackagePreview } from "@/lib/package-preview";
 import { mergeVerifiedProduct } from "@/lib/verified-product";
@@ -15,6 +15,8 @@ type Review = { id: string; rating: number; comment: string; created_at: string 
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
+  const routeProduct = findCatalogProduct(id);
+  const productId = routeProduct?.id;
   const [product, setProduct] = useState<Product | undefined>();
   const [catalogResult, setCatalogResult] = useState<{ id: string; error: boolean } | null>(null);
   const [catalogAttempt, setCatalogAttempt] = useState(0);
@@ -43,18 +45,27 @@ export default function ProductPage() {
 
   useEffect(() => {
     let cancelled = false;
-    supabase.from("products").select("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants").eq("id", id).eq("active", true).maybeSingle().then(({ data, error }) => {
+    if (!productId) {
+      queueMicrotask(() => {
+        if (cancelled) return;
+        setProduct(undefined);
+        setCatalogResult({ id, error: false });
+      });
+      return () => { cancelled = true; };
+    }
+    supabase.from("products").select("id,slug,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants").eq("id", productId).eq("active", true).maybeSingle().then(({ data, error }) => {
       if (cancelled) return;
       const curated = data ? PRODUCTS.find((item) => item.id === Number(data.id)) : undefined;
       setProduct(data && !error ? mergeVerifiedProduct(data, curated) : undefined);
       setCatalogResult({ id, error: Boolean(error) });
     });
     return () => { cancelled = true; };
-  }, [id, catalogAttempt]);
+  }, [id, productId, catalogAttempt]);
 
   useEffect(() => {
-    supabase.from("product_reviews").select("id,rating,comment,created_at").eq("product_id", id).eq("approved", true).order("created_at", { ascending: false }).then(({ data }) => setReviews((data || []) as Review[]));
-  }, [id]);
+    if (!productId) return;
+    supabase.from("product_reviews").select("id,rating,comment,created_at").eq("product_id", productId).eq("approved", true).order("created_at", { ascending: false }).then(({ data }) => setReviews((data || []) as Review[]));
+  }, [productId]);
 
   useEffect(() => {
     if (!product || catalogResult?.id !== id || trackedProductId.current === product.id) return;
@@ -73,7 +84,7 @@ export default function ProductPage() {
   useEffect(() => {
     if (!product) return;
     let cancelled = false;
-    supabase.from("products").select("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants,active").eq("active", true).eq("category", product.category).neq("id", product.id).limit(3).then(({ data, error }) => {
+    supabase.from("products").select("id,slug,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants,active").eq("active", true).eq("category", product.category).neq("id", product.id).limit(3).then(({ data, error }) => {
       if (cancelled || error) return;
       setRelatedProducts((data || []).map((row) => {
         const curated = PRODUCTS.find((item) => item.id === Number(row.id));
@@ -106,7 +117,8 @@ export default function ProductPage() {
   async function sendReview() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user || !reviewOrder) { setReviewMessage("La reseña debe iniciarse desde un pedido entregado en Mi cuenta."); return; }
-    const { error } = await supabase.from("product_reviews").insert({ product_id: id, user_id: user.id, order_id: reviewOrder, rating, comment: comment.trim() });
+    if (!productId) { setReviewMessage("No pudimos identificar el producto."); return; }
+    const { error } = await supabase.from("product_reviews").insert({ product_id: productId, user_id: user.id, order_id: reviewOrder, rating, comment: comment.trim() });
     if (error) setReviewMessage("No pudimos guardar la reseña. Verificá que el pedido esté entregado y corresponda a este producto.");
     else { setReviewMessage("Gracias. Tu reseña quedó pendiente de aprobación."); setComment(""); }
   }
@@ -199,7 +211,8 @@ export default function ProductPage() {
   const discount = product.oldPrice && product.oldPrice > product.price
     ? Math.round((1 - product.price / product.oldPrice) * 100)
     : 0;
-  const whatsappShareUrl = `https://wa.me/?text=${encodeURIComponent(`${product.brand} ${product.name} en RXZ Gamer: https://rxzgamer.com.ar/productos/${product.id}`)}`;
+  const canonicalUrl = `https://rxzgamer.com.ar${productPath(product)}`;
+  const whatsappShareUrl = `https://wa.me/?text=${encodeURIComponent(`${product.brand} ${product.name} en RXZ Gamer: ${canonicalUrl}`)}`;
 
   const schema = {
     "@context": "https://schema.org",
@@ -207,7 +220,7 @@ export default function ProductPage() {
     name: `${product.brand} ${product.name}`,
     description: product.description,
     image: product.images.map((image) => new URL(image, "https://rxzgamer.com.ar").toString()),
-    url: `https://rxzgamer.com.ar/productos/${product.id}`,
+    url: canonicalUrl,
     sku: `RXZ-${product.id}`,
     brand: { "@type": "Brand", name: product.brand },
     offers: {
@@ -216,7 +229,7 @@ export default function ProductPage() {
       price: product.price,
       availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
-      url: `https://rxzgamer.com.ar/productos/${product.id}`,
+      url: canonicalUrl,
       seller: { "@type": "Organization", name: "RXZ Gamer" },
     },
   };
@@ -233,7 +246,7 @@ export default function ProductPage() {
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Inicio", item: "https://rxzgamer.com.ar" },
       { "@type": "ListItem", position: 2, name: product.category, item: `https://rxzgamer.com.ar/?categoria=${encodeURIComponent(product.category)}#productos` },
-      { "@type": "ListItem", position: 3, name: `${product.brand} ${product.name}`, item: `https://rxzgamer.com.ar/productos/${product.id}` },
+      { "@type": "ListItem", position: 3, name: `${product.brand} ${product.name}`, item: canonicalUrl },
     ],
   };
 
@@ -304,7 +317,7 @@ export default function ProductPage() {
         <section className="mt-7 rounded-2xl border border-emerald-400/20 bg-gradient-to-br from-emerald-400/10 to-[#09131e] p-6 md:p-8"><p className="text-xs font-black tracking-[.22em] text-emerald-400">RXZ SELECT</p><h2 className="mt-2 text-2xl font-black">Por qué RXZ lo eligió</h2><p className="mt-4 max-w-3xl leading-7 text-slate-300">Lo seleccionamos por la combinación de prestaciones que ofrece dentro de su categoría: {product.features.slice(0, 3).join(", ").toLocaleLowerCase("es")}.</p></section>
         {(compatibility || included) && <div className="mt-7 grid gap-6 md:grid-cols-2">{compatibility && <section className="rounded-2xl border border-white/10 bg-[#09131e] p-6"><h2 className="text-xl font-black">Compatibilidad</h2><p className="mt-4 leading-7 text-slate-300">{compatibility}</p></section>}{included && <section className="rounded-2xl border border-white/10 bg-[#09131e] p-6"><h2 className="text-xl font-black">Contenido de la caja</h2><p className="mt-4 leading-7 text-slate-300">{included}</p></section>}</div>}
         {productFaq.length > 0 && <section className="mt-7 rounded-2xl border border-white/10 bg-[#09131e] p-6"><h2 className="text-xl font-black">Preguntas frecuentes</h2><div className="mt-4 divide-y divide-white/10">{productFaq.map((item) => <details key={item.question} className="group py-4"><summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-bold"><span>{item.question}</span><span className="text-emerald-400 transition group-open:rotate-45" aria-hidden="true">＋</span></summary><p className="mt-3 pr-8 leading-7 text-slate-300">{item.answer}</p></details>)}</div></section>}
-        {relatedProducts.length > 0 && <section className="mt-7"><p className="text-xs font-black tracking-[.22em] text-emerald-400">COMPLETÁ TU SETUP</p><h2 className="mt-2 text-2xl font-black">Productos relacionados</h2><div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{relatedProducts.map((related) => <Link key={related.id} href={`/productos/${related.id}`} className="group grid grid-cols-[96px_1fr] items-center gap-4 rounded-2xl border border-white/10 bg-[#09131e] p-4 no-underline transition hover:-translate-y-1 hover:border-emerald-400/40"><img src={related.images[0]} alt={`${related.brand} ${related.name}`} className="h-24 w-24 rounded-xl bg-white object-contain p-2" /><span><small className="font-black text-emerald-400">{related.brand}</small><strong className="mt-1 block text-white">{related.name}</strong><em className="mt-2 block not-italic text-emerald-300">{money(related.price)}</em></span></Link>)}</div></section>}
+        {relatedProducts.length > 0 && <section className="mt-7"><p className="text-xs font-black tracking-[.22em] text-emerald-400">COMPLETÁ TU SETUP</p><h2 className="mt-2 text-2xl font-black">Productos relacionados</h2><div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{relatedProducts.map((related) => <Link key={related.id} href={productPath(related)} className="group grid grid-cols-[96px_1fr] items-center gap-4 rounded-2xl border border-white/10 bg-[#09131e] p-4 no-underline transition hover:-translate-y-1 hover:border-emerald-400/40"><img src={related.images[0]} alt={`${related.brand} ${related.name}`} className="h-24 w-24 rounded-xl bg-white object-contain p-2" /><span><small className="font-black text-emerald-400">{related.brand}</small><strong className="mt-1 block text-white">{related.name}</strong><em className="mt-2 block not-italic text-emerald-300">{money(related.price)}</em></span></Link>)}</div></section>}
         <section className="mt-7 rounded-2xl border border-white/10 bg-[#09131e] p-6">
           <h2 className="text-xl font-black">Opiniones verificadas</h2>
           {reviews.length ? <div className="mt-5 grid gap-4 md:grid-cols-2">{reviews.map((review) => <article key={review.id} className="rounded-xl border border-white/10 bg-[#101c29] p-4"><div className="text-amber-300">{"★".repeat(review.rating)}{"☆".repeat(5-review.rating)}</div><p className="mt-3 leading-6 text-slate-300">{review.comment}</p><small className="mt-3 block text-slate-500">Compra verificada · {new Date(review.created_at).toLocaleDateString("es-AR")}</small></article>)}</div> : <p className="mt-4 text-slate-400">Este producto todavía no tiene opiniones verificadas.</p>}

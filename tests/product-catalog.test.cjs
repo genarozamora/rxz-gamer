@@ -66,10 +66,16 @@ test('model-specific corrections and stock variants', () => {
 });
 
 test('managed visibility is authoritative once the catalogue exists', () => {
-  assert.match(source, /select\("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants,active"\)/);
+  assert.match(source, /select\("id,slug,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants,active"\)/);
   assert.match(source, /data\.filter\(\(row\) => row\.active\)\.map/);
   assert.match(source, /setCatalogProducts\(managed\)/);
   assert.ok(!source.includes('setCatalogProducts([...managed'));
+});
+
+test('active products have stable and unique readable URLs', () => {
+  const slugs = products.map((product) => product.slug);
+  assert.equal(new Set(slugs).size, products.length);
+  for (const slug of slugs) assert.match(slug, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 });
 
 test('all active gallery, variant and fallback images exist and decode', async () => {

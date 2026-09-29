@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const title = `${product.brand} ${product.name}`;
-  const canonical = `/productos/${product.id}`;
+  const canonical = `/productos/${product.slug}`;
 
   return {
     title,

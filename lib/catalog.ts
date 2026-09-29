@@ -13,6 +13,7 @@ export type ProductVariant = {
 
 export type Product = {
   id: number;
+  slug: string;
   brand: string;
   name: string;
   category: string;
@@ -32,6 +33,7 @@ export type Product = {
 const ALL_PRODUCTS: Product[] = [
   {
     id: 1,
+    slug: "attack-shark-x3-pro",
     brand: "ATTACK SHARK",
     name: "X3 Pro 8K Wireless Gaming Mouse",
     category: "Mouse",
@@ -74,6 +76,7 @@ const ALL_PRODUCTS: Product[] = [
   },
   {
     id: 2,
+    slug: "mchose-ace-60-pro",
     brand: "MCHOSE",
     name: "Ace 60 Pro",
     category: "Teclados",
@@ -122,6 +125,7 @@ const ALL_PRODUCTS: Product[] = [
   },
   {
     id: 3,
+    slug: "gamesir-nova-2-lite",
     brand: "GAMESIR",
     name: "Nova 2 Lite Wireless Gaming Controller",
     category: "Controles",
@@ -174,6 +178,7 @@ const ALL_PRODUCTS: Product[] = [
 
   {
     id: 4,
+    slug: "gamegaga-cm-619",
     brand: "GAMEGAGA",
     name: "CM-619 Wireless Game Controller",
     category: "Controles",
@@ -215,6 +220,7 @@ const ALL_PRODUCTS: Product[] = [
   },
   {
     id: 5,
+    slug: "attack-shark-x11",
     brand: "ATTACK SHARK",
     name: "X11 Wireless Gaming Mouse",
     category: "Mouse",
@@ -261,6 +267,7 @@ const ALL_PRODUCTS: Product[] = [
   },
   {
     id: 6,
+    slug: "aula-f75-he",
     brand: "AULA",
     name: "F75 HE Magnetic Gaming Keyboard",
     category: "Teclados",
@@ -314,6 +321,7 @@ const ALL_PRODUCTS: Product[] = [
   },
   {
     id: 7,
+    slug: "easysmx-d10",
     brand: "EASYSMX",
     name: "D10 Wireless Gaming Controller",
     category: "Controles",
@@ -366,4 +374,15 @@ const ALL_PRODUCTS: Product[] = [
 
 // Catálogo actual: solo los productos confirmados por RXZ Gamer.
 export const PRODUCTS: Product[] = ALL_PRODUCTS.filter((product) => [1, 3, 6, 7].includes(product.id));
+
+export function findCatalogProduct(identifier: string | number): Product | undefined {
+  const routeValue = String(identifier);
+  return ALL_PRODUCTS.find((product) => product.slug === routeValue || String(product.id) === routeValue);
+}
+
+export function productPath(product: Pick<Product, "id" | "slug"> | string | number): string {
+  if (typeof product === "object") return `/productos/${product.slug}`;
+  const catalogProduct = findCatalogProduct(product);
+  return `/productos/${catalogProduct?.slug || product}`;
+}
 

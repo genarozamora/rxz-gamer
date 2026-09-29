@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { productPath } from "@/lib/catalog";
 
 type Order = {
   id: string;
@@ -496,7 +497,7 @@ export default function CuentaPage() {
                       La compra figura como entregada. Gracias por elegir RXZ Gamer.
                     </p>
                     {order.order_items?.map((item) => (
-                      <a key={item.product_id} href={`/productos/${item.product_id}?reviewOrder=${order.id}`} style={styles.reviewLink}>
+                      <a key={item.product_id} href={`${productPath(item.product_id)}?reviewOrder=${order.id}`} style={styles.reviewLink}>
                         OPINAR SOBRE {item.product_name}
                       </a>
                     ))}

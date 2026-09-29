@@ -10,7 +10,7 @@ import { mergeVerifiedProduct } from "@/lib/verified-product";
 import { trackMetaEvent } from "@/lib/meta-pixel";
 import { matchesCatalogSearch } from "@/lib/catalog-search";
 
-import { PRODUCTS, type Product } from "@/lib/catalog";
+import { productPath, PRODUCTS, type Product } from "@/lib/catalog";
 
 type CartItem = Product & {
   quantity: number;
@@ -116,7 +116,7 @@ export default function Home() {
 
   useEffect(() => {
     let cancelled = false;
-    supabase.from("products").select("id,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants,active").then(({ data, error }) => {
+    supabase.from("products").select("id,slug,brand,name,category,subtitle,description,price,old_price,stock,badge,images,features,specs,variants,active").then(({ data, error }) => {
       if (cancelled) return;
       if (error || !data) { setCatalogState("error"); return; }
       const managed = data.filter((row) => row.active).map((row) => {
@@ -328,14 +328,14 @@ export default function Home() {
         image: product.images.map((image) => `https://rxzgamer.com.ar${image}`),
         brand: { "@type": "Brand", name: product.brand },
         sku: `RXZ-${product.id}`,
-        url: `https://rxzgamer.com.ar/productos/${product.id}`,
+        url: `https://rxzgamer.com.ar${productPath(product)}`,
         offers: {
           "@type": "Offer",
           priceCurrency: "ARS",
           price: product.price,
           availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
           itemCondition: "https://schema.org/NewCondition",
-          url: `https://rxzgamer.com.ar/productos/${product.id}`,
+          url: `https://rxzgamer.com.ar${productPath(product)}`,
         },
       },
     })),
@@ -379,7 +379,7 @@ export default function Home() {
   }
 
   async function shareProduct(product: Product) {
-    const url = `${window.location.origin}/productos/${product.id}?shared=rxz-logo-v3&utm_source=share&utm_medium=organic&utm_campaign=product_recommendation`;
+    const url = `${window.location.origin}${productPath(product)}?shared=rxz-logo-v3&utm_source=share&utm_medium=organic&utm_campaign=product_recommendation`;
     const text = `Mirá el ${product.brand} ${product.name} en RXZ Gamer, tienda argentina de periféricos gamer. ${product.subtitle}. Stock real y envíos a todo el país.`;
     const message = `${url}\n\n${text}`;
     try {
@@ -1335,7 +1335,7 @@ export default function Home() {
               </div>
             </div>
 
-            <a className="productDetailLink productDetailLinkBelow" href={`/productos/${selected.id}#ficha-tecnica`}>
+            <a className="productDetailLink productDetailLinkBelow" href={`${productPath(selected)}#ficha-tecnica`}>
               VER FICHA COMPLETA
             </a>
 
