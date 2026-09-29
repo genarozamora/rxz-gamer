@@ -60,9 +60,9 @@ test('products added to cart are ranked independently from product views', () =>
 });
 test('events saved through the compatibility alias count as their real event', () => {
   const report=api.summarizeMetrics([
-    {event_name:'resume_cart',metadata:{event_alias:'search_no_results',query:'headset'}},
-    {event_name:'resume_cart',product_id:'3',metadata:{event_alias:'remove_from_cart'}},
-    {event_name:'resume_cart',metadata:{event_alias:'category_view',category:'Controles'}},
+    {event_name:'support_open',metadata:{event_alias:'search_no_results',query:'headset'}},
+    {event_name:'support_open',product_id:'3',metadata:{event_alias:'remove_from_cart'}},
+    {event_name:'support_open',metadata:{event_alias:'category_view',category:'Controles'}},
   ],[]);
   assert.equal(report.searches,1); assert.equal(report.noResultSearches,1); assert.equal(report.cartRemovals,1);
   assert.equal(report.categories[0][0],'Controles');

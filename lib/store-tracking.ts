@@ -12,9 +12,9 @@ export async function trackStoreEvent(eventName: string, productId?: number, ext
       event_name: eventName, product_id: productId ? String(productId) : null,
       metadata,
     });
-    if (error?.code === "42501" && eventName !== "resume_cart") {
+    if (error?.code === "42501" && eventName !== "support_open") {
       const { error: fallbackError } = await supabase.from("store_events").insert({
-        event_name: "resume_cart",
+        event_name: "support_open",
         product_id: productId ? String(productId) : null,
         metadata: { ...metadata, event_alias: eventName },
       });
