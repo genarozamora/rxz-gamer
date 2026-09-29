@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { PRODUCTS } from "@/app/page";
-import type { Product } from "@/app/page";
+import { PRODUCTS, type Product } from "@/lib/catalog";
 import { supabase } from "@/lib/supabase";
 import { getPackagePreview } from "@/lib/package-preview";
 import { mergeVerifiedProduct } from "@/lib/verified-product";

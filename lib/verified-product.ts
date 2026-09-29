@@ -1,4 +1,4 @@
-import type { Product, ProductVariant } from "@/app/page";
+import type { Product, ProductVariant } from "@/lib/catalog";
 
 /** Reviewed model facts are shared by the storefront and detail page.
  * Prices, discounts and inventory still come from the managed catalogue.

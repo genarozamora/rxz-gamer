@@ -8,7 +8,8 @@ const sharp = require('sharp');
 
 const root = path.resolve(__dirname, '..');
 const source = fs.readFileSync(path.join(root, 'app/page.tsx'), 'utf8');
-const catalogue = source.slice(source.indexOf('const ALL_PRODUCTS'), source.indexOf('export const PRODUCTS'));
+const catalogSource = fs.readFileSync(path.join(root, 'lib/catalog.ts'), 'utf8');
+const catalogue = catalogSource.slice(catalogSource.indexOf('const ALL_PRODUCTS'), catalogSource.indexOf('export const PRODUCTS'));
 const products = JSON.parse(JSON.stringify(vm.runInNewContext(ts.transpile(catalogue + '; ALL_PRODUCTS.filter(p => [1,3,6,7].includes(p.id));'))));
 const moduleExports = {};
 vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(root, 'lib/verified-product.ts'), 'utf8'), {
