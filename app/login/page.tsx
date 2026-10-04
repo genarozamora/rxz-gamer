@@ -152,6 +152,31 @@ export default function LoginPage() {
           {mode === "update" && "Elegí una contraseña nueva"}
         </p>
 
+        {(mode === "login" || mode === "register") && <>
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            style={{
+              width: "100%",
+              padding: "14px",
+              borderRadius: "10px",
+              border: "1px solid #d1d5db",
+              background: "#ffffff",
+              color: "#111827",
+              fontWeight: 800,
+              cursor: loading ? "not-allowed" : "pointer",
+            }}
+          >
+            Continuar con Google — más rápido
+          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "20px 0", color: "#64748b", fontSize: "13px" }}>
+            <span style={{ height: "1px", flex: 1, background: "#334155" }} />
+            o usá tu correo
+            <span style={{ height: "1px", flex: 1, background: "#334155" }} />
+          </div>
+        </>}
+
         <form onSubmit={handleSubmit}>
           {mode !== "update" && <input
             type="email"
@@ -228,39 +253,6 @@ export default function LoginPage() {
             {loading ? "PROCESANDO…" : mode === "login" ? "INICIAR SESIÓN" : mode === "register" ? "CREAR CUENTA" : mode === "recover" ? "ENVIAR ENLACE" : "GUARDAR CONTRASEÑA"}
           </button>
         </form>
-
-        {(mode === "login" || mode === "register") && <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-            margin: "20px 0",
-            color: "#64748b",
-            fontSize: "13px",
-          }}
-        >
-          <span style={{ height: "1px", flex: 1, background: "#334155" }} />
-          o
-          <span style={{ height: "1px", flex: 1, background: "#334155" }} />
-        </div>}
-
-        {(mode === "login" || mode === "register") && <button
-          type="button"
-          onClick={handleGoogleLogin}
-          disabled={loading}
-          style={{
-            width: "100%",
-            padding: "13px",
-            borderRadius: "10px",
-            border: "1px solid #475569",
-            background: "#ffffff",
-            color: "#111827",
-            fontWeight: "bold",
-            cursor: loading ? "not-allowed" : "pointer",
-          }}
-        >
-          Continuar con Google
-        </button>}
 
         {message && (
           <p

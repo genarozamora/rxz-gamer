@@ -24,7 +24,6 @@ type CreatedOrder = {
 };
 
 const ALIAS = "genaroperaltaz";
-const GUEST_CHECKOUT_ENABLED = process.env.NEXT_PUBLIC_ENABLE_GUEST_CHECKOUT === "true";
 export default function CheckoutPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +33,6 @@ export default function CheckoutPage() {
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [guestCheckout, setGuestCheckout] = useState(false);
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
@@ -52,11 +50,13 @@ export default function CheckoutPage() {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (user) {
+      if (user && !user.is_anonymous) {
         setEmail(user.email || "");
-        setGuestCheckout(Boolean(user.is_anonymous));
-      } else if (GUEST_CHECKOUT_ENABLED) setGuestCheckout(true);
-      else { window.location.href = "/login?next=/checkout"; return; }
+      } else {
+        if (user?.is_anonymous) await supabase.auth.signOut();
+        window.location.href = "/login?next=/checkout";
+        return;
+      }
 
       try {
         const saved = localStorage.getItem("rxz-cart");
@@ -173,15 +173,13 @@ export default function CheckoutPage() {
     setCreating(true);
 
     try {
-      let {
+      const {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) {
-        const { data, error: guestError } = await supabase.auth.signInAnonymously({ options: { data: { checkout_email: email.trim().toLowerCase() } } });
-        if (guestError || !data.user) throw new Error("El checkout invitado todavía no está disponible. Iniciá sesión para confirmar el pedido.");
-        user = data.user;
-        setGuestCheckout(true);
+      if (!user || user.is_anonymous) {
+        window.location.href = "/login?next=/checkout";
+        return;
       }
 
       const { data: order, error: orderError } = await supabase
@@ -329,7 +327,7 @@ export default function CheckoutPage() {
             <span>3 · Pago</span>
           </div>
           <h1 style={styles.title}>Finalizar compra</h1>
-          <p style={styles.intro}>{guestCheckout ? "Podés comprar como invitado. Guardá el número de pedido para consultarlo después." : "Estás comprando con tu cuenta."} Vas a ver el alias recién después de confirmar el pedido.</p>
+          <p style={styles.intro}>Estás comprando con una cuenta verificada. Vas a ver el alias recién después de confirmar el pedido.</p>
 
           <h2>Datos de envío</h2>
 
@@ -353,7 +351,7 @@ export default function CheckoutPage() {
             maxLength={254}
             required
             value={email}
-            disabled={!guestCheckout && Boolean(email)}
+            disabled
             onChange={(e) => setEmail(e.target.value)}
           />
 

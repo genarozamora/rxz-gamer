@@ -309,6 +309,25 @@ export default function AdminPage({ view = "dashboard" }: { view?: "dashboard" |
         const userId = String(row.user_id || "");
         if (userId && !customers.has(userId)) customers.set(userId, { name: row.customer_name, email: row.customer_email });
       });
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userIds = Array.from(new Set((data || []).map((item) => String(item.user_id || "")).filter(Boolean)));
+      if (sessionData.session?.access_token && userIds.length > 0) {
+        const response = await fetch("/api/admin/support/customers", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${sessionData.session.access_token}`,
+          },
+          body: JSON.stringify({ userIds }),
+        });
+        if (response.ok) {
+          const result = await response.json();
+          (result.customers || []).forEach((customer: { user_id: string; email: string | null }) => {
+            const previous = customers.get(customer.user_id);
+            customers.set(customer.user_id, { name: previous?.name || null, email: customer.email || previous?.email || null });
+          });
+        }
+      }
       const items = ((data || []) as SupportConversation[]).map((item) => ({
         ...item,
         customer_name: customers.get(item.user_id)?.name || null,
@@ -943,7 +962,8 @@ export default function AdminPage({ view = "dashboard" }: { view?: "dashboard" |
                     </span>
                   </span>
                   <span style={styles.conversationUser}>
-                    Cliente: {conversation.customer_name || conversation.customer_email || "Usuario registrado"}
+                    Cliente: {conversation.customer_name || "Usuario registrado"}
+                    <br />Correo: {conversation.customer_email || "No disponible"}
                   </span>
                   <span style={styles.conversationDate}>
                     {new Date(conversation.updated_at).toLocaleString("es-AR")}
@@ -962,7 +982,8 @@ export default function AdminPage({ view = "dashboard" }: { view?: "dashboard" |
                   <div>
                     <strong>{selectedConversation.subject}</strong>
                     <div style={styles.conversationUser}>
-                      Cliente: {selectedConversation.customer_name || selectedConversation.customer_email || "Usuario registrado"}
+                      Cliente: {selectedConversation.customer_name || "Usuario registrado"}
+                      <br />Correo: {selectedConversation.customer_email || "No disponible"}
                     </div>
                   </div>
                   <button

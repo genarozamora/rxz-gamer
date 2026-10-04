@@ -21,7 +21,6 @@ type CartItem = Product & {
 };
 
 const STORE_SHARE_TEXT = "Somos RXZ Gamer, una tienda de Córdoba especializada en periféricos y tecnología gamer. Vendemos mouse, teclados y controles seleccionados, con stock real y atención personalizada.";
-const GUEST_CHECKOUT_ENABLED = process.env.NEXT_PUBLIC_ENABLE_GUEST_CHECKOUT === "true";
 
 
 function money(value: number) {
@@ -90,7 +89,6 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
   const [recentIds, setRecentIds] = useState<number[]>([]);
-  const [trustNudge, setTrustNudge] = useState(false);
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -251,22 +249,6 @@ export default function Home() {
     return () => window.clearTimeout(timer);
   }, [search]);
 
-  useEffect(() => {
-    if (!loaded) return;
-    let hideTimer = 0;
-    const show = () => {
-      setTrustNudge(true);
-      hideTimer = window.setTimeout(() => setTrustNudge(false), 6500);
-    };
-    const firstTimer = window.setTimeout(show, 12000);
-    const repeatTimer = window.setInterval(show, 48000);
-    return () => {
-      window.clearTimeout(firstTimer);
-      window.clearTimeout(hideTimer);
-      window.clearInterval(repeatTimer);
-    };
-  }, [loaded]);
-
   const selectedVariant = selected?.variants?.find((variant) => variant.id === selectedVariantId);
 
   const categories = useMemo(
@@ -287,6 +269,16 @@ export default function Home() {
       return 0;
     });
   }, [search, category, sort, catalogProducts, favoriteIds]);
+
+  const comparableProducts = useMemo(() => {
+    const groups = new Map<string, Product[]>();
+    catalogProducts.forEach((product) => {
+      const group = groups.get(product.category) || [];
+      group.push(product);
+      groups.set(product.category, group);
+    });
+    return Array.from(groups.values()).filter((group) => group.length > 1).flat();
+  }, [catalogProducts]);
 
   const searchSuggestions = useMemo(() => {
     if (search.trim().length < 2) return [];
@@ -504,7 +496,7 @@ export default function Home() {
 
   function goToCheckout() {
     setCartOpen(false);
-    window.location.href = userEmail || GUEST_CHECKOUT_ENABLED ? "/checkout" : "/login?next=/checkout";
+    window.location.href = userEmail ? "/checkout" : "/login?next=/checkout";
   }
 
   function nextImage(direction: number) {
@@ -555,18 +547,8 @@ export default function Home() {
         </button>
 
         <nav id="navegacion-principal" className={menuOpen ? "navOpen" : ""} onClick={() => setMenuOpen(false)}>
-          <a href="#inicio">Inicio</a>
-          <button className="navShare" onClick={shareStore}>↗ Compartir</button>
           <a href="#productos">Productos</a>
-          <details className="navCategories">
-            <summary>Categorías</summary>
-            <div>{categories.filter((item) => !["Todos", "Ofertas", "Favoritos"].includes(item)).map((item) => <Link key={item} href={`/?categoria=${encodeURIComponent(item)}#productos`}>{item}</Link>)}</div>
-          </details>
           <Link href="/?categoria=Ofertas#productos">Ofertas</Link>
-          <a href="#comparar">Comparar</a>
-          <a href="#beneficios">Envíos</a>
-          <a href="#preguntas">Preguntas</a>
-          <a href="#contacto">Contacto</a>
           <a href={userEmail ? "/ayuda" : "/login?next=/ayuda"}>Ayuda</a>
           <a href={isAdmin ? "/admin#pedidos" : userEmail ? "/cuenta#pedidos" : "/login?next=/cuenta"}>
             Pedidos
@@ -614,8 +596,6 @@ export default function Home() {
           </a>
         </div>
 
-        <button className="heroShare" onClick={shareStore}>↗ Compartir RXZ Gamer</button>
-
         <div className="trust">
           <div>
             <strong>🚚</strong>
@@ -641,20 +621,6 @@ export default function Home() {
               </span>
           </div>
         </div>
-      </section>
-
-      <section className="reelExperience" aria-labelledby="reel-experience-title">
-        <div className="reelIntro">
-          <span>LA EXPERIENCIA RXZ</span>
-          <h2 id="reel-experience-title">Elegí tu próximo upgrade.</h2>
-          <p>Información directa, comparaciones claras y tecnología que realmente suma a tu setup.</p>
-        </div>
-        <div className="reelCards">
-          <a className="reelCard reelCardGreen" href="#productos"><small>01 · DESCUBRÍ</small><strong>TODO EMPIEZA CON EL SETUP.</strong><span>Explorá periféricos seleccionados por rendimiento.</span><b>VER CATÁLOGO →</b></a>
-          <a className="reelCard reelCardBlue" href="#comparar"><small>02 · COMPARÁ</small><strong>DATOS REALES. DECISIÓN SIMPLE.</strong><span>Revisá características, variantes, stock y precio.</span><b>COMPARAR OPCIONES →</b></a>
-          <a className="reelCard reelCardDark" href="#beneficios"><small>03 · ELEGÍ</small><strong>TU SETUP. TU NIVEL.</strong><span>Compra segura, atención directa y envíos nacionales.</span><b>CONOCER RXZ →</b></a>
-        </div>
-        <div className="performanceTicker" aria-label="Características de RXZ Gamer"><div><span>GAMING</span><i aria-hidden="true">✦</i><span>PERFORMANCE</span><i aria-hidden="true">✦</i><span>TECNOLOGÍA</span></div></div>
       </section>
 
       <section id="productos" className="products">
@@ -858,18 +824,17 @@ export default function Home() {
                         else add(product);
                       }}
                     >
-                      {product.stock <= 0 ? "SIN STOCK" : "AGREGAR AL CARRITO"}
+                      {product.stock <= 0 ? "SIN STOCK" : "＋ CARRITO"}
                     </button>
                     <button
                       className="buy"
                       disabled={product.stock <= 0}
                       onClick={(event) => {
                         event.stopPropagation();
-                        if (product.variants?.length) openProduct(product, "buy");
-                        else buyNow(product);
+                        openProduct(product);
                       }}
                     >
-                      {product.stock <= 0 ? "SIN STOCK" : "COMPRAR AHORA"}
+                      {product.stock <= 0 ? "SIN STOCK" : "VER PRODUCTO"}
                     </button>
                   </div>
                 </div>
@@ -907,16 +872,16 @@ export default function Home() {
         </section>
       )}
 
-      <section id="comparar" className="compareSection" aria-labelledby="compare-title">
+      {comparableProducts.length > 1 && <section id="comparar" className="compareSection" aria-labelledby="compare-title">
         <div className="compareHead">
           <div>
             <span>COMPARÁ SIN COMPLICARTE</span>
-            <h2 id="compare-title">Encontrá el ideal para vos</h2>
+            <h2 id="compare-title">Compará productos similares</h2>
           </div>
-          <p>Las diferencias más importantes de cada producto, juntas y fáciles de revisar.</p>
+          <p>Comparamos únicamente productos de la misma categoría para que la información sea útil.</p>
         </div>
         <div className="compareGrid">
-          {catalogProducts.map((product) => {
+          {comparableProducts.map((product) => {
             const included = product.specs.find((spec) => spec.label === "Incluye")?.value;
             return (
               <article className="compareCard" key={product.id}>
@@ -938,7 +903,7 @@ export default function Home() {
             );
           })}
         </div>
-      </section>
+      </section>}
 
       <section id="beneficios" className="benefits">
         <div>
@@ -1077,13 +1042,13 @@ export default function Home() {
           <span aria-hidden="true">⌕</span>
           Buscar
         </a>
-        <Link href="/?categoria=Ofertas#productos" aria-label="Ver ofertas vigentes">
-          <span aria-hidden="true">%</span>
-          Ofertas
-        </Link>
-        <a href={userEmail ? "/cuenta" : "/login"} aria-label={userEmail ? "Abrir mi cuenta" : "Iniciar sesión"}>
+        <a href={isAdmin ? "/admin#pedidos" : userEmail ? "/cuenta#pedidos" : "/login?next=/cuenta"} aria-label="Ver mis pedidos">
           <span aria-hidden="true">♙</span>
-          Cuenta
+          Pedidos
+        </a>
+        <a href={userEmail ? "/ayuda" : "/login?next=/ayuda"} aria-label="Abrir soporte RXZ Gamer">
+          <span aria-hidden="true">💬</span>
+          Soporte
         </a>
         <button
           type="button"
@@ -1115,14 +1080,6 @@ export default function Home() {
             <button onClick={() => { setSelected(null); setCartOpen(true); }}>VER CARRITO</button>
           )}
         </div>
-      )}
-
-      {trustNudge && !selected && !cartOpen && (
-        <aside className="trustNudge" role="status" aria-live="polite">
-          <span aria-hidden="true">✓</span>
-          <div><strong>COMPRÁ CON INFORMACIÓN CLARA</strong><small>Stock visible, atención directa y seguimiento personal de tu pedido.</small></div>
-          <button type="button" onClick={() => setTrustNudge(false)} aria-label="Cerrar aviso">×</button>
-        </aside>
       )}
 
       {selected && (
@@ -2759,7 +2716,7 @@ export default function Home() {
           header > nav > a { font-size: 12px; }
           .logo { flex-shrink: 0; }
         }
-        .cardActions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+        .cardActions { display:grid; grid-template-columns:minmax(92px,.55fr) 1fr; gap:10px; margin-top:12px; }
         .cardActions .details,.cardActions .buy { margin-top:0; min-height:58px; padding:12px 10px; font-size:12px; line-height:1.25; }
         .performanceTicker div { width: 100%; flex-wrap: wrap; justify-content: center; gap: 12px 24px; letter-spacing: 1.5px; }
         .hero p, .sectionHead p { color: #a9b6c9; }
@@ -2834,8 +2791,7 @@ export default function Home() {
           .navCategories { width:100%; }
           .navCategories summary { padding:12px 0; }
           .navCategories > div { position:static; min-width:0; margin-top:4px; box-shadow:none; transform:none; }
-          .supportFloat { right: 16px; bottom: 88px; width: 52px; height: 52px; font-size: 23px; }
-          .backToTop { right: 20px; bottom: 148px; }
+          .supportFloat, .backToTop { display:none; }
           .compareHead { align-items:start; flex-direction:column; gap:12px; }
           .compareGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
           .faqSection { grid-template-columns:1fr; gap:25px; margin:70px auto; }
