@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { trackStoreEvent } from "@/lib/store-tracking";
 import { trackMetaEvent } from "@/lib/meta-pixel";
@@ -25,6 +26,7 @@ type CreatedOrder = {
 
 const ALIAS = "genaroperaltaz";
 export default function CheckoutPage() {
+  const router = useRouter();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -54,7 +56,7 @@ export default function CheckoutPage() {
         setEmail(user.email || "");
       } else {
         if (user?.is_anonymous) await supabase.auth.signOut();
-        window.location.href = "/login?next=/checkout";
+        router.replace("/login?next=/checkout");
         return;
       }
 
@@ -178,7 +180,7 @@ export default function CheckoutPage() {
       } = await supabase.auth.getUser();
 
       if (!user || user.is_anonymous) {
-        window.location.href = "/login?next=/checkout";
+        router.replace("/login?next=/checkout");
         return;
       }
 
@@ -300,7 +302,7 @@ export default function CheckoutPage() {
           <button
             style={styles.primaryButton}
             onClick={() =>
-              (window.location.href = `/cuenta`)
+              router.push("/cuenta")
             }
           >
             IR A MI CUENTA
@@ -308,7 +310,7 @@ export default function CheckoutPage() {
 
           <button
             style={styles.secondaryButton}
-            onClick={() => (window.location.href = "/")}
+            onClick={() => router.push("/")}
           >
             VOLVER A LA TIENDA
           </button>
@@ -484,7 +486,7 @@ export default function CheckoutPage() {
 
           <button
             style={styles.secondaryButton}
-            onClick={() => (window.location.href = "/")}
+            onClick={() => router.push("/")}
           >
             VOLVER A LA TIENDA
           </button>

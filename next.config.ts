@@ -12,9 +12,9 @@ const contentSecurityPolicy = [
   "frame-ancestors 'none'",
   "img-src 'self' blob: data: https:",
   "object-src 'none'",
-  "script-src 'self' 'unsafe-inline'",
+  "script-src 'self' 'unsafe-inline' https://connect.facebook.net",
   "style-src 'self' 'unsafe-inline'",
-  `connect-src 'self' ${supabaseOrigin} ${supabaseWebSocket}`,
+  `connect-src 'self' ${supabaseOrigin} ${supabaseWebSocket} https://connect.facebook.net https://www.facebook.com`,
   "upgrade-insecure-requests",
 ].join("; ");
 

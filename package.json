@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test tests/product-catalog.test.cjs"
+    "test": "node --test --test-isolation=none tests/*.test.cjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",

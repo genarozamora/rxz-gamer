@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState<"login" | "register" | "recover" | "update">("login");
@@ -80,7 +82,7 @@ export default function LoginPage() {
         if (error) {
           setMessage("No pudimos completar el registro. Revisá los datos o intentá más tarde.");
         } else if (data.session) {
-          window.location.href = "/";
+          router.replace("/");
         } else {
           setMessage(
             "Cuenta creada. Confirmá el correo y entrarás automáticamente a RXZ Gamer."
@@ -96,7 +98,7 @@ export default function LoginPage() {
           setMessage("No pudimos iniciar sesión con esos datos. Revisalos o recuperá tu contraseña.");
         } else {
           const requested = new URLSearchParams(window.location.search).get("next");
-          window.location.href = requested?.startsWith("/") && !requested.startsWith("//") ? requested : "/";
+          router.replace(requested?.startsWith("/") && !requested.startsWith("//") ? requested : "/");
         }
       }
     } catch {
@@ -290,7 +292,7 @@ export default function LoginPage() {
         </button>
 
         <button
-          onClick={() => (window.location.href = "/")}
+          onClick={() => router.push("/")}
           style={{
             marginTop: "15px",
             width: "100%",

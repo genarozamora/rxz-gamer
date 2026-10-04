@@ -18,35 +18,21 @@ function keepPublicStorePages(event: BeforeSendEvent) {
 
 export function StoreObservability() {
   useEffect(() => {
-    const preserveReadableBrowserZoom = () => {
-      const viewportRatio = window.outerWidth > 0 && window.innerWidth > 0
-        ? window.outerWidth / window.innerWidth
-        : 1;
-      const pixelRatio = window.devicePixelRatio || 1;
-      const viewportCompensation = viewportRatio < 0.72 ? 1 / viewportRatio : 1;
-      const pixelCompensation = pixelRatio < 0.75 ? 1 / pixelRatio : 1;
-      const compensation = Math.min(
-        5,
-        Math.max(1, viewportCompensation, pixelCompensation),
-      );
-      const guardActive = compensation > 1;
-      document.body.style.zoom = guardActive ? String(compensation) : "";
+    const syncViewportHeight = () => {
+      const height = window.visualViewport?.height || window.innerHeight;
       document.documentElement.style.setProperty(
         "--rxz-viewport-height",
-        `${window.innerHeight / compensation}px`,
+        `${Math.round(height)}px`,
       );
-      document.documentElement.dataset.zoomGuard = compensation > 1 ? "active" : "normal";
     };
 
-    preserveReadableBrowserZoom();
-    window.addEventListener("resize", preserveReadableBrowserZoom);
-    window.visualViewport?.addEventListener("resize", preserveReadableBrowserZoom);
+    syncViewportHeight();
+    window.addEventListener("resize", syncViewportHeight);
+    window.visualViewport?.addEventListener("resize", syncViewportHeight);
     return () => {
-      window.removeEventListener("resize", preserveReadableBrowserZoom);
-      window.visualViewport?.removeEventListener("resize", preserveReadableBrowserZoom);
-      document.body.style.zoom = "";
+      window.removeEventListener("resize", syncViewportHeight);
+      window.visualViewport?.removeEventListener("resize", syncViewportHeight);
       document.documentElement.style.removeProperty("--rxz-viewport-height");
-      delete document.documentElement.dataset.zoomGuard;
     };
   }, []);
 

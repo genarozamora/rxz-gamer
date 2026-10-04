@@ -1226,7 +1226,7 @@ export default function Home() {
                 </small>
 
                 <div className="purchaseTrust" aria-label="Beneficios de compra">
-                  <span>🔒 Compra protegida</span>
+                  <span>🔒 Pago verificado</span>
                   <span>🚚 Envíos a todo el país</span>
                   <span>💬 Soporte directo</span>
                 </div>
@@ -1398,7 +1398,7 @@ export default function Home() {
                 </div>
 
                 <div className="cartAssurance" aria-label="Información de compra segura">
-                  <span>🔒 Pedido protegido</span>
+                  <span>🔒 Pago verificado</span>
                   <span>📦 Stock confirmado</span>
                   <span>💬 Soporte directo</span>
                 </div>
@@ -1713,28 +1713,6 @@ export default function Home() {
         .trust b { font-size: 13px; }
         .trust small { color: #7e8ca1; }
 
-        .reelExperience { max-width: 1450px; margin: 0 auto; padding: 35px 5% 80px; overflow: hidden; }
-        .reelIntro { display: grid; grid-template-columns: .75fr 1.35fr 1fr; align-items: end; gap: 30px; margin-bottom: 30px; }
-        .reelIntro > span { color: #22c55e; font-size: 11px; font-weight: 950; letter-spacing: 3px; }
-        .reelIntro h2 { margin: 0; font-size: clamp(34px,4.4vw,65px); line-height: .95; letter-spacing: -2.5px; }
-        .reelIntro p { margin: 0; color: #8f9db1; line-height: 1.6; }
-        .reelCards { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
-        .reelCard { min-height: 390px; padding: 30px; border-radius: 24px; text-decoration: none; color: white; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; isolation: isolate; border: 1px solid rgba(255,255,255,.1); transition: transform .35s ease,border-color .35s ease,box-shadow .35s ease; }
-        .reelCard::before { content: ""; position: absolute; inset: -35%; z-index: -1; background: conic-gradient(from 180deg,transparent,rgba(255,255,255,.13),transparent 35%); }
-        .reelCard::after { content: ""; position: absolute; width: 220px; height: 220px; border: 1px solid rgba(255,255,255,.2); border-radius: 50%; top: 35px; right: -60px; box-shadow: 0 0 80px currentColor; opacity: .35; z-index: -1; }
-        .reelCard:hover { transform: translateY(-3px); border-color: rgba(80,255,177,.55); box-shadow: 0 30px 70px rgba(0,0,0,.38); }
-        .reelCard small { color: #b8c6d8; font-weight: 900; letter-spacing: 2px; }
-        .reelCard strong { max-width: 390px; margin: 18px 0 13px; font-size: clamp(25px,2.4vw,39px); line-height: .95; letter-spacing: -1px; }
-        .reelCard span { max-width: 360px; color: #c4cedb; line-height: 1.55; }
-        .reelCard b { margin-top: 28px; color: #86efac; font-size: 12px; letter-spacing: 1.5px; }
-        .reelCardGreen { background: radial-gradient(circle at 85% 15%,rgba(34,197,94,.22),transparent 35%),linear-gradient(145deg,#071c17,#07100e 65%); color: #f1f5f9; }
-        .reelCardBlue { background: radial-gradient(circle at 85% 15%,rgba(56,189,248,.22),transparent 35%),linear-gradient(145deg,#071622,#050a11 65%); color: #f1f5f9; }
-        .reelCardDark { background: radial-gradient(circle at 85% 15%,rgba(45,212,191,.18),transparent 35%),linear-gradient(145deg,#0b1923,#070d15 65%); color: #f1f5f9; }
-        .performanceTicker { margin-top: 18px; border-block: 1px solid rgba(80,255,177,.18); overflow: hidden; color: #dfffee; }
-        .performanceTicker div { width: max-content; display: flex; gap: 28px; padding: 17px 0; font-size: 13px; font-weight: 950; letter-spacing: 3px; }
-        .performanceTicker i { color: #22c55e; font-style: normal; }
-        @keyframes reelSweep { to { transform: rotate(360deg); } }
-        @keyframes tickerMove { to { transform: translateX(-50%); } }
 
         .products {
           max-width: 1450px;
@@ -2701,14 +2679,7 @@ export default function Home() {
         .purchaseTrust span { padding:8px 10px; border:1px solid #263349; border-radius:9px; background:rgba(15,23,42,.75); color:#cbd5e1; font-size:12px; }
         .buyNowBtn { min-width:190px; border:1px solid #22c55e; border-radius:10px; padding:14px 20px; background:transparent; color:#86efac; font-weight:950; }
         .buyNowBtn:hover:not(:disabled) { background:rgba(34,197,94,.1); }
-        .trustNudge { position:fixed; left:24px; bottom:24px; z-index:125; width:min(390px,calc(100vw - 32px)); display:grid; grid-template-columns:42px 1fr 28px; gap:12px; align-items:center; padding:16px; border:1px solid rgba(74,222,128,.55); border-radius:16px; background:rgba(5,20,16,.96); color:white; box-shadow:0 18px 55px rgba(0,0,0,.48); backdrop-filter:blur(14px); animation:nudgeIn .45s ease-out; }
-        .trustNudge > span { display:grid; place-items:center; width:42px; height:42px; border-radius:50%; background:#22c55e; color:#031008; font-size:22px; font-weight:950; }
-        .trustNudge strong,.trustNudge small { display:block; }
-        .trustNudge strong { color:#86efac; font-size:12px; letter-spacing:.08em; }
-        .trustNudge small { margin-top:4px; color:#d2dbe7; line-height:1.4; }
-        .trustNudge button { border:0; background:transparent; color:#aab6c6; font-size:24px; }
-        @keyframes nudgeIn { from { opacity:0; transform:translateY(18px) scale(.97); } to { opacity:1; transform:none; } }
-        @media (prefers-reduced-motion:reduce) { .activeVariant,.trustNudge { animation:none; } }
+        @media (prefers-reduced-motion:reduce) { .activeVariant { animation:none; } }
 
         @media (min-width:901px) and (max-width:1450px) {
           header { padding-inline: 24px; gap: 16px; }
@@ -2718,20 +2689,18 @@ export default function Home() {
         }
         .cardActions { display:grid; grid-template-columns:minmax(92px,.55fr) 1fr; gap:10px; margin-top:12px; }
         .cardActions .details,.cardActions .buy { margin-top:0; min-height:58px; padding:12px 10px; font-size:12px; line-height:1.25; }
-        .performanceTicker div { width: 100%; flex-wrap: wrap; justify-content: center; gap: 12px 24px; letter-spacing: 1.5px; }
         .hero p, .sectionHead p { color: #a9b6c9; }
         .trust small { color: #a4b2c5; }
         .categories button { min-height: 44px; }
         .menuBtn { min-width: 44px; min-height: 44px; }
         .modal { overscroll-behavior: contain; }
         @media (hover:none) {
-          .card:hover, .reelCard:hover { transform: none; }
+          .card:hover { transform: none; }
         }
 
         @media(max-width:900px) {
           .footerGrid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:34px 24px; }
           .footerBottom { align-items:flex-start; flex-direction:column; }
-          .trustNudge { left:16px; bottom:104px; }
           main { padding-bottom: 78px; }
           .mobileDock {
             position: fixed;
@@ -2797,10 +2766,6 @@ export default function Home() {
           .faqSection { grid-template-columns:1fr; gap:25px; margin:70px auto; }
           .faqIntro { position:static; }
           .cartAssurance { grid-template-columns:1fr; }
-          .reelExperience { padding: 20px 16px 60px; }
-          .reelIntro { grid-template-columns: 1fr; gap: 12px; }
-          .reelCards { grid-template-columns: 1fr; }
-          .reelCard { min-height: 210px; padding: 24px; }
           .recentGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
           .savedCart { margin:0 5% 70px; }
           .shareSection { margin:70px 5%; grid-template-columns:1fr; }

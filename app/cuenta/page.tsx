@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { productPath } from "@/lib/catalog";
 
@@ -163,6 +164,7 @@ function OrderProgress({ status }: { status: string }) {
 }
 
 export default function CuentaPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [userId, setUserId] = useState("");
   const [orders, setOrders] = useState<Order[]>([]);
@@ -183,7 +185,7 @@ export default function CuentaPage() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      window.location.href = "/login";
+      router.replace("/login");
       return;
     }
 
@@ -222,7 +224,7 @@ export default function CuentaPage() {
 
   async function logout() {
     await supabase.auth.signOut();
-    window.location.href = "/";
+    router.replace("/");
   }
 
   async function uploadReceipt(order: Order, file: File) {
@@ -317,7 +319,7 @@ export default function CuentaPage() {
 
           <div style={styles.headerButtons}>
             <button
-              onClick={() => (window.location.href = "/")}
+              onClick={() => router.push("/")}
               style={styles.secondaryButton}
             >
               VOLVER A LA TIENDA

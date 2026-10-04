@@ -616,7 +616,7 @@ export default function AdminPage({ view = "dashboard" }: { view?: "dashboard" |
 
   async function logout() {
     await supabase.auth.signOut();
-    window.location.href = "/";
+    router.replace("/");
   }
 
   const filteredOrders = orders.filter((order) => matchesOrderStatus(order.status, orderFilter) && matchesAdminSearch(orderSearch, [order.order_number, order.customer_name, order.customer_email, order.customer_phone, order.tracking_number, ...(order.order_items || []).map((item) => item.product_name)]));
@@ -647,7 +647,7 @@ export default function AdminPage({ view = "dashboard" }: { view?: "dashboard" |
 
           <button
             style={styles.secondaryButton}
-            onClick={() => (window.location.href = "/")}
+            onClick={() => router.push("/")}
           >
             VOLVER A RXZ GAMER
           </button>
@@ -678,7 +678,7 @@ export default function AdminPage({ view = "dashboard" }: { view?: "dashboard" |
             <a href={view === "orders" ? "/admin#soporte" : "/admin/pedidos"} style={styles.secondaryButton}>{view === "orders" ? "Ir a soporte" : "Ver pedidos"}</a>
             <button
               style={styles.secondaryButton}
-              onClick={() => (window.location.href = "/cuenta")}
+              onClick={() => router.push("/cuenta")}
             >
               Mi cuenta
             </button>

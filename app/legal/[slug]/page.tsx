@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PrivacySettings } from "@/app/privacy-settings";
 
 const pages = {
   terminos: {
@@ -18,6 +19,7 @@ const pages = {
       ["Datos que utilizamos", "Tratamos los datos necesarios para crear la cuenta, gestionar pedidos, coordinar entregas, verificar pagos y responder consultas."],
       ["Finalidad", "La información se utiliza exclusivamente para prestar el servicio, prevenir fraudes, cumplir obligaciones aplicables y mejorar la experiencia de compra."],
       ["Medición de campañas", "Cuando ingresás desde una campaña o un enlace compartido, podemos registrar parámetros de atribución como fuente, medio y campaña para medir resultados. No guardamos en esos parámetros contraseñas ni datos bancarios."],
+      ["Publicidad opcional", "El píxel publicitario de Meta solo se activa si elegís Aceptar medición. Si elegís Solo necesarias, podés navegar y comprar normalmente sin activar esa medición publicitaria."],
       ["Proveedores", "Podemos compartir los datos indispensables con servicios de alojamiento, base de datos y transporte que intervienen en la operación."],
       ["Seguridad y conservación", "Aplicamos controles de acceso y conservamos la información durante el tiempo necesario para gestionar la relación comercial y cumplir obligaciones."],
       ["Tus derechos", "Podés solicitar acceso, corrección o eliminación de tus datos desde Ayuda. Algunas constancias pueden conservarse cuando exista una obligación legal."],
@@ -58,7 +60,7 @@ export default async function LegalPage({ params }: { params: Promise<{ slug: st
         <Link href="/" className="text-sm font-bold text-emerald-400 no-underline">← VOLVER A RXZ GAMER</Link>
         <p className="mt-8 text-xs font-black tracking-[.25em] text-emerald-400">INFORMACIÓN IMPORTANTE</p>
         <h1 className="mt-2 text-3xl font-black sm:text-4xl">{page.title}</h1>
-        <p className="mt-3 text-sm text-slate-400">Última actualización: septiembre de 2026</p>
+        <p className="mt-3 text-sm text-slate-400">Última actualización: octubre de 2026</p>
         <div className="mt-9 space-y-8">
           {page.sections.map(([title, body]) => (
             <section key={title}>
@@ -67,6 +69,7 @@ export default async function LegalPage({ params }: { params: Promise<{ slug: st
             </section>
           ))}
         </div>
+        {slug === "privacidad" && <PrivacySettings />}
         <div className="mt-10 rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-5 text-sm text-slate-300">
           ¿Necesitás ayuda? <Link href="/ayuda" className="font-bold text-emerald-400">Abrí una consulta</Link>.
         </div>

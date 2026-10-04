@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { findCatalogProduct, productPath, PRODUCTS, type Product } from "@/lib/catalog";
 import { supabase } from "@/lib/supabase";
@@ -14,6 +14,7 @@ const money = (value: number) => new Intl.NumberFormat("es-AR", { style: "curren
 type Review = { id: string; rating: number; comment: string; created_at: string };
 
 export default function ProductPage() {
+  const router = useRouter();
   const { id } = useParams<{ id: string }>();
   const routeProduct = findCatalogProduct(id);
   const productId = routeProduct?.id;
@@ -169,7 +170,7 @@ export default function ProductPage() {
       });
       setCartAdded(true);
       setCartMessage(`✓ ${product.name}${variant ? ` · ${variant.label}` : ""} se agregó al carrito.`);
-      if (checkoutNow) window.location.href = "/checkout";
+      if (checkoutNow) router.push("/checkout");
     } catch {
       setCartMessage("No pudimos actualizar el carrito. Intentá nuevamente.");
     }
@@ -304,7 +305,7 @@ export default function ProductPage() {
             </div>
             <div className="mt-4 grid grid-cols-3 gap-2 text-center text-[11px] font-bold text-slate-300">
               <span className="rounded-xl border border-white/10 bg-[#06101a] p-3">✓ Stock real</span>
-              <span className="rounded-xl border border-white/10 bg-[#06101a] p-3">✓ Compra protegida</span>
+              <span className="rounded-xl border border-white/10 bg-[#06101a] p-3">✓ Pago verificado</span>
               <span className="rounded-xl border border-white/10 bg-[#06101a] p-3">✓ Envío con seguimiento</span>
         </div>
         {zoomOpen && <div className="fixed inset-0 z-[100] grid place-items-center bg-black/95 px-4 py-24 backdrop-blur sm:px-16" role="dialog" aria-modal="true" aria-label={`Foto ampliada de ${product.name}`} onClick={() => setZoomOpen(false)}><button type="button" onClick={() => setZoomOpen(false)} className="fixed right-5 top-5 z-[101] grid h-12 w-12 place-items-center rounded-full border border-white/20 bg-slate-900 text-3xl text-white" aria-label="Cerrar foto ampliada">×</button><div className="grid h-full w-full place-items-center overflow-auto" onClick={(event) => event.stopPropagation()}><img src={product.images[imageIndex] || selectedVariant?.image || product.images[0]} alt={`${product.name} ampliado`} className="h-auto max-w-none object-contain transition-[width]" style={{ width: `${Math.round(zoomScale * 88)}%`, maxHeight: zoomScale === 1 ? "78vh" : "none" }} /></div><div className="fixed bottom-5 left-1/2 z-[101] flex -translate-x-1/2 items-center gap-2 rounded-xl border border-white/20 bg-slate-900 p-2"><button type="button" disabled={zoomScale <= 1} onClick={(event) => { event.stopPropagation(); setZoomScale((scale) => Math.max(1, scale - .5)); }} className="h-11 min-w-11 rounded-lg bg-slate-700 px-3 text-xl font-black disabled:opacity-30">−</button><strong className="min-w-14 text-center text-emerald-300">{Math.round(zoomScale * 100)}%</strong><button type="button" disabled={zoomScale >= 3} onClick={(event) => { event.stopPropagation(); setZoomScale((scale) => Math.min(3, scale + .5)); }} className="h-11 min-w-11 rounded-lg bg-slate-700 px-3 text-xl font-black disabled:opacity-30">+</button></div></div>}
