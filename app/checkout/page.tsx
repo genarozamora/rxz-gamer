@@ -74,7 +74,7 @@ export default function CheckoutPage() {
     }
 
     load();
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (loading || cart.length === 0 || trackedCheckout.current) return;

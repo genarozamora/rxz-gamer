@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AdminNav } from "../admin-nav";
 import { supabase } from "@/lib/supabase";
 import { summarizeMetrics, type StoreEvent, type MetricOrder } from "@/lib/store-metrics";
 
 type Report = ReturnType<typeof summarizeMetrics>;
 export default function MetricsPage() {
+  const router = useRouter();
   const [days, setDays] = useState(30);
   const [attempt, setAttempt] = useState(0);
   const [report, setReport] = useState<Report | null>(null);
@@ -23,7 +25,7 @@ export default function MetricsPage() {
       setLoading(true); setMessage(""); setReport(null);
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { window.location.href = "/login?next=/admin/metricas"; return; }
+        if (!user) { router.replace("/login?next=/admin/metricas"); return; }
         const { data: staff, error: accessError } = await supabase.from("support_staff").select("user_id").eq("user_id", user.id).maybeSingle();
         if (accessError || !staff) throw new Error("No se pudo verificar tu acceso al panel.");
         const until = new Date().toISOString();
@@ -54,7 +56,7 @@ export default function MetricsPage() {
       finally { if (!cancelled) setLoading(false); }
     }
     void load(); return () => { cancelled = true; };
-  }, [days, attempt]);
+  }, [days, attempt, router]);
 
   return <main className="min-h-screen bg-[#03070c] px-5 py-10 text-white"><div className="mx-auto max-w-6xl"><AdminNav />
     <h1 className="text-3xl font-black">Métricas de la tienda</h1>

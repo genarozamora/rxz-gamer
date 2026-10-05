@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { AdminNav } from "../admin-nav";
 import { matchesAdminSearch, productEditorImages } from "@/lib/admin-tools";
@@ -11,6 +12,7 @@ type ProductRow = { id: number; slug: string; brand: string; name: string; categ
 const empty = { brand: "", name: "", category: "", price: "", oldPrice: "", stock: "0", description: "", image: "" };
 
 export default function ProductsAdminPage() {
+  const router = useRouter();
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [variants, setVariants] = useState<Variant[]>([]);
   const [form, setForm] = useState(empty);
@@ -34,9 +36,9 @@ export default function ProductsAdminPage() {
 
   async function load() {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { window.location.href = "/login?next=/admin/productos"; return; }
+    if (!user) { router.replace("/login?next=/admin/productos"); return; }
     const { data: staff } = await supabase.from("support_staff").select("user_id").eq("user_id", user.id).maybeSingle();
-    if (!staff) { window.location.href = "/"; return; }
+    if (!staff) { router.replace("/"); return; }
     const { data, error } = await supabase.from("products").select("id,slug,brand,name,category,price,old_price,stock,description,active,images,variants,updated_at").order("created_at", { ascending: false });
     if (error) setMessage(`No se pudo cargar el catálogo: ${error.message}`); else setProducts((data || []) as ProductRow[]);
     setLoading(false);

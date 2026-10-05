@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   },
 
   description:
-    "RXZ Gamer: periféricos y tecnología gamer seleccionada por rendimiento y relación precio-calidad. Mouse, teclados, controles y más. Envíos a todo el país.",
+    "Somos RXZ Gamer, una tienda de Córdoba especializada en periféricos y tecnología gamer. Mouse, teclados y controles seleccionados, con stock real y atención personalizada.",
 
   keywords: [
     "RXZ Gamer",
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
     url: "/",
     title: "RXZ Gamer | Periféricos y Tecnología Gamer",
     description:
-      "Mouse, teclados, controles y periféricos gamer. Envíos a todo el país.",
+      "Tienda de Córdoba especializada en mouse, teclados, controles y periféricos gamer, con stock real y atención personalizada.",
     images: [{ url: "/rxz-logo-512.png?brand=rxz-v3", width: 512, height: 512, alt: "Logo oficial de RXZ Gamer" }],
   },
 
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "RXZ Gamer | Periféricos y Tecnología Gamer",
     description:
-      "Mouse, teclados, controles y periféricos gamer. Envíos a todo el país.",
+      "Tienda de Córdoba especializada en mouse, teclados, controles y periféricos gamer, con stock real y atención personalizada.",
     images: ["/rxz-logo-512.png?brand=rxz-v3"],
   },
 

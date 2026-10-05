@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/admin/", "/checkout", "/cuenta"],
+      disallow: ["/admin", "/api", "/checkout", "/cuenta", "/login", "/ayuda"],
     },
     sitemap: "https://rxzgamer.com.ar/sitemap.xml",
     host: "https://rxzgamer.com.ar",

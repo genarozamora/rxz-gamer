@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { trackStoreEvent } from "@/lib/store-tracking";
 import { supabase } from "@/lib/supabase";
@@ -60,6 +61,7 @@ function SafeImage({
 }
 
 export default function Home() {
+  const router = useRouter();
   const [catalogProducts, setCatalogProducts] = useState<Product[]>([]);
   const [catalogState, setCatalogState] = useState<"loading" | "ready" | "error">("loading");
   const [catalogAttempt, setCatalogAttempt] = useState(0);
@@ -372,7 +374,7 @@ export default function Home() {
 
   async function shareProduct(product: Product) {
     const url = `${window.location.origin}${productPath(product)}?shared=rxz-logo-v3&utm_source=share&utm_medium=organic&utm_campaign=product_recommendation`;
-    const text = `Mirá el ${product.brand} ${product.name} en RXZ Gamer, tienda argentina de periféricos gamer. ${product.subtitle}. Stock real y envíos a todo el país.`;
+    const text = `Mirá el ${product.brand} ${product.name} en RXZ Gamer, tienda de Córdoba especializada en periféricos gamer. ${product.subtitle}. Stock real y atención personalizada.`;
     const message = `${url}\n\n${text}`;
     try {
       if (navigator.share) {
@@ -496,7 +498,7 @@ export default function Home() {
 
   function goToCheckout() {
     setCartOpen(false);
-    window.location.href = userEmail ? "/checkout" : "/login?next=/checkout";
+    router.push(userEmail ? "/checkout" : "/login?next=/checkout");
   }
 
   function nextImage(direction: number) {
@@ -518,20 +520,20 @@ export default function Home() {
       </div>
 
       <div className="siteTop">
-        <div className="announcement" aria-label="Envíos a todo el país, stock actualizado, atención personalizada y compra segura">
+        <div className="announcement" aria-label="Envíos a todo el país, stock actualizado, atención personalizada y pago verificado">
           <div className="announcementTrack">
             <div className="announcementSet">
               <span>🚚 ENVÍOS A TODO EL PAÍS</span><i>✦</i>
               <span>⚡ STOCK ACTUALIZADO</span><i>✦</i>
               <span>💬 ATENCIÓN PERSONALIZADA</span><i>✦</i>
-              <span>🔒 COMPRA SEGURA</span><i>✦</i>
+              <span>✓ PAGO VERIFICADO</span><i>✦</i>
               <span>🎮 PRODUCTOS SELECCIONADOS</span><i>✦</i>
             </div>
             <div className="announcementSet" aria-hidden="true">
               <span>🚚 ENVÍOS A TODO EL PAÍS</span><i>✦</i>
               <span>⚡ STOCK ACTUALIZADO</span><i>✦</i>
               <span>💬 ATENCIÓN PERSONALIZADA</span><i>✦</i>
-              <span>🔒 COMPRA SEGURA</span><i>✦</i>
+              <span>✓ PAGO VERIFICADO</span><i>✦</i>
               <span>🎮 PRODUCTOS SELECCIONADOS</span><i>✦</i>
             </div>
           </div>
@@ -608,7 +610,7 @@ export default function Home() {
           <div>
             <strong>🔒</strong>
             <span>
-              <b>Compra segura</b>
+              <b>Pago verificado</b>
               <small>Transferencia verificada</small>
             </span>
           </div>
@@ -1030,7 +1032,7 @@ export default function Home() {
           <div><strong>AYUDA</strong><Link href="/ayuda">Soporte</Link><Link href="/legal/envios">Envíos</Link><Link href="/#preguntas">Preguntas frecuentes</Link><Link href="/cuenta#pedidos">Seguimiento de pedidos</Link></div>
           <div><strong>INFORMACIÓN</strong><Link href="/legal/terminos">Términos y condiciones</Link><Link href="/legal/privacidad">Privacidad</Link><Link href="/legal/garantias">Información de compra</Link><Link href="/arrepentimiento" className="regretLink">Botón de arrepentimiento</Link></div>
         </div>
-        <div className="footerBottom"><small>© 2026 RXZ Gamer · Todos los derechos reservados.</small><span>Compra segura · Stock real · Atención directa</span></div>
+        <div className="footerBottom"><small>© 2026 RXZ Gamer · Todos los derechos reservados.</small><span>Pago verificado · Stock real · Atención directa</span></div>
       </footer>
 
       <nav className="mobileDock" aria-label="Accesos rápidos">
@@ -1397,7 +1399,7 @@ export default function Home() {
                   <small>El costo del envío se coordina según destino.</small>
                 </div>
 
-                <div className="cartAssurance" aria-label="Información de compra segura">
+                <div className="cartAssurance" aria-label="Información de pago y compra">
                   <span>🔒 Pago verificado</span>
                   <span>📦 Stock confirmado</span>
                   <span>💬 Soporte directo</span>
@@ -1617,8 +1619,8 @@ export default function Home() {
           font-size: 11px;
         }
         .hero {
-          min-height: 620px;
-          padding: 92px 20px 58px;
+          min-height: 560px;
+          padding: 66px 20px 48px;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -1638,8 +1640,8 @@ export default function Home() {
         .hero h1 {
           margin: 28px 0 0;
           max-width: 1100px;
-          font-size: clamp(55px, 8vw, 105px);
-          line-height: .91;
+          font-size: clamp(55px, 7.3vw, 92px);
+          line-height: .93;
           letter-spacing: -5px;
           font-weight: 1000;
           animation: heroReveal .7s cubic-bezier(.2,.75,.2,1) both;
@@ -1653,7 +1655,7 @@ export default function Home() {
           color: #9aa7bb;
           font-size: 19px;
           line-height: 1.7;
-          margin: 32px auto;
+          margin: 25px auto 28px;
           animation: heroReveal .7s .12s cubic-bezier(.2,.75,.2,1) both;
         }
         .heroButtons {
@@ -1695,7 +1697,7 @@ export default function Home() {
           grid-template-columns: repeat(3,1fr);
           gap: 15px;
           width: min(850px,100%);
-          margin-top: 46px;
+          margin-top: 34px;
           animation: heroReveal .7s .3s cubic-bezier(.2,.75,.2,1) both;
         }
         .trust > div {
@@ -2574,7 +2576,7 @@ export default function Home() {
         .compareHead span { color:#19d47f; font-size:12px; font-weight:900; letter-spacing:3px; }
         .compareHead h2 { margin:10px 0 0; font-size:clamp(30px,4vw,48px); }
         .compareHead p { max-width:470px; margin:0; color:#94a3b8; line-height:1.6; }
-        .compareGrid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+        .compareGrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; }
         .compareCard { min-width:0; display:flex; flex-direction:column; padding:16px; border:1px solid #203244; border-radius:18px; background:linear-gradient(145deg,rgba(13,25,38,.97),rgba(6,14,23,.97)); box-shadow:0 18px 45px rgba(0,0,0,.16); }
         .compareProduct { display:flex; align-items:center; gap:12px; min-height:76px; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,.08); }
         .compareProduct img { width:66px; height:66px; flex:0 0 auto; border-radius:11px; background:white; object-fit:contain; padding:4px; }
@@ -2762,7 +2764,7 @@ export default function Home() {
           .navCategories > div { position:static; min-width:0; margin-top:4px; box-shadow:none; transform:none; }
           .supportFloat, .backToTop { display:none; }
           .compareHead { align-items:start; flex-direction:column; gap:12px; }
-          .compareGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+          .compareGrid { grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); }
           .faqSection { grid-template-columns:1fr; gap:25px; margin:70px auto; }
           .faqIntro { position:static; }
           .cartAssurance { grid-template-columns:1fr; }
@@ -2836,7 +2838,7 @@ export default function Home() {
           .cartBtn span { display: none; }
           .announcement { min-height: 36px; font-size: 9px; letter-spacing: .8px; }
           .announcementSet { gap: 18px; padding: 7px 10px; }
-          .hero { min-height: 540px; }
+          .hero { min-height: 500px; }
           .hero h1 { font-size: 52px; }
           .trust { margin-top: 45px; }
           .products { padding-left: 15px; padding-right: 15px; }

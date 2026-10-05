@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "RXZ Gamer",
     short_name: "RXZ Gamer",
-    description: "Periféricos y tecnología gamer con envíos a toda Argentina.",
+    description: "Tienda de Córdoba especializada en periféricos y tecnología gamer.",
     start_url: "/",
     display: "standalone",
     background_color: "#03060b",
